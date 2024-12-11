@@ -1,0 +1,475 @@
+{
+  "components": [
+    {
+      "name": "contact",
+      "display_name": null,
+      "description": null,
+      "created_at": "2024-12-01T14:36:03.379Z",
+      "updated_at": "2024-12-02T03:17:59.732Z",
+      "id": 6630065,
+      "schema": {
+        "intro": {
+          "type": "text",
+          "pos": 0
+        },
+        "employer": {
+          "type": "text",
+          "pos": 1
+        },
+        "employerIcon": {
+          "type": "text",
+          "pos": 2
+        },
+        "employerLink": {
+          "type": "text",
+          "pos": 3
+        },
+        "github": {
+          "type": "text",
+          "pos": 4
+        },
+        "phone": {
+          "type": "text",
+          "pos": 5
+        },
+        "email": {
+          "type": "text",
+          "pos": 6
+        },
+        "linkedin": {
+          "type": "text",
+          "pos": 7
+        },
+        "contactText": {
+          "type": "text",
+          "pos": 8
+        }
+      },
+      "image": null,
+      "preview_field": null,
+      "is_root": false,
+      "preview_tmpl": null,
+      "is_nestable": true,
+      "all_presets": [],
+      "preset_id": null,
+      "real_name": "contact",
+      "component_group_uuid": "all",
+      "color": null,
+      "icon": null,
+      "internal_tags_list": [],
+      "internal_tag_ids": [],
+      "content_type_asset_preview": null,
+      "component_group_name": ""
+    },
+    {
+      "name": "grid",
+      "display_name": null,
+      "description": null,
+      "created_at": "2024-12-01T14:56:44.129Z",
+      "updated_at": "2024-12-02T06:15:02.953Z",
+      "id": 6630105,
+      "schema": {
+        "body": {
+          "type": "bloks",
+          "pos": 0
+        },
+        "justifyContent": {
+          "type": "option",
+          "pos": 1,
+          "options": [
+            {
+              "_uid": "d6bd3951-5769-42d7-a087-8063c225bd0f",
+              "name": "Start",
+              "value": "justify-start"
+            },
+            {
+              "_uid": "8dbf36cd-6f19-4b7f-9ea7-01c9d4f7196b",
+              "value": "justify-center",
+              "name": "Center"
+            },
+            {
+              "_uid": "f1b0b05c-1527-443d-9fba-5a3ce807fb64",
+              "value": "justify-end",
+              "name": "End"
+            },
+            {
+              "_uid": "2b7c498a-d96c-4280-a617-8a1e5d170821",
+              "value": "justify-between",
+              "name": "Between"
+            },
+            {
+              "_uid": "ffc144a8-48df-419b-aaa2-0d250325bc44",
+              "value": "justify-around",
+              "name": "Around"
+            },
+            {
+              "_uid": "a458fcb1-192b-440d-a5a0-da08493bede8",
+              "value": "justify-evenly",
+              "name": "Evenly"
+            }
+          ],
+          "use_uuid": true
+        },
+        "alignItems": {
+          "type": "option",
+          "pos": 2,
+          "options": [
+            {
+              "_uid": "8c53c9c1-d112-4236-aa04-ecd1070af3d6",
+              "name": "Start",
+              "value": "items-start"
+            },
+            {
+              "_uid": "4e6d8598-6234-4562-8ee2-ef102817b1d6",
+              "value": "items-center",
+              "name": "Center"
+            },
+            {
+              "_uid": "36650f06-9211-4ca0-a494-257f1d424cc6",
+              "value": "items-end",
+              "name": "End"
+            }
+          ],
+          "use_uuid": true
+        },
+        "gap": {
+          "type": "number",
+          "pos": 3
+        },
+        "layout": {
+          "type": "option",
+          "pos": 4,
+          "options": [
+            {
+              "_uid": "60d8f1f1-045b-4c02-9cb1-2c54f7fedc69",
+              "value": "flex-row",
+              "name": "Row"
+            },
+            {
+              "_uid": "11a1d3af-26b6-49ae-a26e-13f7c5b4e84c",
+              "name": "Column",
+              "value": "flex-col"
+            }
+          ],
+          "use_uuid": true
+        }
+      },
+      "image": null,
+      "preview_field": null,
+      "is_root": false,
+      "preview_tmpl": null,
+      "is_nestable": true,
+      "all_presets": [],
+      "preset_id": null,
+      "real_name": "grid",
+      "component_group_uuid": "all",
+      "color": null,
+      "icon": null,
+      "internal_tags_list": [],
+      "internal_tag_ids": [],
+      "content_type_asset_preview": null,
+      "component_group_name": ""
+    },
+    {
+      "name": "listing",
+      "display_name": null,
+      "description": "",
+      "created_at": "2024-12-02T11:05:27.090Z",
+      "updated_at": "2024-12-02T11:07:34.321Z",
+      "id": 6632604,
+      "schema": {
+        "perPage": {
+          "type": "number",
+          "pos": 0
+        },
+        "type": {
+          "type": "options",
+          "pos": 1,
+          "use_uuid": true,
+          "filter_content_type": [
+            "page",
+            "post"
+          ],
+          "options": [
+            {
+              "_uid": "44f4b98f-5219-4d96-8670-458173e70202",
+              "name": "Posts",
+              "value": "post"
+            },
+            {
+              "_uid": "e6d623b4-7b00-40af-95e9-f0015afa5207",
+              "value": "page",
+              "name": "Pages"
+            }
+          ]
+        }
+      },
+      "image": null,
+      "preview_field": null,
+      "is_root": false,
+      "preview_tmpl": null,
+      "is_nestable": true,
+      "all_presets": [],
+      "preset_id": null,
+      "real_name": "listing",
+      "component_group_uuid": "all",
+      "color": null,
+      "icon": null,
+      "internal_tags_list": [],
+      "internal_tag_ids": [],
+      "content_type_asset_preview": null,
+      "component_group_name": ""
+    },
+    {
+      "name": "navigation",
+      "display_name": null,
+      "description": null,
+      "created_at": "2024-12-01T08:48:22.162Z",
+      "updated_at": "2024-12-01T08:49:01.281Z",
+      "id": 6629737,
+      "schema": {
+        "items": {
+          "type": "options",
+          "pos": 0,
+          "source": "internal_stories",
+          "filter_content_type": [
+            "page"
+          ]
+        }
+      },
+      "image": null,
+      "preview_field": null,
+      "is_root": true,
+      "preview_tmpl": null,
+      "is_nestable": false,
+      "all_presets": [],
+      "preset_id": null,
+      "real_name": "navigation",
+      "component_group_uuid": null,
+      "color": null,
+      "icon": null,
+      "internal_tags_list": [],
+      "internal_tag_ids": [],
+      "content_type_asset_preview": null
+    },
+    {
+      "name": "page",
+      "display_name": null,
+      "description": null,
+      "created_at": "2024-11-22T06:42:15.203Z",
+      "updated_at": "2024-11-22T06:42:15.203Z",
+      "id": 6594755,
+      "schema": {
+        "body": {
+          "type": "bloks"
+        }
+      },
+      "image": null,
+      "preview_field": null,
+      "is_root": true,
+      "preview_tmpl": null,
+      "is_nestable": false,
+      "all_presets": [],
+      "preset_id": null,
+      "real_name": "page",
+      "component_group_uuid": null,
+      "color": null,
+      "icon": null,
+      "internal_tags_list": [],
+      "internal_tag_ids": [],
+      "content_type_asset_preview": null
+    },
+    {
+      "name": "post",
+      "display_name": null,
+      "description": "Page used to display a single blog post",
+      "created_at": "2024-12-02T09:45:20.871Z",
+      "updated_at": "2024-12-02T09:49:27.471Z",
+      "id": 6632076,
+      "schema": {
+        "title": {
+          "type": "text",
+          "pos": 0
+        },
+        "date": {
+          "type": "datetime",
+          "pos": 1
+        },
+        "thumbnail": {
+          "type": "asset",
+          "pos": 2
+        },
+        "tags": {
+          "type": "options",
+          "pos": 3,
+          "options": [
+            {
+              "_uid": "2fe57ccc-116f-4921-8f87-f7886432a045",
+              "name": "Life",
+              "value": "life"
+            },
+            {
+              "_uid": "3842d551-4a7b-478c-8011-dea2ce996cff",
+              "value": "code",
+              "name": "Code"
+            },
+            {
+              "_uid": "01265da0-92bf-4a16-af5a-6ee1d1002910",
+              "value": "travels",
+              "name": "Travels"
+            }
+          ]
+        },
+        "content": {
+          "type": "markdown",
+          "pos": 4
+        }
+      },
+      "image": null,
+      "preview_field": null,
+      "is_root": true,
+      "preview_tmpl": null,
+      "is_nestable": false,
+      "all_presets": [],
+      "preset_id": null,
+      "real_name": "post",
+      "component_group_uuid": null,
+      "color": null,
+      "icon": null,
+      "internal_tags_list": [],
+      "internal_tag_ids": [],
+      "content_type_asset_preview": null
+    },
+    {
+      "name": "quote_of_the_day",
+      "display_name": null,
+      "description": "Displays quote of the day fetched from glorious folks at `They Said So`",
+      "created_at": "2024-12-02T06:07:13.418Z",
+      "updated_at": "2024-12-02T06:07:13.418Z",
+      "id": 6631453,
+      "schema": {},
+      "image": null,
+      "preview_field": null,
+      "is_root": false,
+      "preview_tmpl": null,
+      "is_nestable": true,
+      "all_presets": [],
+      "preset_id": null,
+      "real_name": "quote_of_the_day",
+      "component_group_uuid": "all",
+      "color": null,
+      "icon": null,
+      "internal_tags_list": [],
+      "internal_tag_ids": [],
+      "content_type_asset_preview": null,
+      "component_group_name": ""
+    },
+    {
+      "name": "teaser",
+      "display_name": null,
+      "description": null,
+      "created_at": "2024-11-22T06:42:15.218Z",
+      "updated_at": "2024-12-01T11:19:16.549Z",
+      "id": 6594756,
+      "schema": {
+        "headline": {
+          "type": "text"
+        },
+        "description": {
+          "type": "text",
+          "pos": 1
+        },
+        "verticalAlign": {
+          "type": "option",
+          "pos": 2,
+          "use_uuid": true,
+          "options": [
+            {
+              "_uid": "ac9da0eb-5ced-43ac-8d04-9c6981832635",
+              "name": "Start",
+              "value": "items-start"
+            },
+            {
+              "_uid": "f3a4e89a-8b3f-4071-bdc5-33c8fdda8f4b",
+              "value": "items-center",
+              "name": "Center"
+            },
+            {
+              "_uid": "da0e211b-f03a-47af-8840-74027712fe58",
+              "value": "items-end",
+              "name": "End"
+            }
+          ],
+          "default_value": "items-start"
+        },
+        "horizontalAlign": {
+          "type": "option",
+          "pos": 3,
+          "use_uuid": true,
+          "options": [
+            {
+              "_uid": "871d1fbe-a23d-4897-b6f3-61acbf2ce4ed",
+              "name": "Start",
+              "value": "justify-start"
+            },
+            {
+              "_uid": "61674c7d-226e-45b2-830a-d4383a8cbb81",
+              "value": "justify-center",
+              "name": "Center"
+            },
+            {
+              "_uid": "0bd4a8f7-079a-447a-9a2f-8d04c88fd14a",
+              "value": "justify-end",
+              "name": "End"
+            }
+          ],
+          "default_value": "justify-start"
+        },
+        "layout": {
+          "type": "option",
+          "pos": 4,
+          "use_uuid": true,
+          "options": [
+            {
+              "_uid": "0382d9ca-c567-42a9-b986-4aabcd2a291a",
+              "value": "flex-row",
+              "name": "Row"
+            },
+            {
+              "_uid": "27a729a2-71eb-4752-a790-2caa8864fca1",
+              "name": "Column",
+              "value": "flex-col"
+            },
+            {
+              "_uid": "052f772f-ebe8-4b2e-adb8-4dad4634f640",
+              "value": "flex-row-reverse",
+              "name": "Row Reverse"
+            }
+          ],
+          "default_value": "flex-row"
+        },
+        "gap": {
+          "type": "number",
+          "pos": 5,
+          "default_value": "2",
+          "required": true
+        }
+      },
+      "image": null,
+      "preview_field": null,
+      "is_root": false,
+      "preview_tmpl": null,
+      "is_nestable": true,
+      "all_presets": [],
+      "preset_id": null,
+      "real_name": "teaser",
+      "component_group_uuid": null,
+      "color": null,
+      "icon": null,
+      "internal_tags_list": [],
+      "internal_tag_ids": [],
+      "content_type_asset_preview": null
+    }
+  ],
+  "component_groups": []
+}
