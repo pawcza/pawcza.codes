@@ -4,42 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="8d06c535-f9e9-4f55-9db7-7dcc2cfd47c7" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.eslintignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.nvmrc" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/prettier.config.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/app/[...slug]/page.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/app/quote/route.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/components/common/Cursor.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/components/common/IconLink.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/components/common/MatrixText.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/components/common/Tag.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/components/common/Tiles.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/components/context/StoryblokProvider.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/components/layout/Navigation.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/components/storyblok/blocks/Contact.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/components/storyblok/blocks/Grid.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/components/storyblok/blocks/Listing.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/components/storyblok/blocks/QuoteOfTheDay.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/components/storyblok/blocks/Teaser.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/components/storyblok/pages/Page.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/components/storyblok/pages/Post.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/lib/storyblok.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/scrape.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/types/component-types-sb.d.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/types/storyblok.d.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/utils/index.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/storyblok/components.314350.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/yarn.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/globals.css" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/globals.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/layout.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tailwind.config.ts" beforeDir="false" afterPath="$PROJECT_DIR$/tailwind.config.ts" afterDir="false" />
-    </list>
+    <list default="true" id="8d06c535-f9e9-4f55-9db7-7dcc2cfd47c7" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -129,7 +94,7 @@
       <workItem from="1732609072329" duration="22630000" />
       <workItem from="1732766677595" duration="56307000" />
       <workItem from="1733447629787" duration="28312000" />
-      <workItem from="1733913006353" duration="180000" />
+      <workItem from="1733913006353" duration="480000" />
     </task>
     <servers />
   </component>
