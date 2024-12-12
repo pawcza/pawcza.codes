@@ -30,7 +30,6 @@ export async function GET() {
     }
 
     const data = await res.json();
-    console.log('Fetching new data', data);
 
     return new Response(JSON.stringify({ data }), {
         headers: { 'Content-Type': 'application/json' },

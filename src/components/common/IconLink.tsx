@@ -12,6 +12,7 @@ const IconLink = ({
     onClick,
     internal,
     inverted,
+    disabled,
 }: {
     MuiIcon?: OverridableComponent<SvgIconTypeMap> & { muiName: string };
     href?: string;
@@ -21,6 +22,7 @@ const IconLink = ({
     outerClasses?: string;
     internal?: boolean;
     inverted?: boolean;
+    disabled?: boolean;
 }) => {
     const hoverClasses = `
         ${
@@ -53,8 +55,8 @@ const IconLink = ({
     if (onClick) {
         return (
             <div
-                className={`cursor-pointer ${hoverClasses} ${outerClasses ? outerClasses : ''}`}
-                onClick={onClick}
+                className={`cursor-pointer ${hoverClasses} ${outerClasses ? outerClasses : ''} ${disabled ? 'pointer-events-none opacity-50' : ''}`}
+                onClick={!disabled ? onClick : undefined}
             >
                 {html && (
                     <div
@@ -72,7 +74,11 @@ const IconLink = ({
     if (!href) return;
 
     return (
-        <Link className="inline-block" href={href} {...externalProps}>
+        <Link
+            className={`inline-block ${disabled ? 'pointer-events-none opacity-50' : ''}`}
+            href={href}
+            {...externalProps}
+        >
             <div className={`${hoverClasses} ${outerClasses}`}>
                 {html && (
                     <div
