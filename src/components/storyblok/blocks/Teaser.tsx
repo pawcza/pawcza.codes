@@ -43,30 +43,20 @@ const Teaser = ({ blok }: { blok: TeaserStoryblok }) => {
             {blok.headline && (
                 <MatrixText
                     classNames="
-            p-4
+            p-8
             bg-background
             rounded-md
             text-6xl
             font-[900]
-            relative
             text-center
-            after:content-['']
-            after:block
-            after:w-full
-            after:h-full
-            after:absolute
-            after:rounded-md
-            after:-top-2
-            after:-right-2
-            after:z-[-1]
-            after:bg-foreground
+            after-outline
             "
                 >
                     {blok.headline}
                 </MatrixText>
             )}
             {blok.description && (
-                <span className="bg-background p-4 my-2 h-fit rounded-md text-xl">
+                <span className="bg-background p-4 my-4 h-fit rounded-md text-xl shadow">
                     {blok.description}
                 </span>
             )}

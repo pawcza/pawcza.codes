@@ -6,11 +6,11 @@ import { Ubuntu_Mono } from 'next/font/google';
 
 import { getStoryblokApi } from '@/lib/storyblok';
 
-import Tiles from '@/components/common/Tiles';
+import Tiles from '@/components/layout/Tiles';
+import Navigation from '@/components/layout/Navigation';
 import StoryblokProvider from '@/components/context/StoryblokProvider';
 
 import './globals.css';
-import Navigation from '@/components/layout/Navigation';
 
 const ubuntuMono = Ubuntu_Mono({
     subsets: ['latin'],
