@@ -12,40 +12,32 @@ const Post = ({ blok }: { blok: PostStoryblok }) => {
 
     return (
         <main className="h-full" {...storyblokEditable(blok)}>
-            <div className="bg-background mb-2 flex w-fit items-center rounded-md">
+            <div className="w-full bg-background p-8 py-4 flex items-center justify-between mb-2 rounded-lg border-foreground border">
                 <IconLink
-                    inverted
                     href="/blog"
                     MuiIcon={ArrowBackOutlined}
                     internal
-                />{' '}
-                <Link
-                    href="../blog"
-                    className="inline-block w-full h-full px-2"
-                >
-                    <MatrixText ordered>Back to all posts</MatrixText>
-                </Link>
-            </div>
-            <div className="w-full bg-background p-4 flex items-center justify-between mb-2 rounded-md font-semibold">
+                    inverted
+                />
                 {title && (
-                    <MatrixText ordered classNames="text-3xl italic font-bold">
+                    <MatrixText ordered classNames="text-xl font-bold ml-2">
                         {title}
                     </MatrixText>
                 )}
+                {date && (
+                    <div className="mr-auto">
+                        &nbsp; / {new Date(date).toLocaleDateString(`pl-PL`)}
+                    </div>
+                )}
                 {tags && (
-                    <div className="flex gap-4 items-center">
-                        {date && (
-                            <MatrixText ordered>
-                                {new Date(date).toLocaleDateString(`pl-PL`)}
-                            </MatrixText>
-                        )}
+                    <div className="flex gap-2 items-center">
                         {tags.map((tag) => (
                             <Tag key={tag} tag={tag} />
                         ))}
                     </div>
                 )}
             </div>
-            <section className="bg-background p-4 mb-8 rounded-md">
+            <section className="bg-background p-8 pt-4 rounded-lg border border-foreground">
                 <Markdown className="markdown">{content}</Markdown>
             </section>
         </main>

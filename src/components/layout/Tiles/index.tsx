@@ -32,7 +32,6 @@ const Tiles: React.FC<TilesProps> = ({ children }) => {
     });
 
     const [prevClosestTile, setPrevClosestTile] = useState({ row: 0, col: 0 });
-    const [flipped, setFlipped] = useState([] as string[]);
     const [time, setTime] = useState(0);
 
     const prevPathnameRef = useRef(pathname);
@@ -74,17 +73,15 @@ const Tiles: React.FC<TilesProps> = ({ children }) => {
         updateTiles();
 
         window.addEventListener('resize', updateTiles);
-        document.addEventListener('mousemove', onMouseMove);
 
         return () => {
             window.removeEventListener('resize', updateTiles);
-            document.removeEventListener('mousemove', onMouseMove);
         };
     }, []);
 
     const updateTiles = () => {
         const aspectRatio = window.innerWidth / window.innerHeight;
-        const baseSize = 60 / tilesRef.current.size;
+        const baseSize = 120 / tilesRef.current.size;
 
         let columns, rows;
 
@@ -115,40 +112,6 @@ const Tiles: React.FC<TilesProps> = ({ children }) => {
         return randomKey;
     };
 
-    const onMouseMove = (event: MouseEvent) => {
-        const { clientX, clientY } = event;
-        const { columns, rows } = tilesRef.current;
-        const tileWidth = window.innerWidth / columns;
-        const tileHeight = window.innerHeight / rows;
-
-        let closestTile = { row: 0, col: 0 };
-        let minDistance = Infinity;
-
-        for (let row = 0; row < rows; row++) {
-            for (let col = 0; col < columns; col++) {
-                const tileCenterX = col * tileWidth + tileWidth / 2;
-                const tileCenterY = row * tileHeight + tileHeight / 2;
-                const distance = Math.sqrt(
-                    Math.pow(clientX - tileCenterX, 2) +
-                        Math.pow(clientY - tileCenterY, 2),
-                );
-
-                if (distance < minDistance) {
-                    minDistance = distance;
-                    closestTile = { row, col };
-                }
-            }
-        }
-
-        if (
-            closestTile.row !== prevClosestTile.row ||
-            closestTile.col !== prevClosestTile.col
-        ) {
-            flip(closestTile.col, closestTile.row);
-            setPrevClosestTile(closestTile);
-        }
-    };
-
     const calculateColorIndex = (
         i: number,
         j: number,
@@ -172,34 +135,6 @@ const Tiles: React.FC<TilesProps> = ({ children }) => {
         return colorIndex;
     };
 
-    const flip = (row: number, col: number) => {
-        setFlipped([]);
-
-        const copy = new Set();
-
-        const addTile = (r: number, c: number) => {
-            const tile = `${r}-${c}`;
-            if (!copy.has(tile)) copy.add(tile);
-        };
-
-        addTile(row, col);
-
-        addTile(row - 1, col);
-        addTile(row + 1, col);
-        addTile(row, col - 1);
-        addTile(row, col + 1);
-        addTile(row - 1, col - 1);
-        addTile(row + 1, col + 1);
-        addTile(row - 1, col + 1);
-        addTile(row + 1, col - 1);
-        addTile(row - 2, col);
-        addTile(row + 2, col);
-        addTile(row, col - 2);
-        addTile(row, col + 2);
-
-        setFlipped(Array.from(copy) as string[]);
-    };
-
     return (
         <>
             <div className="fixed top-0 left-0 w-full h-screen flex flex-col z-0 overflow-hidden">
@@ -213,24 +148,19 @@ const Tiles: React.FC<TilesProps> = ({ children }) => {
                             <div
                                 key={row}
                                 className={`
-                                        transition-all
+                                        transition-background
                                         duration-500
-                                        h-full
                                         relative
                                         after:content-['']
                                         after:block
                                         after:absolute
                                         after:w-full
                                         after:h-full
-                                        after:z-0
-                                        after:transition-[outline-color]
-                                        after:duration-200
-                                        after:left-0
-                                        after:top-0
-                                        after:outline-2
+                                        after:opacity-5
                                         after:-outline-offset-8
+                                        after:rounded-2xl
+                                        after:outline-background
                                         after:outline
-                                        ${flipped.includes(`${row}-${col}`) ? 'after:outline-foreground after:scale-75 after:bg-background after:rounded-xl' : 'after:outline-transparent'}
                                     `}
                                 style={{
                                     width: `${100 / tiles.columns}%`,
@@ -245,7 +175,7 @@ const Tiles: React.FC<TilesProps> = ({ children }) => {
                 ))}
             </div>
             <Sidebar tiles={tiles} setTiles={setTiles} />
-            <div className="h-full relative z-10 pt-24 container mx-auto">
+            <div className="min-h-screen relative z-10 py-16 container px-4 lg:px-0 mx-auto flex flex-col justify-center">
                 {children}
             </div>
         </>

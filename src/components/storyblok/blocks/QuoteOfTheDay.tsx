@@ -31,7 +31,7 @@ const QuoteOfTheDay = () => {
     }, []);
 
     return (
-        <section className="flex flex-col relative bg-background p-4 mx-auto md:w-[768px] w-full min-h-52 break-words rounded-md">
+        <section className="flex flex-col relative bg-background p-4 mx-auto w-full min-h-52 break-words component">
             {quote?.content && (
                 <MatrixText
                     key={quote.content} // Add key prop
@@ -40,13 +40,16 @@ const QuoteOfTheDay = () => {
                     maxTimeToMatch={30}
                     minIntervalTime={10}
                     maxIntervalTime={30}
-                    classNames="text-3xl italic font-bold"
+                    classNames="text-md md:text-xl italic font-bold mb-2 min-h-16"
                 >
                     {quote.content}
                 </MatrixText>
             )}
             {quote?.author && (
-                <MatrixText key={quote.author} classNames="text-md mb-2">
+                <MatrixText
+                    key={quote.author}
+                    classNames="text-sm md:text-md mb-4"
+                >
                     {quote.author}
                 </MatrixText>
             )}
@@ -54,6 +57,7 @@ const QuoteOfTheDay = () => {
                 outerClasses="mt-auto w-fit"
                 classNames={loading ? 'animate-spin' : ''}
                 onClick={getQuote}
+                disabled={loading}
                 MuiIcon={Refresh}
                 inverted
             />

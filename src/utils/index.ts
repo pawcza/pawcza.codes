@@ -1,14 +1,14 @@
-import {PostStoryblok} from '@/types/component-types-sb';
+import { PostStoryblok } from '@/types/component-types-sb';
 
 export const matchTagToColor = (tag: PostStoryblok[number]['tags']): string => {
-	switch (tag) {
-		case 'life':
-			return 'bg-theme-green text-white';
-		case 'code':
-			return 'bg-theme-blue text-white';
-		case 'travels':
-			return 'bg-theme-gold text-black';
-		default:
-			return 'bg-theme-green text-white';
-	}
+    switch (tag) {
+        case 'life':
+            return 'border-theme-green text-theme-green';
+        case 'code':
+            return 'border-theme-blue text-theme-blue';
+        case 'travels':
+            return 'border-theme-gold text-theme-gold';
+        default:
+            return 'border-theme-green text-theme-green';
+    }
 };

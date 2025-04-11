@@ -15,10 +15,10 @@ import { ContactStoryblok } from '@/types/component-types-sb';
 const Contact = ({ blok }: { blok: ContactStoryblok }) => {
     return (
         <section
-            className="max-w-screen-md mx-auto p-2 flex flex-col items-center justify-center"
+            className="max-w-screen-md mx-auto py-2 flex flex-col items-center justify-center text-sm md:text-md"
             {...storyblokEditable(blok)}
         >
-            <div className="px-2 bg-background overflow-hidden rounded-md">
+            <div className="px-4 bg-background overflow-hidden border border-foreground rounded-lg shadow-2xl flex items-center justify-center">
                 {blok.intro && (
                     <MatrixText classNames="inline-block mr-2">
                         {blok.intro}
@@ -32,7 +32,7 @@ const Contact = ({ blok }: { blok: ContactStoryblok }) => {
                     />
                 )}
             </div>
-            <ul className="overflow-hidden flex items-center justify-center mt-2 px-2 text-foreground bg-background rounded-md">
+            <ul className="overflow-hidden flex items-center justify-center mt-2 px-4 text-foreground bg-background border border-foreground rounded-lg shadow-2xl">
                 {blok.contactText && (
                     <MatrixText classNames="mr-2">
                         {blok.contactText}

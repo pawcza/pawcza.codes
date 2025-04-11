@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import React from 'react';
 
 import { ISbStoriesParams, StoryblokClient } from '@storyblok/react';
-import { Ubuntu_Mono } from 'next/font/google';
+import { Ubuntu_Mono, Inconsolata, Source_Code_Pro } from 'next/font/google';
 
 import { getStoryblokApi } from '@/lib/storyblok';
 
@@ -12,9 +12,9 @@ import StoryblokProvider from '@/components/context/StoryblokProvider';
 
 import './globals.css';
 
-const ubuntuMono = Ubuntu_Mono({
+const sourceCodePro = Source_Code_Pro({
     subsets: ['latin'],
-    weight: '400',
+    weight: 'variable',
 });
 
 export const metadata: Metadata = {
@@ -43,7 +43,7 @@ export default async function RootLayout({
     return (
         <StoryblokProvider>
             <html lang="en">
-                <body className={`${ubuntuMono.className} antialiased`}>
+                <body className={`${sourceCodePro.className} antialiased`}>
                     <Navigation items={menuItems} />
                     <Tiles>{children}</Tiles>
                 </body>

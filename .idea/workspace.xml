@@ -4,154 +4,141 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="8d06c535-f9e9-4f55-9db7-7dcc2cfd47c7" name="Changes" comment="Mess">
-      <change afterPath="$PROJECT_DIR$/src/components/layout/Tiles/Sidebar.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/components/layout/Tiles/config.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/components/layout/Tiles/index.tsx" afterDir="false" />
+    <list default="true" id="a2830b7f-7885-4823-8a2a-a6d20c950bab" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/codeStyles/Project.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/codeStyles/Project.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/codeStyles/codeStyleConfig.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/codeStyles/codeStyleConfig.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/app/globals.css" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/globals.css" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/app/layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/layout.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/quote/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/quote/route.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/components/common/IconLink.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/common/IconLink.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/common/Tiles.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/common/MatrixText.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/common/MatrixText.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/common/Tag.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/common/Tag.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/layout/Navigation.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/layout/Navigation.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/layout/Tiles/Sidebar.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/layout/Tiles/Sidebar.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/layout/Tiles/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/layout/Tiles/index.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/storyblok/blocks/Contact.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/storyblok/blocks/Contact.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/storyblok/blocks/Listing.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/storyblok/blocks/Listing.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/storyblok/blocks/QuoteOfTheDay.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/storyblok/blocks/QuoteOfTheDay.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/components/storyblok/blocks/Teaser.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/storyblok/blocks/Teaser.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/storyblok/pages/Post.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/storyblok/pages/Post.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/utils/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/utils/index.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tailwind.config.ts" beforeDir="false" afterPath="$PROJECT_DIR$/tailwind.config.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/yarn.lock" beforeDir="false" afterPath="$PROJECT_DIR$/yarn.lock" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
-  <component name="FileTemplateManagerImpl">
-    <option name="RECENT_TEMPLATES">
-      <list>
-        <option value="JavaScript File" />
-      </list>
-    </option>
+  <component name="ComposerSettings">
+    <execution />
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="ProblemsViewState">
-    <option name="selectedTabId" value="ProjectErrors" />
+  <component name="GitSEFilterConfiguration">
+    <file-type-list>
+      <filtered-out-file-type name="LOCAL_BRANCH" />
+      <filtered-out-file-type name="REMOTE_BRANCH" />
+      <filtered-out-file-type name="TAG" />
+      <filtered-out-file-type name="COMMIT_BY_MESSAGE" />
+    </file-type-list>
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
   </component>
   <component name="ProjectColorInfo">{
-  &quot;associatedIndex&quot;: 1
+  &quot;associatedIndex&quot;: 0
 }</component>
-  <component name="ProjectId" id="2pC77skAlM2mCFJqjksomAnQyFh" />
-  <component name="ProjectLevelVcsManager">
-    <ConfirmationsSetting value="2" id="Add" />
-  </component>
+  <component name="ProjectId" id="1xMUj5x2dNYAD3XbE0Nc2C1VRyv" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;ASKED_ADD_EXTERNAL_FILES&quot;: &quot;true&quot;,
-    &quot;ASKED_SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
-    &quot;JavaScript Debug.index.html.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/Users/pawelczarniecki/Projects/pawcza.codes/app&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;yarn&quot;,
-    &quot;prettierjs.PrettierConfiguration.Package&quot;: &quot;/Users/pawelczarniecki/Projects/pawcza.codes/node_modules/prettier&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.sourceCode.JavaScript&quot;,
-    &quot;ts.external.directory.path&quot;: &quot;/Users/pawelczarniecki/Projects/pawcza.codes/node_modules/typescript/lib&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "git-widget-placeholder": "main",
+    "last_opened_file_path": "D:/dev/pawcza.codes",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "prettierjs.PrettierConfiguration.Package": "D:\\dev\\pawcza.codes\\node_modules\\prettier",
+    "ts.external.directory.path": "D:\\dev\\pawcza.codes\\node_modules\\typescript\\lib",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
-    <key name="CopyFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$/app" />
-    </key>
     <key name="MoveFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$/src/components/layout" />
-      <recent name="$PROJECT_DIR$/src/components/common/Tiles" />
-      <recent name="$PROJECT_DIR$/src/components/storyblok/pages" />
-      <recent name="$PROJECT_DIR$/src/components/storyblok/blocks" />
-      <recent name="$PROJECT_DIR$/src" />
+      <recent name="D:\dev\pawcza.codes\components\Header" />
+      <recent name="D:\dev\pawcza.codes\components\Layout" />
+      <recent name="D:\dev\pawcza.codes\components\CustomLink" />
     </key>
   </component>
   <component name="RunManager">
-    <configuration name="index.html" type="JavascriptDebugType" temporary="true" nameIsGenerated="true" uri="http://localhost:63342/pawcza.codes/.next/server/app/index.html" useBuiltInWebServerPort="true">
+    <configuration name="scratch_1.js" type="NodeJSConfigurationType" temporary="true" nameIsGenerated="true" path-to-js-file="$APPLICATION_CONFIG_DIR$/scratches/scratch_1.js" working-dir="$PROJECT_DIR$">
       <method v="2" />
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="JavaScript Debug.index.html" />
+        <item itemvalue="Node.js.scratch_1.js" />
       </list>
     </recent_temporary>
-  </component>
-  <component name="SharedIndexes">
-    <attachedChunks>
-      <set>
-        <option value="bundled-js-predefined-1d06a55b98c1-0b3e54e931b4-JavaScript-WS-241.17890.13" />
-      </set>
-    </attachedChunks>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
-      <changelist id="8d06c535-f9e9-4f55-9db7-7dcc2cfd47c7" name="Changes" comment="" />
-      <created>1732258040218</created>
+      <changelist id="a2830b7f-7885-4823-8a2a-a6d20c950bab" name="Default Changelist" comment="" />
+      <created>1630164582277</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
-      <updated>1732258040218</updated>
-      <workItem from="1732258041423" duration="15810000" />
-      <workItem from="1732281825415" duration="29385000" />
-      <workItem from="1732609072329" duration="22630000" />
-      <workItem from="1732766677595" duration="56307000" />
-      <workItem from="1733447629787" duration="28312000" />
-      <workItem from="1733913006353" duration="4335000" />
-      <workItem from="1733925708652" duration="18082000" />
+      <updated>1630164582277</updated>
+      <workItem from="1630164583364" duration="11771000" />
+      <workItem from="1630316480862" duration="28000" />
+      <workItem from="1630329412269" duration="1198000" />
+      <workItem from="1630333341267" duration="4332000" />
+      <workItem from="1630340854229" duration="11541000" />
+      <workItem from="1630392469068" duration="734000" />
+      <workItem from="1630394582455" duration="5766000" />
+      <workItem from="1630432638067" duration="49000" />
+      <workItem from="1630432697981" duration="762000" />
+      <workItem from="1630433616358" duration="6619000" />
+      <workItem from="1630476812844" duration="15845000" />
+      <workItem from="1630586547484" duration="7458000" />
+      <workItem from="1630599845015" duration="1958000" />
+      <workItem from="1630651613858" duration="7386000" />
+      <workItem from="1631183149958" duration="596000" />
+      <workItem from="1633602610090" duration="595000" />
+      <workItem from="1636468816652" duration="2273000" />
+      <workItem from="1641307131627" duration="23718000" />
+      <workItem from="1642415110570" duration="1190000" />
+      <workItem from="1643970815142" duration="4000" />
+      <workItem from="1670172076677" duration="2426000" />
+      <workItem from="1670350350441" duration="1157000" />
+      <workItem from="1671117999680" duration="31000" />
+      <workItem from="1744390869786" duration="1997000" />
+      <workItem from="1744394058396" duration="9658000" />
     </task>
-    <task id="LOCAL-00001" summary="Mess">
-      <option name="closed" value="true" />
-      <created>1733913501026</created>
-      <option name="number" value="00001" />
-      <option name="presentableId" value="LOCAL-00001" />
-      <option name="project" value="LOCAL" />
-      <updated>1733913501026</updated>
-    </task>
-    <task id="LOCAL-00002" summary="Mess">
-      <option name="closed" value="true" />
-      <created>1733914183194</created>
-      <option name="number" value="00002" />
-      <option name="presentableId" value="LOCAL-00002" />
-      <option name="project" value="LOCAL" />
-      <updated>1733914183194</updated>
-    </task>
-    <task id="LOCAL-00003" summary="Mess">
-      <option name="closed" value="true" />
-      <created>1733924488169</created>
-      <option name="number" value="00003" />
-      <option name="presentableId" value="LOCAL-00003" />
-      <option name="project" value="LOCAL" />
-      <updated>1733924488169</updated>
-    </task>
-    <task id="LOCAL-00004" summary="Mess">
-      <option name="closed" value="true" />
-      <created>1733925419622</created>
-      <option name="number" value="00004" />
-      <option name="presentableId" value="LOCAL-00004" />
-      <option name="project" value="LOCAL" />
-      <updated>1733925419622</updated>
-    </task>
-    <option name="localTasksCounter" value="5" />
     <servers />
+  </component>
+  <component name="TerminalProjectNonSharedOptionsProvider">
+    <option name="shellPath" value="&quot;C:\Program Files\Git\bin\sh.exe&quot; -login -i" />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
   </component>
-  <component name="VcsManagerConfiguration">
-    <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
-    <MESSAGE value="Mess" />
-    <option name="LAST_COMMIT_MESSAGE" value="Mess" />
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
 </project>
