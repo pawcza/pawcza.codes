@@ -60,7 +60,7 @@ const Sidebar: React.FC<{
                 />
             </div>
             <div
-                className={`flex flex-col fixed transition-transform will-change-transform h-full bg-background py-2 z-50 right-0 ${open ? 'translate-x-0' : 'translate-x-full'}`}
+                className={`flex flex-col fixed transition-transform will-change-transform h-full bg-background py-2 z-50 right-0 border-l border-l-foreground ${open ? 'translate-x-0' : 'translate-x-full'}`}
             >
                 <div className="flex gap-2 justify-end px-2">
                     <IconLink
@@ -93,7 +93,7 @@ const Sidebar: React.FC<{
                                     }))
                                 }
                             >
-                                <div className="flex">
+                                <div className="flex overflow-hidden rounded-lg border border-foreground">
                                     {colors.map((color) => (
                                         <div
                                             key={color}

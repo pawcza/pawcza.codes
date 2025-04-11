@@ -87,7 +87,7 @@ const MatrixText = ({
         };
     }, []);
 
-    return <div className={`monospace-font ${classNames}`}>{displayText}</div>;
+    return <div className={`${classNames}`}>{displayText}</div>;
 };
 
 export default MatrixText;

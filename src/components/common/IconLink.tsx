@@ -27,11 +27,12 @@ const IconLink = ({
     const hoverClasses = `
         ${
             inverted
-                ? '[&_svg]:fill-background [&_svg]:hover:fill-foreground after:bg-foreground after:scale-10 hover:after:scale-0 hover:border-foreground border-2 border-transparent rounded-md'
+                ? '[&_svg]:fill-background [&_svg]:hover:fill-foreground after:bg-foreground after:scale-10 hover:after:scale-0 hover:border-foreground border border-transparent '
                 : '[&_svg]:fill-foreground [&_svg]:hover:fill-background  hover:after:scale-100 after:bg-foreground after:scale-0'
         }
         [&_svg]:relative
-        [&_svg]:z-10 
+        [&_svg]:z-10
+        user-select-none
         p-2
         inline-block
         relative
@@ -42,8 +43,9 @@ const IconLink = ({
         after:h-full
         after:absolute 
         after:top-0
-        after:rounded-md
+        after:rounded-lg
         after:left-0
+        rounded-lg
         after:z-0
         `;
 

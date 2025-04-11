@@ -37,5 +37,11 @@ export default {
         'bg-theme-gold',
         'bg-theme-blue',
         'bg-theme-green',
+        'text-theme-gold',
+        'text-theme-blue',
+        'text-theme-green',
+        'border-theme-gold',
+        'border-theme-blue',
+        'border-theme-green',
     ],
 } satisfies Config;

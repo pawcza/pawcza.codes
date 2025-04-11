@@ -15,8 +15,8 @@ const Navigation = ({ items }: { items: MenuItem[] }) => {
     const pathname = usePathname();
 
     return (
-        <nav className="fixed top-0 z-50 w-full">
-            <ul className="flex justify-center">
+        <nav className="fixed top-0 z-50 w-full flex justify-center">
+            <ul className="flex justify-center w-auto overflow-hidden rounded-lg mt-2 border border-foreground shadow-2xl">
                 {items.map((item: MenuItem) => {
                     const isActive =
                         pathname.split('/')[pathname.split('/').length - 1] ===
@@ -26,7 +26,7 @@ const Navigation = ({ items }: { items: MenuItem[] }) => {
                     if (isActive) {
                         return (
                             <li
-                                className="mx-1 mt-2 p-2 bg-background font-bold rounded-md"
+                                className="px-4 py-2 bg-background font-bold border-l-foreground border-l first-of-type:border-l-0"
                                 key={item.uuid}
                             >
                                 <MatrixText>{item.name}</MatrixText>
@@ -36,11 +36,11 @@ const Navigation = ({ items }: { items: MenuItem[] }) => {
 
                     return (
                         <li
-                            className="mx-1 mt-2 bg-background hover:font-bold rounded-md transition-colors hover:bg-foreground hover:text-background"
+                            className="bg-background hover:font-bold transition-colors hover:bg-foreground hover:text-background border-l-foreground border-l first-of-type:border-l-0"
                             key={item.uuid}
                         >
                             <Link
-                                className="inline-block relative w-full h-full p-2"
+                                className="inline-block relative w-full h-full px-4 py-2"
                                 href={
                                     item.slug === 'home'
                                         ? '/'

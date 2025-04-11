@@ -37,7 +37,7 @@ const Teaser = ({ blok }: { blok: TeaserStoryblok }) => {
 
     return (
         <div
-            className={`max-w-screen-md flex ${blok.verticalAlign} ${blok.horizontalAlign} ${blok.layout} ${getGap(blok.gap)}`}
+            className={`max-w-screen-md flex flex-wrap ${blok.verticalAlign} ${blok.horizontalAlign} ${blok.layout} ${getGap(blok.gap)}`}
             {...storyblokEditable(blok)}
         >
             {blok.headline && (
@@ -45,18 +45,19 @@ const Teaser = ({ blok }: { blok: TeaserStoryblok }) => {
                     classNames="
             p-8
             bg-background
-            rounded-md
-            text-6xl
-            font-[900]
+            md:text-5xl
+            text-2xl
             text-center
             after-outline
+            component
+            font-black
             "
                 >
                     {blok.headline}
                 </MatrixText>
             )}
             {blok.description && (
-                <span className="bg-background p-4 my-4 h-fit rounded-md text-xl shadow">
+                <span className="bg-background p-4 my-4 text-md component">
                     {blok.description}
                 </span>
             )}

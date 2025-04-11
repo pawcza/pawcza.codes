@@ -5,8 +5,8 @@
 :root {
   --background: #ededed;
   --foreground: #212121;
-  --theme-gold: #da9100;
-  --theme-green: #014421;
+  --theme-gold: #e59a0a;
+  --theme-green: #0d733c;
   --theme-blue: #4169e1;
 }
 
@@ -15,10 +15,6 @@
     --background: #212121;
     --foreground: #ededed;
   }
-}
-
-.monospace-font {
-    font-family: 'Courier New', Courier, monospace;
 }
 
 body {
@@ -58,20 +54,20 @@ h6 {
 }
 
 .markdown {
-  ul, ol {
+  & ul, & ol {
     @apply ml-4;
   }
 
-  ul {
+  & ul {
     list-style: initial;
   }
 
-  ol {
+  & ol {
     list-style: upper-latin;
     @apply ml-6;
   }
 
-  hr {
+  & hr {
     @apply border-t-2;
     @apply border-b-2;
     @apply border-foreground;
@@ -90,66 +86,70 @@ h6 {
             transparent 2px,
             transparent 4px
     );
+    @apply rounded-lg;
   }
 
-  blockquote {
+  & blockquote {
     @apply p-4;
     @apply text-lg;
     @apply my-4;
     @apply font-black;
-    background-image:
-            repeating-linear-gradient(0deg, var(--foreground), var(--foreground) 30px, transparent 30px, transparent 60px, var(--foreground) 60px),
-            repeating-linear-gradient(90deg, var(--foreground), var(--foreground) 30px, transparent 30px, transparent 60px, var(--foreground) 60px),
-            repeating-linear-gradient(180deg, var(--foreground), var(--foreground) 30px, transparent 30px, transparent 60px, var(--foreground) 60px),
-            repeating-linear-gradient(270deg, var(--foreground), var(--foreground) 30px, transparent 30px, transparent 60px, var(--foreground) 60px);
-    background-size: 2px 100%, 100% 2px, 2px 100% , 100% 2px;
-    background-position: 0 0, 0 0, 100% 0, 0 100%;
+    @apply bg-foreground;
+    @apply text-background;
+    @apply rounded-lg;
     @apply bg-no-repeat;
 
-    em {
+    & em {
       @apply font-normal;
     }
   }
 
-  img {
+  & img {
+    @apply rounded-lg;
+    @apply my-2;
+    @apply max-w-full;
+    @apply h-auto;
+    @apply object-contain;
+    @apply flex-shrink;
   }
 
-  p:has(> img) {
-    @apply flex;
-    @apply -ml-4;
-    width: calc(100% + 2em);
+  & p:has(> img) {
+    @apply grid;
+    grid-auto-flow: column;
+
+    @apply gap-4;
   }
 
-  pre {
+  & pre {
     @apply my-4;
     @apply py-4;
-    background-image:
-            repeating-linear-gradient(0deg, var(--foreground), var(--foreground) 30px, transparent 30px, transparent 60px, var(--foreground) 60px),
-            repeating-linear-gradient(90deg, var(--foreground), var(--foreground) 30px, transparent 30px, transparent 60px, var(--foreground) 60px),
-            repeating-linear-gradient(180deg, var(--foreground), var(--foreground) 30px, transparent 30px, transparent 60px, var(--foreground) 60px),
-            repeating-linear-gradient(270deg, var(--foreground), var(--foreground) 30px, transparent 30px, transparent 60px, var(--foreground) 60px);
-    background-size: 2px 100%, 100% 2px, 2px 100% , 100% 2px;
-    background-position: 0 0, 0 0, 100% 0, 0 100%;
+    @apply border;
+    @apply border-foreground;
+    @apply rounded-lg;
     @apply bg-no-repeat;
-    code {
+    & code {
 
+    }
+  }
+
+  & a {
+    @apply underline;
+    @apply decoration-2;
+    @apply underline-offset-4;
+
+    &:hover {
+      @apply decoration-4;
     }
   }
 }
 
-.after-outline {
-  @apply relative;
-  @apply after:content-[''];
-  @apply after:block;
-  @apply after:w-full;
-  @apply after:h-full;
-  @apply after:absolute;
-  @apply after:rounded-md;
-  @apply after:-top-2;
-  @apply after:-right-2;
-  @apply after:z-[-1];
-  @apply after:outline-foreground;
-  @apply after:outline;
+.component {
+  @apply p-8;
+  @apply rounded-lg;
+  @apply bg-background;
+  @apply border;
+  @apply border-foreground;
+  @apply border-solid;
 }
 
 .flicker {
@@ -179,7 +179,7 @@ h6 {
 input[type="range"] {
   @apply h-2;
   @apply bg-transparent;
-  @apply rounded-none;
+  @apply rounded-lg;
   @apply outline;
   @apply outline-foreground;
   @apply outline-1;
@@ -189,8 +189,8 @@ input[type="range"]::-moz-range-thumb, input[type="range"]::-webkit-slider-thumb
   @apply appearance-none;
   @apply w-6;
   @apply h-6;
+  @apply rounded-full;
   @apply bg-foreground;
-  @apply rounded-md;
   @apply border-none;
   @apply cursor-pointer;
 }
