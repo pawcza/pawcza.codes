@@ -38,6 +38,9 @@ const Teaser = ({ blok }: { blok: TeaserStoryblok }) => {
     return (
         <div
             className={`max-w-screen-md flex flex-wrap ${blok.verticalAlign} ${blok.horizontalAlign} ${blok.layout} ${getGap(blok.gap)}`}
+            style={{
+                viewTransitionName: 'view-transition-teaser',
+            }}
             {...storyblokEditable(blok)}
         >
             {blok.headline && (
@@ -57,7 +60,7 @@ const Teaser = ({ blok }: { blok: TeaserStoryblok }) => {
                 </MatrixText>
             )}
             {blok.description && (
-                <span className="bg-background p-4 my-4 text-md component">
+                <span className="bg-background p-4 text-md component">
                     {blok.description}
                 </span>
             )}

@@ -151,6 +151,7 @@ const Tiles: React.FC<TilesProps> = ({ children }) => {
                                         transition-background
                                         duration-500
                                         relative
+                                        will-change-auto
                                         after:content-['']
                                         after:block
                                         after:absolute
