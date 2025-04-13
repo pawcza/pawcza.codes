@@ -31,25 +31,17 @@ const QuoteOfTheDay = () => {
     }, []);
 
     return (
-        <section className="flex flex-col relative bg-background p-4 mx-auto w-full min-h-52 break-words component">
+        <section className="flex flex-col relative bg-background p-4 mx-auto w-full break-words component min-h-60">
             {quote?.content && (
                 <MatrixText
                     key={quote.content} // Add key prop
-                    ordered
-                    minTimeToMatch={10}
-                    maxTimeToMatch={30}
-                    minIntervalTime={10}
-                    maxIntervalTime={30}
-                    classNames="text-md md:text-xl italic font-bold mb-2 min-h-16"
+                    classNames={`text-md md:text-xl italic font-bold mb-2`}
                 >
                     {quote.content}
                 </MatrixText>
             )}
             {quote?.author && (
-                <MatrixText
-                    key={quote.author}
-                    classNames="text-sm md:text-md mb-4"
-                >
+                <MatrixText key={quote.author} classNames="text-md mb-4">
                     {quote.author}
                 </MatrixText>
             )}

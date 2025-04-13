@@ -2,7 +2,8 @@ import type { Metadata } from 'next';
 import React from 'react';
 
 import { ISbStoriesParams, StoryblokClient } from '@storyblok/react';
-import { Ubuntu_Mono, Inconsolata, Source_Code_Pro } from 'next/font/google';
+import { Montserrat, Source_Code_Pro, Space_Mono } from 'next/font/google';
+import { ViewTransitions } from 'next-view-transitions';
 
 import { getStoryblokApi } from '@/lib/storyblok';
 
@@ -13,6 +14,16 @@ import StoryblokProvider from '@/components/context/StoryblokProvider';
 import './globals.css';
 
 const sourceCodePro = Source_Code_Pro({
+    subsets: ['latin'],
+    weight: 'variable',
+});
+
+const spaceMono = Space_Mono({
+    subsets: ['latin'],
+    weight: ['400', '700'],
+});
+
+const montserrat = Montserrat({
     subsets: ['latin'],
     weight: 'variable',
 });
@@ -42,12 +53,14 @@ export default async function RootLayout({
 
     return (
         <StoryblokProvider>
-            <html lang="en">
-                <body className={`${sourceCodePro.className} antialiased`}>
-                    <Navigation items={menuItems} />
-                    <Tiles>{children}</Tiles>
-                </body>
-            </html>
+            <ViewTransitions>
+                <html lang="en">
+                    <body className={`${montserrat.className} antialiased`}>
+                        <Navigation items={menuItems} />
+                        <Tiles>{children}</Tiles>
+                    </body>
+                </html>
+            </ViewTransitions>
         </StoryblokProvider>
     );
 }

@@ -1,10 +1,9 @@
-import MatrixText from '@/components/common/MatrixText';
 import { ISbStoriesParams, StoryblokClient } from '@storyblok/react';
 import { getStoryblokApi } from '@/lib/storyblok';
 import { PostStoryblok } from '@/types/component-types-sb';
-import Link from 'next/link';
+import { Link } from 'next-view-transitions';
 import { StoryblokComponent } from '@/types/storyblok';
-import Tag from '@/components/common/Tag';
+import { BlogPost } from '@/components/common/BlogPost';
 
 const fetchPosts = async () => {
     const sbParams: ISbStoriesParams = {
@@ -28,28 +27,15 @@ const Listing = async () => {
                 const { tags, title, date } = post.content;
 
                 return (
-                    <Link
-                        key={post.uuid}
-                        href={post.full_slug}
-                        className="w-full bg-background p-8 flex items-center flex-wrap gap-4 hover:bg-foreground hover:text-background transition-colors font-semibold rounded-lg border border-foreground shadow-2xl"
-                    >
-                        {title && (
-                            <MatrixText ordered classNames="text-xl font-bold">
-                                {title}
-                            </MatrixText>
-                        )}
-                        {date && (
-                            <div className="mr-auto">
-                                / {new Date(date).toLocaleDateString(`pl-PL`)}
-                            </div>
-                        )}
-                        {tags && (
-                            <div className="flex gap-2 items-center font-normal">
-                                {tags.map((tag) => (
-                                    <Tag key={tag} tag={tag} />
-                                ))}
-                            </div>
-                        )}
+                    <Link key={post.uuid} href={post.full_slug}>
+                        <BlogPost
+                            title={title}
+                            tags={tags}
+                            date={date}
+                            _uid={post.uuid}
+                            component="post"
+                            type="listing"
+                        />
                     </Link>
                 );
             })}
