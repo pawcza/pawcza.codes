@@ -148,6 +148,7 @@ const Tiles: React.FC<TilesProps> = ({ children }) => {
                             <div
                                 key={row}
                                 className={`
+                                        tile
                                         transition-background
                                         duration-500
                                         relative
@@ -157,19 +158,35 @@ const Tiles: React.FC<TilesProps> = ({ children }) => {
                                         after:absolute
                                         after:w-full
                                         after:h-full
+                                        after:scale-50
                                         after:opacity-5
                                         after:-outline-offset-8
-                                        after:rounded-2xl
                                         after:outline-background
                                         after:outline
                                     `}
-                                style={{
-                                    width: `${100 / tiles.columns}%`,
-                                    backgroundColor:
-                                        gradients[tiles.gradientName][
-                                            calculateColorIndex(row, col, time)
-                                        ],
-                                }}
+                                style={
+                                    {
+                                        width: `${100 / tiles.columns}%`,
+                                        '--tile-radius': `${
+                                            (calculateColorIndex(
+                                                row,
+                                                col,
+                                                time,
+                                            ) /
+                                                gradients[tiles.gradientName]
+                                                    .length) *
+                                            100
+                                        }%`,
+                                        '--tile-color':
+                                            gradients[tiles.gradientName][
+                                                calculateColorIndex(
+                                                    row,
+                                                    col,
+                                                    time,
+                                                )
+                                            ],
+                                    } as React.CSSProperties
+                                }
                             />
                         ))}
                     </div>

@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import { Link } from 'next-view-transitions';
 import React from 'react';
 import { SvgIconTypeMap } from '@mui/material';
 import { OverridableComponent } from '@mui/material/OverridableComponent';
@@ -7,8 +7,8 @@ const IconLink = ({
     MuiIcon,
     href,
     html,
-    classNames,
-    outerClasses,
+    className,
+    outerClass,
     onClick,
     internal,
     inverted,
@@ -17,9 +17,9 @@ const IconLink = ({
     MuiIcon?: OverridableComponent<SvgIconTypeMap> & { muiName: string };
     href?: string;
     html?: string;
-    classNames?: string;
+    className?: string;
     onClick?: () => Promise<void> | void;
-    outerClasses?: string;
+    outerClass?: string;
     internal?: boolean;
     inverted?: boolean;
     disabled?: boolean;
@@ -27,8 +27,8 @@ const IconLink = ({
     const hoverClasses = `
         ${
             inverted
-                ? '[&_svg]:fill-background [&_svg]:hover:fill-foreground after:bg-foreground after:scale-10 hover:after:scale-0 hover:border-foreground border border-transparent '
-                : '[&_svg]:fill-foreground [&_svg]:hover:fill-background  hover:after:scale-100 after:bg-foreground after:scale-0'
+                ? '[&_svg]:fill-background [&_svg]:hover:fill-foreground after:bg-foreground hover:after:scale-0 hover:border-foreground hover:bg-background border border-transparent '
+                : '[&_svg]:fill-foreground [&_svg]:hover:fill-background hover:after:scale-100 after:bg-foreground after:scale-0'
         }
         [&_svg]:relative
         [&_svg]:z-10
@@ -57,18 +57,18 @@ const IconLink = ({
     if (onClick) {
         return (
             <div
-                className={`cursor-pointer ${hoverClasses} ${outerClasses ? outerClasses : ''} ${disabled ? 'pointer-events-none opacity-50' : ''}`}
+                className={`cursor-pointer ${hoverClasses} ${outerClass ? outerClass : ''} ${disabled ? 'pointer-events-none opacity-50' : ''}`}
                 onClick={!disabled ? onClick : undefined}
             >
                 {html && (
                     <div
-                        className={classNames}
+                        className={className}
                         dangerouslySetInnerHTML={{
                             __html: html,
                         }}
                     />
                 )}
-                {MuiIcon && <MuiIcon className={classNames} />}
+                {MuiIcon && <MuiIcon className={className} />}
             </div>
         );
     }
@@ -77,20 +77,20 @@ const IconLink = ({
 
     return (
         <Link
-            className={`inline-block ${disabled ? 'pointer-events-none opacity-50' : ''}`}
+            className={`inline-block ${disabled ? 'pointer-events-none opacity-50' : ''} ${outerClass}`}
             href={href}
             {...externalProps}
         >
-            <div className={`${hoverClasses} ${outerClasses}`}>
+            <div className={`${hoverClasses}`}>
                 {html && (
                     <div
-                        className={classNames}
+                        className={className}
                         dangerouslySetInnerHTML={{
                             __html: html,
                         }}
                     />
                 )}
-                {MuiIcon && <MuiIcon className={classNames} />}
+                {MuiIcon && <MuiIcon className={className} />}
             </div>
         </Link>
     );
