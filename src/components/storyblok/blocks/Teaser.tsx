@@ -46,23 +46,16 @@ const Teaser = ({ blok }: { blok: TeaserStoryblok }) => {
             {blok.headline && (
                 <MatrixText
                     classNames="
-            p-8
-            bg-background
             md:text-5xl
             text-2xl
-            text-center
-            after-outline
             component
-            font-black
             "
                 >
                     {blok.headline}
                 </MatrixText>
             )}
             {blok.description && (
-                <span className="bg-background p-4 text-md component">
-                    {blok.description}
-                </span>
+                <span className="text-md component">{blok.description}</span>
             )}
         </div>
     );
