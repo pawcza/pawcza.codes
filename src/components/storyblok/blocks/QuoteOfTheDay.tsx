@@ -32,22 +32,32 @@ const QuoteOfTheDay = () => {
 
     return (
         <section className="flex flex-col relative bg-background p-4 mx-auto w-full break-words component min-h-60">
-            {quote?.content && (
+            {quote?.content ? (
                 <MatrixText
                     key={quote.content} // Add key prop
                     classNames={`text-md md:text-xl italic font-bold mb-2`}
                 >
                     {quote.content}
                 </MatrixText>
+            ) : (
+                <MatrixText
+                    classNames={`text-md md:text-xl italic font-bold mb-2`}
+                >
+                    LOADING LOADING LOADING LOADING LOADING
+                </MatrixText>
             )}
-            {quote?.author && (
+            {quote?.author ? (
                 <MatrixText key={quote.author} classNames="text-md mb-4">
                     {quote.author}
                 </MatrixText>
+            ) : (
+                <MatrixText classNames="text-md mb-4">
+                    LOADING LOADING
+                </MatrixText>
             )}
             <IconLink
-                outerClasses="mt-auto w-fit"
-                classNames={loading ? 'animate-spin' : ''}
+                outerClass="mt-auto w-fit"
+                className={loading ? 'animate-spin' : ''}
                 onClick={getQuote}
                 disabled={loading}
                 MuiIcon={Refresh}

@@ -28,7 +28,7 @@ const Contact = ({ blok }: { blok: ContactStoryblok }) => {
                     <IconLink
                         href={blok.employerLink}
                         html={blok.employerIcon}
-                        classNames="w-24 inline-block"
+                        className="w-24 inline-block"
                     />
                 )}
             </div>

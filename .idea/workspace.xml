@@ -4,23 +4,17 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a2830b7f-7885-4823-8a2a-a6d20c950bab" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/src/components/common/BlogPost.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/components/common/Container.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
+    <list default="true" id="a2830b7f-7885-4823-8a2a-a6d20c950bab" name="Default Changelist" comment="* Worked on typography&#10;* Adding view transitions">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/app/globals.css" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/globals.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/layout.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/common/MatrixText.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/common/MatrixText.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/common/BlogPost.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/common/BlogPost.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/common/IconLink.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/common/IconLink.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/components/layout/Navigation.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/layout/Navigation.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/layout/Tiles/Sidebar.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/layout/Tiles/Sidebar.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/layout/Tiles/config.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/layout/Tiles/config.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/components/layout/Tiles/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/layout/Tiles/index.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/storyblok/blocks/Listing.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/storyblok/blocks/Listing.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/storyblok/blocks/Contact.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/storyblok/blocks/Contact.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/components/storyblok/blocks/QuoteOfTheDay.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/storyblok/blocks/QuoteOfTheDay.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/storyblok/blocks/Teaser.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/storyblok/blocks/Teaser.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/storyblok/pages/Post.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/storyblok/pages/Post.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/yarn.lock" beforeDir="false" afterPath="$PROJECT_DIR$/yarn.lock" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -120,8 +114,17 @@
       <workItem from="1744390869786" duration="1997000" />
       <workItem from="1744394058396" duration="9658000" />
       <workItem from="1744477522851" duration="5251000" />
-      <workItem from="1744554389763" duration="10843000" />
+      <workItem from="1744554389763" duration="19268000" />
     </task>
+    <task id="LOCAL-00001" summary="* Worked on typography&#10;* Adding view transitions">
+      <option name="closed" value="true" />
+      <created>1744569473563</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1744569473563</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TerminalProjectNonSharedOptionsProvider">
@@ -140,5 +143,9 @@
         </entry>
       </map>
     </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="* Worked on typography&#10;* Adding view transitions" />
+    <option name="LAST_COMMIT_MESSAGE" value="* Worked on typography&#10;* Adding view transitions" />
   </component>
 </project>

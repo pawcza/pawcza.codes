@@ -34,11 +34,11 @@ export const gradients: Gradients = {
 };
 
 export const config: TilesConfig = {
-    size: 2,
+    size: 1,
     pattern: {
         waveFrequency: 0.5,
         waveAmplitude: 1.5,
         secondaryFrequency: 0.2,
-        waveSpeed: 0.005,
+        waveSpeed: 0.001,
     },
 };
