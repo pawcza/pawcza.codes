@@ -24,13 +24,48 @@ export const BlogPost = ({
 
     const markerRef = useRef() as React.MutableRefObject<HTMLDivElement | null>;
 
-    const [arrowUpwardVisible, setArrowUpwardVisible] = useState(false);
+    const [scrolledPast, setScrolledPast] = useState(false);
+    const [progress, setProgress] = useState(0);
+
+    useEffect(() => {
+        const onScroll = () => {
+            const top = contentContainerRef.current?.offsetTop;
+            const height = contentContainerRef.current?.offsetHeight;
+            const scrollY = window.scrollY;
+            const windowHeight = window.innerHeight;
+
+            if (!top || !height) return;
+
+            if (scrollY < top) {
+                return;
+            }
+
+            console.log(
+                `top: ${top}, height: ${height}, scrollY: ${scrollY}, windowHeight: ${windowHeight}`,
+            );
+
+            const progress = (
+                (scrollY - top) /
+                (height! - windowHeight)
+            ).toFixed(2);
+
+            if (progress > 1) return;
+
+            setProgress(Number(progress));
+        };
+
+        window.addEventListener('scroll', onScroll);
+
+        return () => {
+            window.removeEventListener('scroll', onScroll);
+        };
+    }, []);
 
     useEffect(() => {
         if (!markerRef.current) return;
 
         const observer = new IntersectionObserver(
-            ([entry]) => setArrowUpwardVisible(!entry.isIntersecting),
+            ([entry]) => setScrolledPast(!entry.isIntersecting),
             {
                 threshold: 1.0,
             },
@@ -84,7 +119,7 @@ export const BlogPost = ({
                 >
                     <div ref={markerRef} className="h-1" />
                     <div className="sticky top-10 h-0">
-                        <div className="absolute -left-20 -top-8 z-50">
+                        <div className="absolute -left-20 -top-9 z-50">
                             <IconLink
                                 internal
                                 inverted
@@ -93,7 +128,7 @@ export const BlogPost = ({
                             />
                         </div>
                         <div
-                            className={`absolute -left-20 top-4 z-50 transition-all ${arrowUpwardVisible ? 'opacity-100' : 'opacity-0'}`}
+                            className={`group absolute -left-20 top-3 z-50 transition-all ${scrolledPast ? 'opacity-100' : 'opacity-0'}`}
                         >
                             <IconLink
                                 internal
@@ -101,6 +136,31 @@ export const BlogPost = ({
                                 MuiIcon={ArrowUpwardIcon}
                                 onClick={handleUpwardClick}
                             />
+                            <svg
+                                width="42"
+                                height="42"
+                                className="absolute top-0 pointer-events-none"
+                            >
+                                <circle
+                                    cx="21"
+                                    cy="21"
+                                    r={16}
+                                    strokeWidth={2}
+                                    fill="none"
+                                    className="group-hover:stroke-foreground stroke-background"
+                                    strokeDasharray={`${2 * Math.PI * 16}`}
+                                    strokeDashoffset={`${2 * Math.PI * 16 * (1 - progress)}`}
+                                    transform="rotate(-90 21 21)" // rotate so progress starts at top
+                                />
+                                <circle
+                                    cx="21"
+                                    cy="21"
+                                    r={16}
+                                    strokeWidth={1}
+                                    fill="none"
+                                    className="group-hover:stroke-foreground stroke-background opacity-25"
+                                />
+                            </svg>
                         </div>
                     </div>
                     <Markdown className="markdown">{content}</Markdown>
