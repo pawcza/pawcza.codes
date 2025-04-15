@@ -18,7 +18,7 @@ const Contact = ({ blok }: { blok: ContactStoryblok }) => {
             className="max-w-screen-md mx-auto py-2 flex flex-col items-center justify-center text-sm md:text-md"
             {...storyblokEditable(blok)}
         >
-            <div className="px-4 bg-background overflow-hidden border border-foreground rounded-lg shadow-2xl flex items-center justify-center">
+            <div className="overflow-hidden flex items-center justify-center component px-4">
                 {blok.intro && (
                     <MatrixText classNames="inline-block mr-2">
                         {blok.intro}
@@ -32,7 +32,7 @@ const Contact = ({ blok }: { blok: ContactStoryblok }) => {
                     />
                 )}
             </div>
-            <ul className="overflow-hidden flex items-center justify-center mt-2 px-4 text-foreground bg-background border border-foreground rounded-lg shadow-2xl">
+            <ul className="overflow-hidden flex items-center justify-center mt-2 component px-4">
                 {blok.contactText && (
                     <MatrixText classNames="mr-2">
                         {blok.contactText}

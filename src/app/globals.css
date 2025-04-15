@@ -143,12 +143,12 @@ h6 {
 }
 
 .component {
-  @apply p-8;
   @apply rounded-lg;
   @apply bg-background;
   @apply border;
   @apply border-foreground;
   @apply border-solid;
+  animation: fadeIn 0.5s ease-in-out;
 }
 
 .flicker {
@@ -205,10 +205,10 @@ input[type="range"]::-moz-range-thumb, input[type="range"]::-webkit-slider-thumb
   }
 }
 
+.fade-in {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
 .tile {
   background-color: var(--tile-color);
-
-  &:after {
-    border-radius: var(--tile-radius);
-  }
 }

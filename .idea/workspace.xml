@@ -4,12 +4,19 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a2830b7f-7885-4823-8a2a-a6d20c950bab" name="Default Changelist" comment="* Worked on typography&#10;* Adding view transitions">
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+    <list default="true" id="a2830b7f-7885-4823-8a2a-a6d20c950bab" name="Default Changelist" comment="* Added circular display of scrolling progress on markdown article&#10;* Cleaned up Teaser.tsx classes&#10;* Re-written MatrixText.tsx to use requestAnimationFrame instead of timeouts, sweet lord performance gains!">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/globals.css" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/globals.css" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/components/common/BlogPost.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/common/BlogPost.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/components/common/MatrixText.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/common/MatrixText.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/layout/Navigation.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/layout/Navigation.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/layout/Tiles/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/layout/Tiles/index.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/storyblok/blocks/Contact.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/storyblok/blocks/Contact.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/storyblok/blocks/QuoteOfTheDay.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/storyblok/blocks/QuoteOfTheDay.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/components/storyblok/blocks/Teaser.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/storyblok/blocks/Teaser.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/yarn.lock" beforeDir="false" afterPath="$PROJECT_DIR$/yarn.lock" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -42,24 +49,24 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "WebServerToolWindowFactoryState": "false",
-    "git-widget-placeholder": "main",
-    "last_opened_file_path": "D:/dev/pawcza.codes",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "prettierjs.PrettierConfiguration.Package": "D:\\dev\\pawcza.codes\\node_modules\\prettier",
-    "settings.editor.selected.configurable": "project.propVCSSupport.DirectoryMappings",
-    "ts.external.directory.path": "D:\\dev\\pawcza.codes\\node_modules\\typescript\\lib",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;last_opened_file_path&quot;: &quot;D:/dev/pawcza.codes&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;prettierjs.PrettierConfiguration.Package&quot;: &quot;D:\\dev\\pawcza.codes\\node_modules\\prettier&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;project.propVCSSupport.DirectoryMappings&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;D:\\dev\\pawcza.codes\\node_modules\\typescript\\lib&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="D:\dev\pawcza.codes\components\Header" />
@@ -112,7 +119,8 @@
       <workItem from="1744394058396" duration="9658000" />
       <workItem from="1744477522851" duration="5251000" />
       <workItem from="1744554389763" duration="19268000" />
-      <workItem from="1744616185756" duration="11041000" />
+      <workItem from="1744616185756" duration="22498000" />
+      <workItem from="1744704128087" duration="6402000" />
     </task>
     <task id="LOCAL-00001" summary="* Worked on typography&#10;* Adding view transitions">
       <option name="closed" value="true" />
@@ -122,7 +130,15 @@
       <option name="project" value="LOCAL" />
       <updated>1744569473563</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="* Added circular display of scrolling progress on markdown article&#10;* Cleaned up Teaser.tsx classes&#10;* Re-written MatrixText.tsx to use requestAnimationFrame instead of timeouts, sweet lord performance gains!">
+      <option name="closed" value="true" />
+      <created>1744632351050</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1744632351051</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TerminalProjectNonSharedOptionsProvider">
@@ -147,6 +163,7 @@
       <path value="$PROJECT_DIR$/storyblok" />
     </ignored-roots>
     <MESSAGE value="* Worked on typography&#10;* Adding view transitions" />
-    <option name="LAST_COMMIT_MESSAGE" value="* Worked on typography&#10;* Adding view transitions" />
+    <MESSAGE value="* Added circular display of scrolling progress on markdown article&#10;* Cleaned up Teaser.tsx classes&#10;* Re-written MatrixText.tsx to use requestAnimationFrame instead of timeouts, sweet lord performance gains!" />
+    <option name="LAST_COMMIT_MESSAGE" value="* Added circular display of scrolling progress on markdown article&#10;* Cleaned up Teaser.tsx classes&#10;* Re-written MatrixText.tsx to use requestAnimationFrame instead of timeouts, sweet lord performance gains!" />
   </component>
 </project>

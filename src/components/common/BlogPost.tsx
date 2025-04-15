@@ -89,7 +89,7 @@ export const BlogPost = ({
     return (
         <>
             <div
-                className={`w-full mb-2 bg-background p-8 flex items-center flex-wrap gap-4 rounded-lg border border-foreground shadow-2xl ${type === 'listing' ? 'hover:bg-foreground hover:text-background transition-colors' : ''}`}
+                className={`w-full mb-2 bg-background p-8 flex items-center flex-wrap gap-4 component shadow-2xl ${type === 'listing' ? 'hover:bg-foreground hover:text-background transition-colors' : ''}`}
                 style={{
                     viewTransitionName: `view-transition-post-${_uid}`,
                 }}
@@ -114,7 +114,7 @@ export const BlogPost = ({
             </div>
             {content && (
                 <div
-                    className="p-8 bg-background border border-foreground shadow-2xl rounded-lg relative"
+                    className="p-8 component shadow-2xl relative"
                     ref={contentContainerRef}
                 >
                     <div ref={markerRef} className="h-1" />

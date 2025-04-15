@@ -31,33 +31,23 @@ const QuoteOfTheDay = () => {
     }, []);
 
     return (
-        <section className="flex flex-col relative bg-background p-4 mx-auto w-full break-words component min-h-60">
-            {quote?.content ? (
+        <section className="flex flex-col relative bg-background p-8 mx-auto w-full break-words component min-h-52">
+            {quote?.content && (
                 <MatrixText
                     key={quote.content} // Add key prop
-                    classNames={`text-md md:text-xl italic font-bold mb-2`}
+                    classNames={`text-lg md:text-xl italic font-bold mb-2`}
                 >
                     {quote.content}
                 </MatrixText>
-            ) : (
-                <MatrixText
-                    classNames={`text-md md:text-xl italic font-bold mb-2`}
-                >
-                    LOADING LOADING LOADING LOADING LOADING
-                </MatrixText>
             )}
-            {quote?.author ? (
+            {quote?.author && (
                 <MatrixText key={quote.author} classNames="text-md mb-4">
                     {quote.author}
-                </MatrixText>
-            ) : (
-                <MatrixText classNames="text-md mb-4">
-                    LOADING LOADING
                 </MatrixText>
             )}
             <IconLink
                 outerClass="mt-auto w-fit"
-                className={loading ? 'animate-spin' : ''}
+                className={`transition-all ${loading ? 'animate-spin' : ''}`}
                 onClick={getQuote}
                 disabled={loading}
                 MuiIcon={Refresh}
