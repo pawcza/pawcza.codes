@@ -31,7 +31,6 @@ const Tiles: React.FC<TilesProps> = ({ children }) => {
         ] as keyof Gradients,
     });
 
-    const [prevClosestTile, setPrevClosestTile] = useState({ row: 0, col: 0 });
     const [time, setTime] = useState(0);
 
     const prevPathnameRef = useRef(pathname);
@@ -158,21 +157,21 @@ const Tiles: React.FC<TilesProps> = ({ children }) => {
                                         after:absolute
                                         after:w-full
                                         after:h-full
-                                        after:scale-50
-                                        after:opacity-5
-                                        after:-outline-offset-8
-                                        after:outline-background
-                                        after:outline
+                                        after:opacity-10
+                                        after:border
+                                        after:border-foreground
                                     `}
                                 style={
                                     {
                                         width: `${100 / tiles.columns}%`,
                                         '--tile-radius': `${
-                                            (calculateColorIndex(
-                                                row,
-                                                col,
-                                                time,
-                                            ) /
+                                            ((gradients[tiles.gradientName]
+                                                .length -
+                                                calculateColorIndex(
+                                                    row,
+                                                    col,
+                                                    time,
+                                                )) /
                                                 gradients[tiles.gradientName]
                                                     .length) *
                                             100

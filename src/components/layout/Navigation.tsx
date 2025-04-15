@@ -15,8 +15,8 @@ const Navigation = ({ items }: { items: MenuItem[] }) => {
     const pathname = usePathname();
 
     return (
-        <nav className="fixed top-0 z-40 left-1/2 -translate-x-1/2 flex justify-center">
-            <ul className="flex justify-center w-auto overflow-hidden rounded-lg mt-2 border border-foreground shadow-2xl">
+        <nav className="fixed top-0 z-40 left-1/2 -translate-x-1/2 flex justify-center fade-in">
+            <ul className="flex justify-center w-auto overflow-hidden rounded-lg mt-2 border border-foreground shadow-2xl text-lg">
                 {items.map((item: MenuItem) => {
                     const isActive =
                         pathname.split('/')[pathname.split('/').length - 1] ===

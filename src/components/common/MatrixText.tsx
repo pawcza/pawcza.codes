@@ -3,8 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 
 interface MatrixTextProps {
-    minTimeToMatch?: number;
-    maxTimeToMatch?: number;
+    duration?: number;
     flickerInterval?: number;
     children: string;
     classNames?: string;
@@ -13,13 +12,12 @@ interface MatrixTextProps {
 const MatrixText = ({
     children,
     classNames,
-    minTimeToMatch = 300,
-    maxTimeToMatch = 2000,
+    duration,
     flickerInterval = 15,
 }: MatrixTextProps) => {
     const getRandomChar = (exclude: string): string => {
         const chars =
-            'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+[]{}|;:,.<>?';
+            '0123456789#ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
         let newChar = exclude;
         while (newChar === exclude) {
             newChar = chars.charAt(Math.floor(Math.random() * chars.length));
@@ -30,24 +28,24 @@ const MatrixText = ({
     const headline = children.split('');
     const length = headline.length;
 
+    const effectiveDuration = duration ?? 500 + length * 20;
+
     const [displayText, setDisplayText] = useState<string[]>(() =>
-        headline.map((ch) => (ch === ' ' ? ch : getRandomChar(ch))),
+        headline.map((ch) => (ch === ' ' ? ' ' : ch)),
     );
 
-    const displayRef = useRef(displayText); // holds latest state
+    const [hasStarted, setHasStarted] = useState(false);
+
+    const displayRef = useRef(displayText);
     const statusRef = useRef<boolean[]>(headline.map((ch) => ch === ' '));
     const randomOpacities = useRef(headline.map(() => Math.random()));
-    const timeToReveal = useRef<number[]>(
-        Array.from(
-            { length },
-            () =>
-                Math.random() * (maxTimeToMatch - minTimeToMatch) +
-                minTimeToMatch,
-        ),
-    );
     const lastFlickerTime = useRef<number[]>(Array(length).fill(0));
     const animationFrame = useRef<number>();
-    const startTime = useRef(performance.now());
+    const startTime = useRef<number>(performance.now());
+
+    const timeToReveal = useRef<number[]>(
+        headline.map((_, i) => (effectiveDuration / length) * i),
+    );
 
     const animate = (time: number) => {
         const elapsed = time - startTime.current;
@@ -66,12 +64,9 @@ const MatrixText = ({
                 currentStatus[i] = true;
                 hasChanged = true;
             } else if (timeSinceLastFlicker > flickerInterval) {
-                const newChar = getRandomChar(currentDisplay[i]);
-                if (newChar !== currentDisplay[i]) {
-                    currentDisplay[i] = newChar;
-                    lastFlickerTime.current[i] = time;
-                    hasChanged = true;
-                }
+                currentDisplay[i] = getRandomChar(currentDisplay[i] || ' ');
+                lastFlickerTime.current[i] = time;
+                hasChanged = true;
             }
         }
 
@@ -87,8 +82,14 @@ const MatrixText = ({
     };
 
     useEffect(() => {
-        animationFrame.current = requestAnimationFrame(animate);
+        // Delay visibility slightly so initial render shows nothing
+        const frame = requestAnimationFrame(() => {
+            setHasStarted(true);
+            animationFrame.current = requestAnimationFrame(animate);
+        });
+
         return () => {
+            cancelAnimationFrame(frame);
             if (animationFrame.current) {
                 cancelAnimationFrame(animationFrame.current);
             }
@@ -96,7 +97,14 @@ const MatrixText = ({
     }, []);
 
     return (
-        <div className={classNames} style={{ fontFamily: 'monospace' }}>
+        <div
+            className={classNames}
+            style={{
+                fontFamily: 'monospace',
+                opacity: hasStarted ? 1 : 0,
+                transition: 'opacity 0.2s ease-in-out',
+            }}
+        >
             {displayText.map((char, index) => (
                 <span
                     key={index}
@@ -105,9 +113,9 @@ const MatrixText = ({
                             ? 1
                             : randomOpacities.current[index],
                         willChange: 'opacity',
-                        transition: statusRef.current.every(Boolean)
-                            ? 'none'
-                            : 'opacity 0.2s ease-in-out',
+                        transition: statusRef.current[index]
+                            ? 'opacity 0.2s ease-in-out'
+                            : 'none',
                     }}
                 >
                     {char}
