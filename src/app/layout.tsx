@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import React from 'react';
 
 import { ISbStoriesParams, StoryblokClient } from '@storyblok/react';
-import { Montserrat, Source_Code_Pro, Space_Mono } from 'next/font/google';
+import { Montserrat } from 'next/font/google';
 import { ViewTransitions } from 'next-view-transitions';
 
 import { getStoryblokApi } from '@/lib/storyblok';
@@ -12,16 +12,6 @@ import Navigation from '@/components/layout/Navigation';
 import StoryblokProvider from '@/components/context/StoryblokProvider';
 
 import './globals.css';
-
-const sourceCodePro = Source_Code_Pro({
-    subsets: ['latin'],
-    weight: 'variable',
-});
-
-const spaceMono = Space_Mono({
-    subsets: ['latin'],
-    weight: ['400', '700'],
-});
 
 const montserrat = Montserrat({
     subsets: ['latin'],

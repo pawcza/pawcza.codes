@@ -4,19 +4,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a2830b7f-7885-4823-8a2a-a6d20c950bab" name="Default Changelist" comment="* Added circular display of scrolling progress on markdown article&#10;* Cleaned up Teaser.tsx classes&#10;* Re-written MatrixText.tsx to use requestAnimationFrame instead of timeouts, sweet lord performance gains!">
+    <list default="true" id="a2830b7f-7885-4823-8a2a-a6d20c950bab" name="Default Changelist" comment="* MatrixText.tsx reveals&#10;* Opacity page transitions">
+      <change afterPath="$PROJECT_DIR$/public/CV - Pawel Czarniecki.pdf" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/app/cv/route.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/globals.css" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/globals.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/common/BlogPost.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/common/BlogPost.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/common/MatrixText.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/common/MatrixText.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/layout/Navigation.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/layout/Navigation.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/layout/Tiles/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/layout/Tiles/index.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/storyblok/blocks/Contact.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/storyblok/blocks/Contact.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/storyblok/blocks/QuoteOfTheDay.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/storyblok/blocks/QuoteOfTheDay.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/storyblok/blocks/Teaser.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/storyblok/blocks/Teaser.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/yarn.lock" beforeDir="false" afterPath="$PROJECT_DIR$/yarn.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/fonts/GeistMonoVF.woff" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/fonts/GeistVF.woff" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/layout.tsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -69,6 +63,7 @@
 }</component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="D:\dev\pawcza.codes\public" />
       <recent name="D:\dev\pawcza.codes\components\Header" />
       <recent name="D:\dev\pawcza.codes\components\Layout" />
       <recent name="D:\dev\pawcza.codes\components\CustomLink" />
@@ -120,7 +115,8 @@
       <workItem from="1744477522851" duration="5251000" />
       <workItem from="1744554389763" duration="19268000" />
       <workItem from="1744616185756" duration="22498000" />
-      <workItem from="1744704128087" duration="6402000" />
+      <workItem from="1744704128087" duration="6450000" />
+      <workItem from="1745317312218" duration="9830000" />
     </task>
     <task id="LOCAL-00001" summary="* Worked on typography&#10;* Adding view transitions">
       <option name="closed" value="true" />
@@ -138,7 +134,15 @@
       <option name="project" value="LOCAL" />
       <updated>1744632351051</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="* MatrixText.tsx reveals&#10;* Opacity page transitions">
+      <option name="closed" value="true" />
+      <created>1744758044081</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1744758044082</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TerminalProjectNonSharedOptionsProvider">
@@ -164,6 +168,7 @@
     </ignored-roots>
     <MESSAGE value="* Worked on typography&#10;* Adding view transitions" />
     <MESSAGE value="* Added circular display of scrolling progress on markdown article&#10;* Cleaned up Teaser.tsx classes&#10;* Re-written MatrixText.tsx to use requestAnimationFrame instead of timeouts, sweet lord performance gains!" />
-    <option name="LAST_COMMIT_MESSAGE" value="* Added circular display of scrolling progress on markdown article&#10;* Cleaned up Teaser.tsx classes&#10;* Re-written MatrixText.tsx to use requestAnimationFrame instead of timeouts, sweet lord performance gains!" />
+    <MESSAGE value="* MatrixText.tsx reveals&#10;* Opacity page transitions" />
+    <option name="LAST_COMMIT_MESSAGE" value="* MatrixText.tsx reveals&#10;* Opacity page transitions" />
   </component>
 </project>
