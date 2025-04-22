@@ -17,7 +17,7 @@ export async function GET() {
         'laozi',
     ];
     const res = await fetch(
-        'https://api.quotable.io/quotes/random?author=' + authors.join('|'),
+        'http://api.quotable.io/quotes/random?author=' + authors.join('|'),
         {
             headers: {
                 Accept: 'application/json',
