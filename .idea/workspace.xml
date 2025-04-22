@@ -4,9 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a2830b7f-7885-4823-8a2a-a6d20c950bab" name="Default Changelist" comment="* MatrixText.tsx reveals&#10;* Opacity page transitions">
+    <list default="true" id="a2830b7f-7885-4823-8a2a-a6d20c950bab" name="Default Changelist" comment="* Changed port on build script">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/common/BlogPost.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/common/BlogPost.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/storyblok/pages/Post.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/storyblok/pages/Post.tsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -112,7 +114,7 @@
       <workItem from="1744554389763" duration="19268000" />
       <workItem from="1744616185756" duration="22498000" />
       <workItem from="1744704128087" duration="6450000" />
-      <workItem from="1745317312218" duration="10753000" />
+      <workItem from="1745317312218" duration="11644000" />
     </task>
     <task id="LOCAL-00001" summary="* Worked on typography&#10;* Adding view transitions">
       <option name="closed" value="true" />
@@ -138,7 +140,15 @@
       <option name="project" value="LOCAL" />
       <updated>1744758044082</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="* Changed port on build script">
+      <option name="closed" value="true" />
+      <created>1745332652319</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1745332652319</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TerminalProjectNonSharedOptionsProvider">
@@ -165,6 +175,7 @@
     <MESSAGE value="* Worked on typography&#10;* Adding view transitions" />
     <MESSAGE value="* Added circular display of scrolling progress on markdown article&#10;* Cleaned up Teaser.tsx classes&#10;* Re-written MatrixText.tsx to use requestAnimationFrame instead of timeouts, sweet lord performance gains!" />
     <MESSAGE value="* MatrixText.tsx reveals&#10;* Opacity page transitions" />
-    <option name="LAST_COMMIT_MESSAGE" value="* MatrixText.tsx reveals&#10;* Opacity page transitions" />
+    <MESSAGE value="* Changed port on build script" />
+    <option name="LAST_COMMIT_MESSAGE" value="* Changed port on build script" />
   </component>
 </project>
