@@ -4,7 +4,6 @@ import { PostStoryblok } from '@/types/component-types-sb';
 import MatrixText from '@/components/common/MatrixText';
 import Tag from '@/components/common/Tag';
 import Markdown from 'react-markdown';
-import { Link } from 'next-view-transitions';
 import IconLink from '@/components/common/IconLink';
 
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
