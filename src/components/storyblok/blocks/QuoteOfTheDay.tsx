@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { motion } from 'motion/react';
 import Refresh from '@mui/icons-material/Refresh';
 
 import MatrixText from '@/components/common/MatrixText';
@@ -13,6 +14,7 @@ const fetchQuoteData = async () => {
 };
 
 const QuoteOfTheDay = () => {
+    const [hasAnimationCompleted, setHasAnimationCompleted] = useState(false);
     const [quote, setQuote] = useState<{
         content: string;
         author: string;
@@ -31,17 +33,29 @@ const QuoteOfTheDay = () => {
     }, []);
 
     return (
-        <section className="flex flex-col relative bg-background p-8 mx-auto w-full break-words component min-h-52">
+        <motion.section
+            className="flex flex-col relative p-8 mx-auto w-full break-words component min-h-52"
+            initial={{ opacity: 0, y: -50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            onAnimationComplete={() => setHasAnimationCompleted(true)}
+            layout
+            transition={{ delay: 0.2 }}
+        >
             {quote?.content && (
                 <MatrixText
                     key={quote.content} // Add key prop
                     classNames={`text-lg md:text-xl italic font-bold mb-2`}
+                    hasStarted={hasAnimationCompleted}
                 >
                     {quote.content}
                 </MatrixText>
             )}
             {quote?.author && (
-                <MatrixText key={quote.author} classNames="text-md mb-4">
+                <MatrixText
+                    key={quote.author}
+                    classNames="text-md mb-4"
+                    hasStarted={hasAnimationCompleted}
+                >
                     {quote.author}
                 </MatrixText>
             )}
@@ -53,7 +67,7 @@ const QuoteOfTheDay = () => {
                 MuiIcon={Refresh}
                 inverted
             />
-        </section>
+        </motion.section>
     );
 };
 

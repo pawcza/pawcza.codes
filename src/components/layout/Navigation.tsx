@@ -1,8 +1,10 @@
 'use client';
 
 import { Link } from 'next-view-transitions';
+import { motion } from 'motion/react';
 import { usePathname } from 'next/navigation';
 import MatrixText from '@/components/common/MatrixText';
+import { useState } from 'react';
 
 interface MenuItem {
     name: string;
@@ -12,11 +14,18 @@ interface MenuItem {
 }
 
 const Navigation = ({ items }: { items: MenuItem[] }) => {
+    const [hasAnimationCompleted, setHasAnimationCompleted] = useState(false);
     const pathname = usePathname();
 
     return (
         <nav className="fixed top-0 z-40 left-1/2 -translate-x-1/2 flex justify-center fade-in">
-            <ul className="flex justify-center w-auto overflow-hidden rounded-lg mt-2 border border-foreground shadow-2xl text-lg">
+            <motion.ul
+                className="flex justify-center w-auto overflow-hidden mt-2  shadow-2xl text-lg"
+                initial={{ opacity: 0, y: -50 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                onAnimationComplete={() => setHasAnimationCompleted(true)}
+                transition={{ delay: 0.1 }}
+            >
                 {items.map((item: MenuItem) => {
                     const isActive =
                         pathname.split('/')[pathname.split('/').length - 1] ===
@@ -29,7 +38,9 @@ const Navigation = ({ items }: { items: MenuItem[] }) => {
                                 className="px-4 py-2 bg-background font-bold border-l-foreground border-l first-of-type:border-l-0"
                                 key={item.uuid}
                             >
-                                <MatrixText>{item.name}</MatrixText>
+                                <MatrixText hasStarted={hasAnimationCompleted}>
+                                    {item.name}
+                                </MatrixText>
                             </li>
                         );
                     }
@@ -47,12 +58,14 @@ const Navigation = ({ items }: { items: MenuItem[] }) => {
                                         : `../${item.slug}`
                                 }
                             >
-                                <MatrixText>{item.name}</MatrixText>
+                                <MatrixText hasStarted={hasAnimationCompleted}>
+                                    {item.name}
+                                </MatrixText>
                             </Link>
                         </li>
                     );
                 })}
-            </ul>
+            </motion.ul>
         </nav>
     );
 };

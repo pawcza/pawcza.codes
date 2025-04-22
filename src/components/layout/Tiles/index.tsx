@@ -152,14 +152,6 @@ const Tiles: React.FC<TilesProps> = ({ children }) => {
                                         duration-500
                                         relative
                                         will-change-auto
-                                        after:content-['']
-                                        after:block
-                                        after:absolute
-                                        after:w-full
-                                        after:h-full
-                                        after:opacity-10
-                                        after:border
-                                        after:border-foreground
                                     `}
                                 style={
                                     {

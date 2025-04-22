@@ -43,7 +43,6 @@ const IconLink = ({
         after:h-full
         after:absolute 
         after:top-0
-        after:rounded-lg
         after:left-0
         rounded-lg
         after:z-0
