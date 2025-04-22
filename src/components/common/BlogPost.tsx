@@ -39,16 +39,12 @@ export const BlogPost = ({
                 return;
             }
 
-            console.log(
-                `top: ${top}, height: ${height}, scrollY: ${scrollY}, windowHeight: ${windowHeight}`,
-            );
-
             const progress = (
                 (scrollY - top) /
                 (height! - windowHeight)
             ).toFixed(2);
 
-            if (progress > 1) return;
+            if (parseInt(progress) > 1) return;
 
             setProgress(Number(progress));
         };
