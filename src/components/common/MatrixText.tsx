@@ -7,6 +7,7 @@ interface MatrixTextProps {
     flickerInterval?: number;
     children: string;
     classNames?: string;
+    hasStarted?: boolean;
 }
 
 const MatrixText = ({
@@ -14,6 +15,7 @@ const MatrixText = ({
     classNames,
     duration,
     flickerInterval = 15,
+    hasStarted = true,
 }: MatrixTextProps) => {
     const getRandomChar = (exclude: string): string => {
         const chars =
@@ -31,10 +33,8 @@ const MatrixText = ({
     const effectiveDuration = duration ?? 500 + length * 20;
 
     const [displayText, setDisplayText] = useState<string[]>(() =>
-        headline.map((ch) => (ch === ' ' ? ' ' : ch)),
+        headline.map((ch) => (ch === ' ' ? ' ' : getRandomChar(' '))),
     );
-
-    const [hasStarted, setHasStarted] = useState(false);
 
     const displayRef = useRef(displayText);
     const statusRef = useRef<boolean[]>(headline.map((ch) => ch === ' '));
@@ -54,19 +54,33 @@ const MatrixText = ({
         let hasChanged = false;
 
         for (let i = 0; i < length; i++) {
-            if (currentStatus[i]) continue;
+            if (headline[i] === ' ') {
+                // Skip spaces
+                currentDisplay[i] = ' ';
+                currentStatus[i] = true;
+                continue;
+            }
 
-            const shouldReveal = elapsed >= timeToReveal.current[i];
             const timeSinceLastFlicker = time - lastFlickerTime.current[i];
 
-            if (shouldReveal) {
-                currentDisplay[i] = headline[i];
-                currentStatus[i] = true;
-                hasChanged = true;
-            } else if (timeSinceLastFlicker > flickerInterval) {
-                currentDisplay[i] = getRandomChar(currentDisplay[i] || ' ');
-                lastFlickerTime.current[i] = time;
-                hasChanged = true;
+            if (hasStarted) {
+                const shouldReveal = elapsed >= timeToReveal.current[i];
+                if (shouldReveal) {
+                    currentDisplay[i] = headline[i];
+                    currentStatus[i] = true;
+                    hasChanged = true;
+                } else if (timeSinceLastFlicker > flickerInterval) {
+                    currentDisplay[i] = getRandomChar(currentDisplay[i] || ' ');
+                    lastFlickerTime.current[i] = time;
+                    hasChanged = true;
+                }
+            } else {
+                if (timeSinceLastFlicker > flickerInterval) {
+                    currentDisplay[i] = getRandomChar(currentDisplay[i] || ' ');
+                    lastFlickerTime.current[i] = time;
+                    hasChanged = true;
+                }
+                currentStatus[i] = false; // Reset status when not started
             }
         }
 
@@ -76,33 +90,31 @@ const MatrixText = ({
             setDisplayText(currentDisplay);
         }
 
-        if (!currentStatus.every(Boolean)) {
+        if (!currentStatus.every(Boolean) || !hasStarted) {
             animationFrame.current = requestAnimationFrame(animate);
         }
     };
 
     useEffect(() => {
-        // Delay visibility slightly so initial render shows nothing
-        const frame = requestAnimationFrame(() => {
-            setHasStarted(true);
-            animationFrame.current = requestAnimationFrame(animate);
-        });
+        if (hasStarted) {
+            startTime.current = performance.now();
+        }
+        animationFrame.current = requestAnimationFrame(animate);
 
         return () => {
-            cancelAnimationFrame(frame);
             if (animationFrame.current) {
                 cancelAnimationFrame(animationFrame.current);
             }
         };
-    }, []);
+    }, [hasStarted]);
 
     return (
         <div
             className={classNames}
             style={{
                 fontFamily: 'monospace',
-                opacity: hasStarted ? 1 : 0,
                 transition: 'opacity 0.2s ease-in-out',
+                whiteSpace: 'pre-wrap', // Preserve spaces and line breaks
             }}
         >
             {displayText.map((char, index) => (

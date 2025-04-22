@@ -143,11 +143,11 @@ h6 {
 }
 
 .component {
-  @apply rounded-lg;
   @apply bg-background;
-  @apply border;
-  @apply border-foreground;
-  @apply border-solid;
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.fade-in {
   animation: fadeIn 0.5s ease-in-out;
 }
 

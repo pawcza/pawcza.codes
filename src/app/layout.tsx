@@ -19,8 +19,8 @@ const montserrat = Montserrat({
 });
 
 export const metadata: Metadata = {
-    title: 'pawcza.codes',
-    description: 'A passionate front-end developer.',
+    title: 'Paweł Czarniecki - Front-end Developer',
+    description: "Let's build something amazing together!",
 };
 
 const fetchNavigationData = async () => {

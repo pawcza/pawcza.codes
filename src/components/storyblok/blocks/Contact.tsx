@@ -1,6 +1,7 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
+import { motion } from 'motion/react';
 import { storyblokEditable } from '@storyblok/react/rsc';
 import Github from '@mui/icons-material/GitHub';
 import LinkedIn from '@mui/icons-material/LinkedIn';
@@ -13,58 +14,71 @@ import IconLink from '@/components/common/IconLink';
 import { ContactStoryblok } from '@/types/component-types-sb';
 
 const Contact = ({ blok }: { blok: ContactStoryblok }) => {
+    const [hasAnimationCompleted, setHasAnimationCompleted] = useState(false);
+
     return (
         <section
-            className="max-w-screen-md mx-auto py-2 flex flex-col items-center justify-center text-sm md:text-md"
+            className="max-w-screen-md mx-auto flex flex-col items-center justify-center text-sm md:text-md"
             {...storyblokEditable(blok)}
         >
-            <div className="overflow-hidden flex items-center justify-center component px-4">
-                {blok.intro && (
-                    <MatrixText classNames="inline-block mr-2">
-                        {blok.intro}
-                    </MatrixText>
-                )}
-                {blok.employerLink && (
-                    <IconLink
-                        href={blok.employerLink}
-                        html={blok.employerIcon}
-                        className="w-24 inline-block"
-                    />
-                )}
-            </div>
-            <ul className="overflow-hidden flex items-center justify-center mt-2 component px-4">
+            <motion.ul
+                initial={{ opacity: 0, y: -50 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                onAnimationComplete={() => setHasAnimationCompleted(true)}
+                className="overflow-hidden flex items-center justify-center component px-4"
+            >
                 {blok.contactText && (
-                    <MatrixText classNames="mr-2">
+                    <MatrixText
+                        classNames="mr-2"
+                        hasStarted={hasAnimationCompleted}
+                    >
                         {blok.contactText}
                     </MatrixText>
                 )}
                 {blok.github && (
-                    <li>
+                    <motion.li
+                        initial={{ opacity: 0, y: 50 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.7 }}
+                    >
                         <IconLink href={blok.github} MuiIcon={Github} />
-                    </li>
+                    </motion.li>
                 )}
                 {blok.linkedin && (
-                    <li>
+                    <motion.li
+                        initial={{ opacity: 0, y: 50 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.8 }}
+                    >
                         <IconLink href={blok.linkedin} MuiIcon={LinkedIn} />
-                    </li>
+                    </motion.li>
                 )}
                 {blok.email && (
-                    <li>
+                    <motion.li
+                        initial={{ opacity: 0, y: 50 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.9 }}
+                    >
                         <IconLink
                             href={`mailto:${blok.email}`}
                             MuiIcon={EmailOutlined}
                         />
-                    </li>
+                    </motion.li>
                 )}
                 {blok.phone && (
-                    <li>
+                    <motion.li
+                        initial={{ opacity: 0, y: 50 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 1 }}
+                    >
                         <IconLink
                             href={`tel:${blok.phone}`}
                             MuiIcon={PhoneOutlined}
                         />
-                    </li>
+                    </motion.li>
                 )}
-            </ul>
+            </motion.ul>
         </section>
     );
 };
