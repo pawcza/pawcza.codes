@@ -128,9 +128,9 @@ const Sidebar: React.FC<{
                         <Title>Size</Title>
                         <div className="px-4 py-2">
                             <Range
-                                min="1"
-                                max="100"
-                                step="1"
+                                min={1}
+                                max={100}
+                                step={1}
                                 value={tiles.size * 100 - 100}
                                 onChange={(value) =>
                                     handleChange((prev) => ({
@@ -144,9 +144,9 @@ const Sidebar: React.FC<{
                         <div className="flex flex-col gap-2 px-4 py-2">
                             <span>Wave Frequency</span>
                             <Range
-                                min="0"
-                                max="100"
-                                step="1"
+                                min={0}
+                                max={100}
+                                step={1}
                                 value={tiles.pattern.waveFrequency * 100}
                                 onChange={(value) =>
                                     handleChange((prev) => ({
@@ -160,9 +160,9 @@ const Sidebar: React.FC<{
                             />
                             <span>Wave Amplitude</span>
                             <Range
-                                min="0"
-                                max="100"
-                                step="0.5"
+                                min={0}
+                                max={100}
+                                step={1}
                                 value={tiles.pattern.waveAmplitude * 50}
                                 onChange={(value) =>
                                     handleChange((prev) => ({
@@ -176,9 +176,9 @@ const Sidebar: React.FC<{
                             />
                             <span>Secondary Frequency</span>
                             <Range
-                                min="0"
-                                max="100"
-                                step="1"
+                                min={0}
+                                max={100}
+                                step={1}
                                 value={tiles.pattern.secondaryFrequency * 100}
                                 onChange={(value) =>
                                     handleChange((prev) => ({
@@ -192,9 +192,9 @@ const Sidebar: React.FC<{
                             />
                             <span>Wave Speed</span>
                             <Range
-                                min="0"
-                                max="100"
-                                step="1"
+                                min={0}
+                                max={100}
+                                step={1}
                                 value={tiles.pattern.waveSpeed * 1000}
                                 onChange={(value) =>
                                     handleChange((prev) => ({

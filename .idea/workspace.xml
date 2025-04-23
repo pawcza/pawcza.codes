@@ -5,7 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a2830b7f-7885-4823-8a2a-a6d20c950bab" name="Default Changelist" comment="* Removed unused prop className from Range.tsx">
-      <change beforePath="$PROJECT_DIR$/src/components/common/inputs/Range.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/common/inputs/Range.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/layout/Tiles/Sidebar.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/layout/Tiles/Sidebar.tsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -114,7 +115,7 @@
       <workItem from="1745317312218" duration="16278000" />
       <workItem from="1745348827612" duration="4634000" />
       <workItem from="1745393978004" duration="3035000" />
-      <workItem from="1745397633669" duration="18490000" />
+      <workItem from="1745397633669" duration="18716000" />
     </task>
     <task id="LOCAL-00001" summary="* Worked on typography&#10;* Adding view transitions">
       <option name="closed" value="true" />
@@ -292,7 +293,15 @@
       <option name="project" value="LOCAL" />
       <updated>1745448780246</updated>
     </task>
-    <option name="localTasksCounter" value="23" />
+    <task id="LOCAL-00023" summary="* Removed unused prop className from Range.tsx">
+      <option name="closed" value="true" />
+      <created>1745448910931</created>
+      <option name="number" value="00023" />
+      <option name="presentableId" value="LOCAL-00023" />
+      <option name="project" value="LOCAL" />
+      <updated>1745448910931</updated>
+    </task>
+    <option name="localTasksCounter" value="24" />
     <servers />
   </component>
   <component name="TerminalProjectNonSharedOptionsProvider">
