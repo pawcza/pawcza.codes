@@ -4,20 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a2830b7f-7885-4823-8a2a-a6d20c950bab" name="Default Changelist" comment="* Will try unsecture http call to quotable...">
+    <list default="true" id="a2830b7f-7885-4823-8a2a-a6d20c950bab" name="Default Changelist" comment="* Removed the border and border radiuses&#10;* Added motion library&#10;* Added reveal animations&#10;* Added a delay to wait for the animation to finish before animating matrix text">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/app/globals.css" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/globals.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/layout.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/common/IconLink.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/common/IconLink.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/common/MatrixText.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/common/MatrixText.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/layout/Navigation.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/layout/Navigation.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/layout/Tiles/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/layout/Tiles/index.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/storyblok/blocks/Contact.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/storyblok/blocks/Contact.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/layout/Tiles/Sidebar.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/layout/Tiles/Sidebar.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/components/storyblok/blocks/QuoteOfTheDay.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/storyblok/blocks/QuoteOfTheDay.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/storyblok/blocks/Teaser.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/storyblok/blocks/Teaser.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/yarn.lock" beforeDir="false" afterPath="$PROJECT_DIR$/yarn.lock" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -124,7 +115,8 @@
       <workItem from="1744616185756" duration="22498000" />
       <workItem from="1744704128087" duration="6450000" />
       <workItem from="1745317312218" duration="16278000" />
-      <workItem from="1745348827612" duration="3875000" />
+      <workItem from="1745348827612" duration="4634000" />
+      <workItem from="1745393978004" duration="1275000" />
     </task>
     <task id="LOCAL-00001" summary="* Worked on typography&#10;* Adding view transitions">
       <option name="closed" value="true" />
@@ -190,7 +182,15 @@
       <option name="project" value="LOCAL" />
       <updated>1745337574490</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="* Removed the border and border radiuses&#10;* Added motion library&#10;* Added reveal animations&#10;* Added a delay to wait for the animation to finish before animating matrix text">
+      <option name="closed" value="true" />
+      <created>1745353063340</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1745353063340</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="TerminalProjectNonSharedOptionsProvider">
@@ -220,6 +220,7 @@
     <MESSAGE value="* Changed port on build script" />
     <MESSAGE value="* Removed unused imports" />
     <MESSAGE value="* Will try unsecture http call to quotable..." />
-    <option name="LAST_COMMIT_MESSAGE" value="* Will try unsecture http call to quotable..." />
+    <MESSAGE value="* Removed the border and border radiuses&#10;* Added motion library&#10;* Added reveal animations&#10;* Added a delay to wait for the animation to finish before animating matrix text" />
+    <option name="LAST_COMMIT_MESSAGE" value="* Removed the border and border radiuses&#10;* Added motion library&#10;* Added reveal animations&#10;* Added a delay to wait for the animation to finish before animating matrix text" />
   </component>
 </project>

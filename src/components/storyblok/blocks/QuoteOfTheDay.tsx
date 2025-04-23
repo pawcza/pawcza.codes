@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion } from 'motion/react';
 import Refresh from '@mui/icons-material/Refresh';
 
@@ -9,6 +9,9 @@ import IconLink from '@/components/common/IconLink';
 
 const fetchQuoteData = async () => {
     const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/quote`);
+    if (!res.ok) {
+        throw new Error(`Failed to fetch quote: ${res.statusText}`);
+    }
     const { data } = await res.json();
     return data;
 };
@@ -20,16 +23,25 @@ const QuoteOfTheDay = () => {
         author: string;
     } | null>(null);
     const [loading, setLoading] = useState(true);
+    const hasFetched = useRef(false); // Prevent double fetch
 
     const getQuote = async () => {
         setLoading(true);
-        const data = await fetchQuoteData();
-        setQuote(data[0]);
-        setLoading(false);
+        try {
+            const data = await fetchQuoteData();
+            setQuote(data[0]);
+        } catch (error) {
+            console.error('Error fetching quote:', error);
+        } finally {
+            setLoading(false);
+        }
     };
 
     useEffect(() => {
-        getQuote();
+        if (!hasFetched.current) {
+            hasFetched.current = true;
+            getQuote();
+        }
     }, []);
 
     return (
@@ -41,16 +53,23 @@ const QuoteOfTheDay = () => {
             layout
             transition={{ delay: 0.2 }}
         >
-            {quote?.content && (
+            {quote?.content ? (
                 <MatrixText
-                    key={quote.content} // Add key prop
+                    key={quote.content}
                     classNames={`text-lg md:text-xl italic font-bold mb-2`}
                     hasStarted={hasAnimationCompleted}
                 >
                     {quote.content}
                 </MatrixText>
+            ) : (
+                <MatrixText
+                    hasStarted={false}
+                    classNames="text-lg md:text-xl italic font-bold mb-2"
+                >
+                    There is nothing impossible to him who will try.
+                </MatrixText>
             )}
-            {quote?.author && (
+            {quote?.author ? (
                 <MatrixText
                     key={quote.author}
                     classNames="text-md mb-4"
@@ -58,6 +77,8 @@ const QuoteOfTheDay = () => {
                 >
                     {quote.author}
                 </MatrixText>
+            ) : (
+                <MatrixText hasStarted={false}>Alexander the Great</MatrixText>
             )}
             <IconLink
                 outerClass="mt-auto w-fit"
