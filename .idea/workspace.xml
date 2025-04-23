@@ -4,9 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a2830b7f-7885-4823-8a2a-a6d20c950bab" name="Default Changelist" comment="* Changed the quote API to a working one...">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/common/MatrixText.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/common/MatrixText.tsx" afterDir="false" />
+    <list default="true" id="a2830b7f-7885-4823-8a2a-a6d20c950bab" name="Default Changelist" comment="* Lowered interval on matrix text from 15 to 50 since it caused a lot of lag on mobile">
+      <change beforePath="$PROJECT_DIR$/src/components/layout/Navigation.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/layout/Navigation.tsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -115,7 +114,7 @@
       <workItem from="1745317312218" duration="16278000" />
       <workItem from="1745348827612" duration="4634000" />
       <workItem from="1745393978004" duration="3035000" />
-      <workItem from="1745397633669" duration="2010000" />
+      <workItem from="1745397633669" duration="2153000" />
     </task>
     <task id="LOCAL-00001" summary="* Worked on typography&#10;* Adding view transitions">
       <option name="closed" value="true" />
@@ -229,7 +228,15 @@
       <option name="project" value="LOCAL" />
       <updated>1745399499742</updated>
     </task>
-    <option name="localTasksCounter" value="15" />
+    <task id="LOCAL-00015" summary="* Lowered interval on matrix text from 15 to 50 since it caused a lot of lag on mobile">
+      <option name="closed" value="true" />
+      <created>1745399751206</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1745399751206</updated>
+    </task>
+    <option name="localTasksCounter" value="16" />
     <servers />
   </component>
   <component name="TerminalProjectNonSharedOptionsProvider">
@@ -263,6 +270,7 @@
     <MESSAGE value="* Removed more borders&#10;* Changed QuoteOfTheDay.tsx to only fire once" />
     <MESSAGE value="* Updated GET quote route.ts" />
     <MESSAGE value="* Changed the quote API to a working one..." />
-    <option name="LAST_COMMIT_MESSAGE" value="* Changed the quote API to a working one..." />
+    <MESSAGE value="* Lowered interval on matrix text from 15 to 50 since it caused a lot of lag on mobile" />
+    <option name="LAST_COMMIT_MESSAGE" value="* Lowered interval on matrix text from 15 to 50 since it caused a lot of lag on mobile" />
   </component>
 </project>
