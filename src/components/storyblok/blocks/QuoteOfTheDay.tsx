@@ -8,7 +8,7 @@ import Link from '@mui/icons-material/Link';
 
 import MatrixText from '@/components/common/MatrixText';
 import IconLink from '@/components/common/IconLink';
-import { Popup } from '@/components/common/Popup';
+import dynamic from 'next/dynamic';
 
 interface Quote {
     id: string;
@@ -35,6 +35,13 @@ const fetchQuoteData = async () => {
     const { quote } = await res.json();
     return quote;
 };
+
+const Popup = dynamic(
+    () => import('@/components/common/Popup').then((mod) => mod.Popup),
+    {
+        ssr: false,
+    },
+);
 
 const QuoteOfTheDay = () => {
     const [hasAnimationCompleted, setHasAnimationCompleted] = useState(false);
