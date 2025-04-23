@@ -188,7 +188,7 @@ input[type="range"]::-moz-range-thumb, input[type="range"]::-webkit-slider-thumb
   @apply appearance-none;
   @apply w-6;
   @apply h-6;
-  @apply rounded-full;
+  @apply rounded-none;
   @apply bg-foreground;
   @apply border-none;
   @apply cursor-pointer;

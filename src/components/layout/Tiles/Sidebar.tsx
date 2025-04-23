@@ -7,12 +7,15 @@ import { Gradients, gradients } from '@/components/layout/Tiles/config';
 import { Tiles } from '@/components/layout/Tiles';
 import { config } from '@/components/layout/Tiles/config';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 const Sidebar: React.FC<{
     tiles: Tiles;
     setTiles: React.Dispatch<React.SetStateAction<Tiles>>;
 }> = ({ tiles, setTiles }) => {
+    const gradientsRef =
+        useRef() as React.MutableRefObject<HTMLDivElement | null>;
+
     const [open, setOpen] = useState(false);
     const [changes, setChanges] = useState(false);
 
@@ -23,6 +26,16 @@ const Sidebar: React.FC<{
             document.removeEventListener('click', handleOutsideClick);
         };
     }, []);
+
+    useEffect(() => {
+        if (open) {
+            document.body.style.overflow = 'hidden';
+            document.body.style.pointerEvents = 'none';
+        } else {
+            document.body.style.overflow = '';
+            document.body.style.pointerEvents = '';
+        }
+    }, [open]);
 
     const handleOutsideClick = (e: MouseEvent) => {
         const target = e.target as HTMLElement;
@@ -60,7 +73,7 @@ const Sidebar: React.FC<{
                 />
             </div>
             <div
-                className={`flex flex-col fixed transition-transform will-change-transform h-full bg-background py-2 z-50 right-0 border-l border-l-foreground ${open ? 'translate-x-0' : 'translate-x-full'}`}
+                className={`flex flex-col fixed transition-transform will-change-transform h-full bg-background py-2 z-50 right-0 ${open ? 'translate-x-0 shadow-lg shadow-foreground' : 'translate-x-full'}`}
             >
                 <div className="flex gap-2 justify-end px-2">
                     <IconLink
@@ -76,7 +89,10 @@ const Sidebar: React.FC<{
                     />
                 </div>
                 <Title>Gradients</Title>
-                <div className="flex flex-col max-h-72 overflow-y-scroll border-t-2 border-b-2 border-foreground">
+                <div
+                    ref={gradientsRef}
+                    className="flex flex-col max-h-72 overflow-y-scroll border-t-2 border-b-2 border-foreground"
+                >
                     {Object.keys(gradients).map((color) => {
                         const typedColor = color as keyof Gradients;
                         const colors = gradients[typedColor];
@@ -93,7 +109,7 @@ const Sidebar: React.FC<{
                                     }))
                                 }
                             >
-                                <div className="flex overflow-hidden rounded-lg border border-foreground">
+                                <div className="flex overflow-hidden border border-foreground">
                                     {colors.map((color) => (
                                         <div
                                             key={color}
