@@ -82,12 +82,7 @@ const Teaser = ({ blok }: { blok: TeaserStoryblok }) => {
                         setHasDescriptionAnimationCompleted(true)
                     }
                 >
-                    <MatrixText
-                        classNames="text-lg component p-8"
-                        hasStarted={hasDescriptionAnimationCompleted}
-                    >
-                        {blok.description}
-                    </MatrixText>
+                    <p className="text-lg component p-8">{blok.description}</p>
                 </motion.div>
             )}
         </div>
