@@ -6,7 +6,6 @@ export const Range = ({
     step,
     value,
     onChange,
-    className = '',
 }: {
     min: number;
     max: number;

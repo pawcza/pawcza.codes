@@ -4,15 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a2830b7f-7885-4823-8a2a-a6d20c950bab" name="Default Changelist" comment="* Added a popup with author information for the quote of the day">
-      <change afterPath="$PROJECT_DIR$/src/components/common/Popup.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/components/common/inputs/Range.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/hooks/useOutsideClick.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/app/globals.css" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/globals.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/layout/Tiles/Sidebar.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/layout/Tiles/Sidebar.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/layout/Tiles/config.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/layout/Tiles/config.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/storyblok/blocks/QuoteOfTheDay.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/storyblok/blocks/QuoteOfTheDay.tsx" afterDir="false" />
+    <list default="true" id="a2830b7f-7885-4823-8a2a-a6d20c950bab" name="Default Changelist" comment="* Changed default speed to be higher up&#10;* Made the range input thumb boldier&#10;* Added Popup.tsx component to handle popups &#10;* Added Range.tsx component to better handle ranges in the Sidebar.tsx&#10;* Added useOutsideClick.tsx&#10;* Changed Sidebar.tsx to use the outside click hook and motion animations&#10;* Unified sidebar ranges values 0-100 and show the value on the thumb">
+      <change beforePath="$PROJECT_DIR$/src/components/common/inputs/Range.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/common/inputs/Range.tsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -121,7 +114,7 @@
       <workItem from="1745317312218" duration="16278000" />
       <workItem from="1745348827612" duration="4634000" />
       <workItem from="1745393978004" duration="3035000" />
-      <workItem from="1745397633669" duration="17873000" />
+      <workItem from="1745397633669" duration="18366000" />
     </task>
     <task id="LOCAL-00001" summary="* Worked on typography&#10;* Adding view transitions">
       <option name="closed" value="true" />
@@ -283,7 +276,15 @@
       <option name="project" value="LOCAL" />
       <updated>1745409980198</updated>
     </task>
-    <option name="localTasksCounter" value="21" />
+    <task id="LOCAL-00021" summary="* Changed default speed to be higher up&#10;* Made the range input thumb boldier&#10;* Added Popup.tsx component to handle popups &#10;* Added Range.tsx component to better handle ranges in the Sidebar.tsx&#10;* Added useOutsideClick.tsx&#10;* Changed Sidebar.tsx to use the outside click hook and motion animations&#10;* Unified sidebar ranges values 0-100 and show the value on the thumb">
+      <option name="closed" value="true" />
+      <created>1745448501505</created>
+      <option name="number" value="00021" />
+      <option name="presentableId" value="LOCAL-00021" />
+      <option name="project" value="LOCAL" />
+      <updated>1745448501505</updated>
+    </task>
+    <option name="localTasksCounter" value="22" />
     <servers />
   </component>
   <component name="TerminalProjectNonSharedOptionsProvider">
@@ -323,6 +324,7 @@
     <MESSAGE value="* Changed the MatrixText interval to 25 from 50 as 50 looked like it was lagging when it wasn't&#10;* Removed unused vars in Teaser.tsx" />
     <MESSAGE value="* Fixed broken Sidebar.tsx scrolling" />
     <MESSAGE value="* Added a popup with author information for the quote of the day" />
-    <option name="LAST_COMMIT_MESSAGE" value="* Added a popup with author information for the quote of the day" />
+    <MESSAGE value="* Changed default speed to be higher up&#10;* Made the range input thumb boldier&#10;* Added Popup.tsx component to handle popups &#10;* Added Range.tsx component to better handle ranges in the Sidebar.tsx&#10;* Added useOutsideClick.tsx&#10;* Changed Sidebar.tsx to use the outside click hook and motion animations&#10;* Unified sidebar ranges values 0-100 and show the value on the thumb" />
+    <option name="LAST_COMMIT_MESSAGE" value="* Changed default speed to be higher up&#10;* Made the range input thumb boldier&#10;* Added Popup.tsx component to handle popups &#10;* Added Range.tsx component to better handle ranges in the Sidebar.tsx&#10;* Added useOutsideClick.tsx&#10;* Changed Sidebar.tsx to use the outside click hook and motion animations&#10;* Unified sidebar ranges values 0-100 and show the value on the thumb" />
   </component>
 </project>
