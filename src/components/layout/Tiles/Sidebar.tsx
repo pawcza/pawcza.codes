@@ -27,16 +27,6 @@ const Sidebar: React.FC<{
         };
     }, []);
 
-    useEffect(() => {
-        if (open) {
-            document.body.style.overflow = 'hidden';
-            document.body.style.pointerEvents = 'none';
-        } else {
-            document.body.style.overflow = '';
-            document.body.style.pointerEvents = '';
-        }
-    }, [open]);
-
     const handleOutsideClick = (e: MouseEvent) => {
         const target = e.target as HTMLElement;
 
