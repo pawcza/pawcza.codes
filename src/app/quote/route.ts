@@ -1,5 +1,3 @@
-import { NextResponse } from 'next/server';
-
 const authors = [
     'marcus-aurelius',
     'epictetus',
