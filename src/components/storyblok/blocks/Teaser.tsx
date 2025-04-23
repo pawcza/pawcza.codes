@@ -9,10 +9,6 @@ import MatrixText from '@/components/common/MatrixText';
 const Teaser = ({ blok }: { blok: TeaserStoryblok }) => {
     const [hasTitleAnimationCompleted, setHasTitleAnimationCompleted] =
         useState(false);
-    const [
-        hasDescriptionAnimationCompleted,
-        setHasDescriptionAnimationCompleted,
-    ] = useState(false);
 
     const getGap = (gap: string) => {
         const gapNumber = parseInt(gap, 10);
@@ -78,9 +74,6 @@ const Teaser = ({ blok }: { blok: TeaserStoryblok }) => {
                     initial={{ opacity: 0, y: -50 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1 }}
-                    onAnimationComplete={() =>
-                        setHasDescriptionAnimationCompleted(true)
-                    }
                 >
                     <p className="text-lg component p-8">{blok.description}</p>
                 </motion.div>
