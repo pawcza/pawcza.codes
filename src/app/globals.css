@@ -178,7 +178,6 @@ h6 {
 input[type="range"] {
   @apply h-2;
   @apply bg-transparent;
-  @apply rounded-lg;
   @apply outline;
   @apply outline-foreground;
   @apply outline-1;
@@ -186,8 +185,8 @@ input[type="range"] {
 
 input[type="range"]::-moz-range-thumb, input[type="range"]::-webkit-slider-thumb {
   @apply appearance-none;
-  @apply w-6;
-  @apply h-6;
+  @apply w-10;
+  @apply h-10;
   @apply rounded-none;
   @apply bg-foreground;
   @apply border-none;
