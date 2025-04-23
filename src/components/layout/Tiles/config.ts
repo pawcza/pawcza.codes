@@ -39,6 +39,6 @@ export const config: TilesConfig = {
         waveFrequency: 0.5,
         waveAmplitude: 1.5,
         secondaryFrequency: 0.2,
-        waveSpeed: 0.001,
+        waveSpeed: 0.01,
     },
 };
