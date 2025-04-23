@@ -4,8 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a2830b7f-7885-4823-8a2a-a6d20c950bab" name="Default Changelist" comment="* Changed the MatrixText interval to 25 from 50 as 50 looked like it was lagging when it wasn't&#10;* Removed unused vars in Teaser.tsx">
-      <change beforePath="$PROJECT_DIR$/src/components/layout/Tiles/Sidebar.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/layout/Tiles/Sidebar.tsx" afterDir="false" />
+    <list default="true" id="a2830b7f-7885-4823-8a2a-a6d20c950bab" name="Default Changelist" comment="* Fixed broken Sidebar.tsx scrolling">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/quote/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/quote/route.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/layout/Tiles/config.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/layout/Tiles/config.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/storyblok/blocks/QuoteOfTheDay.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/storyblok/blocks/QuoteOfTheDay.tsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -114,7 +117,7 @@
       <workItem from="1745317312218" duration="16278000" />
       <workItem from="1745348827612" duration="4634000" />
       <workItem from="1745393978004" duration="3035000" />
-      <workItem from="1745397633669" duration="2701000" />
+      <workItem from="1745397633669" duration="7676000" />
     </task>
     <task id="LOCAL-00001" summary="* Worked on typography&#10;* Adding view transitions">
       <option name="closed" value="true" />
@@ -260,7 +263,15 @@
       <option name="project" value="LOCAL" />
       <updated>1745400272933</updated>
     </task>
-    <option name="localTasksCounter" value="19" />
+    <task id="LOCAL-00019" summary="* Fixed broken Sidebar.tsx scrolling">
+      <option name="closed" value="true" />
+      <created>1745400457181</created>
+      <option name="number" value="00019" />
+      <option name="presentableId" value="LOCAL-00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1745400457181</updated>
+    </task>
+    <option name="localTasksCounter" value="20" />
     <servers />
   </component>
   <component name="TerminalProjectNonSharedOptionsProvider">
@@ -298,6 +309,7 @@
     <MESSAGE value="* Fixed Navigation.tsx animation for mobile" />
     <MESSAGE value="* Removed MatrixText.tsx from description on Teaser.tsx so there's less lag on mobile" />
     <MESSAGE value="* Changed the MatrixText interval to 25 from 50 as 50 looked like it was lagging when it wasn't&#10;* Removed unused vars in Teaser.tsx" />
-    <option name="LAST_COMMIT_MESSAGE" value="* Changed the MatrixText interval to 25 from 50 as 50 looked like it was lagging when it wasn't&#10;* Removed unused vars in Teaser.tsx" />
+    <MESSAGE value="* Fixed broken Sidebar.tsx scrolling" />
+    <option name="LAST_COMMIT_MESSAGE" value="* Fixed broken Sidebar.tsx scrolling" />
   </component>
 </project>

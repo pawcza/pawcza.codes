@@ -14,6 +14,10 @@ const authors = [
     'simone-de-beauvoir',
     'immanuel-kant',
     'laozi',
+    'friedrich-nietzsche',
+    'aristotle',
+    'plato',
+    'confucius',
 ];
 
 export async function GET() {
