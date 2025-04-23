@@ -50,7 +50,15 @@ export async function GET() {
             },
         );
 
+        if (!res || !res.ok) {
+            throw new Error(`Failed to fetch quote`);
+        }
+
         const data = await res.json();
+
+        if (!data || !data.results) {
+            throw new Error('No quotes found');
+        }
 
         return new Response(JSON.stringify({ data }));
     } catch (error) {
