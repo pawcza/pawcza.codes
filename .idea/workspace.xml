@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a2830b7f-7885-4823-8a2a-a6d20c950bab" name="Default Changelist" comment="* Changed default speed to be higher up&#10;* Made the range input thumb boldier&#10;* Added Popup.tsx component to handle popups &#10;* Added Range.tsx component to better handle ranges in the Sidebar.tsx&#10;* Added useOutsideClick.tsx&#10;* Changed Sidebar.tsx to use the outside click hook and motion animations&#10;* Unified sidebar ranges values 0-100 and show the value on the thumb">
+    <list default="true" id="a2830b7f-7885-4823-8a2a-a6d20c950bab" name="Default Changelist" comment="* Removed unused prop className from Range.tsx">
       <change beforePath="$PROJECT_DIR$/src/components/common/inputs/Range.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/common/inputs/Range.tsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -114,7 +114,7 @@
       <workItem from="1745317312218" duration="16278000" />
       <workItem from="1745348827612" duration="4634000" />
       <workItem from="1745393978004" duration="3035000" />
-      <workItem from="1745397633669" duration="18366000" />
+      <workItem from="1745397633669" duration="18490000" />
     </task>
     <task id="LOCAL-00001" summary="* Worked on typography&#10;* Adding view transitions">
       <option name="closed" value="true" />
@@ -284,7 +284,15 @@
       <option name="project" value="LOCAL" />
       <updated>1745448501505</updated>
     </task>
-    <option name="localTasksCounter" value="22" />
+    <task id="LOCAL-00022" summary="* Removed unused prop className from Range.tsx">
+      <option name="closed" value="true" />
+      <created>1745448780246</created>
+      <option name="number" value="00022" />
+      <option name="presentableId" value="LOCAL-00022" />
+      <option name="project" value="LOCAL" />
+      <updated>1745448780246</updated>
+    </task>
+    <option name="localTasksCounter" value="23" />
     <servers />
   </component>
   <component name="TerminalProjectNonSharedOptionsProvider">
@@ -325,6 +333,7 @@
     <MESSAGE value="* Fixed broken Sidebar.tsx scrolling" />
     <MESSAGE value="* Added a popup with author information for the quote of the day" />
     <MESSAGE value="* Changed default speed to be higher up&#10;* Made the range input thumb boldier&#10;* Added Popup.tsx component to handle popups &#10;* Added Range.tsx component to better handle ranges in the Sidebar.tsx&#10;* Added useOutsideClick.tsx&#10;* Changed Sidebar.tsx to use the outside click hook and motion animations&#10;* Unified sidebar ranges values 0-100 and show the value on the thumb" />
-    <option name="LAST_COMMIT_MESSAGE" value="* Changed default speed to be higher up&#10;* Made the range input thumb boldier&#10;* Added Popup.tsx component to handle popups &#10;* Added Range.tsx component to better handle ranges in the Sidebar.tsx&#10;* Added useOutsideClick.tsx&#10;* Changed Sidebar.tsx to use the outside click hook and motion animations&#10;* Unified sidebar ranges values 0-100 and show the value on the thumb" />
+    <MESSAGE value="* Removed unused prop className from Range.tsx" />
+    <option name="LAST_COMMIT_MESSAGE" value="* Removed unused prop className from Range.tsx" />
   </component>
 </project>
