@@ -22,7 +22,7 @@ const Navigation = ({ items }: { items: MenuItem[] }) => {
             <motion.ul
                 className="flex justify-center w-auto overflow-hidden mt-2  shadow-2xl text-lg"
                 initial={{ opacity: 0, y: -50 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                animate={{ opacity: 1, y: 0 }}
                 onAnimationComplete={() => setHasAnimationCompleted(true)}
                 transition={{ delay: 0.1 }}
             >
