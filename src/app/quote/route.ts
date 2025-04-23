@@ -16,33 +16,12 @@ const authors = [
     'laozi',
 ];
 
-const fetchWithRetry = async (
-    url: string,
-    options: RequestInit,
-    retries = 3,
-    delay = 500,
-) => {
-    for (let i = 0; i < retries; i++) {
-        try {
-            const res = await fetch(url, options);
-            if (!res.ok) {
-                throw new Error(`Error: ${res.status} ${res.statusText}`);
-            }
-            return res;
-        } catch (error) {
-            if (i < retries - 1) {
-                await new Promise((resolve) => setTimeout(resolve, delay));
-            } else {
-                throw error;
-            }
-        }
-    }
-};
-
 export async function GET() {
     try {
-        const res = await fetchWithRetry(
-            'https://api.quotable.io/quotes/random?author=' + authors.join('|'),
+        const index = Math.floor(Math.random() * authors.length);
+        const author = authors[index];
+        const res = await fetch(
+            `https://api.quotable.kurokeita.dev/api/quotes/random?author=${author}`,
             {
                 headers: {
                     Accept: 'application/json',
@@ -50,17 +29,9 @@ export async function GET() {
             },
         );
 
-        if (!res || !res.ok) {
-            throw new Error(`Failed to fetch quote`);
-        }
+        const { quote } = await res.json();
 
-        const data = await res.json();
-
-        if (!data || !data.results) {
-            throw new Error('No quotes found');
-        }
-
-        return new Response(JSON.stringify({ data }));
+        return new Response(JSON.stringify({ quote }));
     } catch (error) {
         console.error('Error fetching quote:', error);
         return new Response(

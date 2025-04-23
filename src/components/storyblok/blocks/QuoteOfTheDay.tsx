@@ -7,29 +7,43 @@ import Refresh from '@mui/icons-material/Refresh';
 import MatrixText from '@/components/common/MatrixText';
 import IconLink from '@/components/common/IconLink';
 
+interface Quote {
+    id: string;
+    content: string;
+    tags: {
+        id: string;
+        name: string;
+    }[];
+    author: {
+        id: string;
+        name: string;
+        slug: string;
+        description: string;
+        bio: string;
+        link: string;
+    };
+}
+
 const fetchQuoteData = async () => {
     const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/quote`);
     if (!res.ok) {
         throw new Error(`Failed to fetch quote: ${res.statusText}`);
     }
-    const { data } = await res.json();
-    return data;
+    const { quote } = await res.json();
+    return quote;
 };
 
 const QuoteOfTheDay = () => {
     const [hasAnimationCompleted, setHasAnimationCompleted] = useState(false);
-    const [quote, setQuote] = useState<{
-        content: string;
-        author: string;
-    } | null>(null);
+    const [quote, setQuote] = useState<Quote | null>(null);
     const [loading, setLoading] = useState(true);
     const hasFetched = useRef(false); // Prevent double fetch
 
     const getQuote = async () => {
         setLoading(true);
         try {
-            const data = await fetchQuoteData();
-            setQuote(data[0]);
+            const quote = await fetchQuoteData();
+            setQuote(quote);
         } catch (error) {
             console.error('Error fetching quote:', error);
         } finally {
@@ -71,11 +85,11 @@ const QuoteOfTheDay = () => {
             )}
             {quote?.author ? (
                 <MatrixText
-                    key={quote.author}
+                    key={quote.author.name}
                     classNames="text-md mb-4"
                     hasStarted={hasAnimationCompleted}
                 >
-                    {quote.author}
+                    {quote.author.name}
                 </MatrixText>
             ) : (
                 <MatrixText hasStarted={false}>Alexander the Great</MatrixText>
