@@ -1,37 +1,64 @@
-export async function GET() {
-    const authors = [
-        'marcus-aurelius',
-        'epictetus',
-        'seneca-the-younger',
-        'epicurus',
-        'henry-david-thoreau',
-        'franz-kafka',
-        'cicero',
-        'alan-watts',
-        'aldous-huxley',
-        'alexander-the-great',
-        'archimedes',
-        'carl-jung',
-        'simone-de-beauvoir',
-        'immanuel-kant',
-        'laozi',
-    ];
-    const res = await fetch(
-        'http://api.quotable.io/quotes/random?author=' + authors.join('|'),
-        {
-            headers: {
-                Accept: 'application/json',
-            },
-        },
-    );
+import { NextResponse } from 'next/server';
 
-    if (!res.ok) {
-        throw new Error(`Error: ${res.status} ${res.statusText}`);
+const authors = [
+    'marcus-aurelius',
+    'epictetus',
+    'seneca-the-younger',
+    'epicurus',
+    'henry-david-thoreau',
+    'franz-kafka',
+    'cicero',
+    'alan-watts',
+    'aldous-huxley',
+    'alexander-the-great',
+    'archimedes',
+    'carl-jung',
+    'simone-de-beauvoir',
+    'immanuel-kant',
+    'laozi',
+];
+
+const fetchWithRetry = async (
+    url: string,
+    options: RequestInit,
+    retries = 3,
+    delay = 500,
+) => {
+    for (let i = 0; i < retries; i++) {
+        try {
+            const res = await fetch(url, options);
+            if (!res.ok) {
+                throw new Error(`Error: ${res.status} ${res.statusText}`);
+            }
+            return res;
+        } catch (error) {
+            if (i < retries - 1) {
+                await new Promise((resolve) => setTimeout(resolve, delay));
+            } else {
+                throw error;
+            }
+        }
     }
+};
 
-    const data = await res.json();
+export async function GET() {
+    try {
+        const res = await fetchWithRetry(
+            'https://api.quotable.io/quotes/random?author=' + authors.join('|'),
+            {
+                headers: {
+                    Accept: 'application/json',
+                },
+            },
+        );
 
-    return new Response(JSON.stringify({ data }), {
-        headers: { 'Content-Type': 'application/json' },
-    });
+        const data = await res.json();
+
+        return new Response(JSON.stringify({ data }));
+    } catch (error) {
+        console.error('Error fetching quote:', error);
+        return new Response(
+            JSON.stringify({ error: 'Failed to fetch quote', status: 500 }),
+        );
+    }
 }
