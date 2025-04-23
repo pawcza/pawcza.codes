@@ -14,7 +14,7 @@ const MatrixText = ({
     children,
     classNames,
     duration,
-    flickerInterval = 15,
+    flickerInterval = 50,
     hasStarted = true,
 }: MatrixTextProps) => {
     const getRandomChar = (exclude: string): string => {
