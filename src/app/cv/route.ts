@@ -5,7 +5,7 @@ export async function GET() {
         const filePath = join(
             process.cwd(),
             'public',
-            'CV - Paweł Czarniecki.pdf',
+            'CV - Pawel Czarniecki.pdf',
         );
         const fileContent = await fs.readFile(filePath);
 
@@ -13,7 +13,7 @@ export async function GET() {
             headers: {
                 'Content-Type': 'application/pdf',
                 'Content-Disposition':
-                    'inline; filename="CV - Paweł Czarniecki.pdf"',
+                    'inline; filename="CV - Pawel Czarniecki.pdf"',
             },
         });
     } catch (error) {
