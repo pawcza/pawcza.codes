@@ -6,6 +6,9 @@
   <component name="ChangeListManager">
     <list default="true" id="a2830b7f-7885-4823-8a2a-a6d20c950bab" name="Default Changelist" comment="* Changed min max and step to be numbers instead of strings in the props">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/common/IconLink.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/common/IconLink.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/storyblok/blocks/Contact.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/storyblok/blocks/Contact.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/storyblok/blocks/QuoteOfTheDay.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/storyblok/blocks/QuoteOfTheDay.tsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -116,7 +119,7 @@
       <workItem from="1745393978004" duration="3035000" />
       <workItem from="1745397633669" duration="19877000" />
       <workItem from="1745450355018" duration="986000" />
-      <workItem from="1745865773199" duration="2992000" />
+      <workItem from="1745865773199" duration="8684000" />
     </task>
     <task id="LOCAL-00001" summary="* Worked on typography&#10;* Adding view transitions">
       <option name="closed" value="true" />
