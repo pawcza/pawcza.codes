@@ -41,6 +41,7 @@ const Contact = ({ blok }: { blok: ContactStoryblok }) => {
                         initial={{ opacity: 0, y: 50 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.7 }}
+                        className="leading-none"
                     >
                         <IconLink href={blok.github} MuiIcon={Github} />
                     </motion.li>
@@ -50,6 +51,7 @@ const Contact = ({ blok }: { blok: ContactStoryblok }) => {
                         initial={{ opacity: 0, y: 50 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.8 }}
+                        className="leading-none"
                     >
                         <IconLink href={blok.linkedin} MuiIcon={LinkedIn} />
                     </motion.li>
@@ -59,6 +61,7 @@ const Contact = ({ blok }: { blok: ContactStoryblok }) => {
                         initial={{ opacity: 0, y: 50 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.9 }}
+                        className="leading-none"
                     >
                         <IconLink
                             href={`mailto:${blok.email}`}
@@ -71,6 +74,7 @@ const Contact = ({ blok }: { blok: ContactStoryblok }) => {
                         initial={{ opacity: 0, y: 50 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 1 }}
+                        className="leading-none"
                     >
                         <IconLink
                             href={`tel:${blok.phone}`}

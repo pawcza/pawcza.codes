@@ -28,7 +28,7 @@ interface Quote {
 }
 
 const fetchQuoteData = async () => {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/quote`);
+    const res = await fetch(`${window.location.origin}/quote`);
     if (!res.ok) {
         throw new Error(`Failed to fetch quote: ${res.statusText}`);
     }
