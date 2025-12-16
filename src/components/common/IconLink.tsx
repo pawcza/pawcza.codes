@@ -12,7 +12,7 @@ const IconLink = ({
     outerClass,
     onClick,
     internal,
-    inverted,
+    inverted = false,
     disabled,
 }: {
     MuiIcon?: OverridableComponent<SvgIconTypeMap> & { muiName: string };
@@ -25,18 +25,17 @@ const IconLink = ({
     inverted?: boolean;
     disabled?: boolean;
 }) => {
-    const hoverClasses = `
-        ${
-            inverted
-                ? '[&_svg]:fill-background [&_svg]:hover:fill-foreground after:bg-foreground hover:after:scale-0 hover:border-foreground hover:bg-background border border-transparent '
-                : '[&_svg]:fill-foreground [&_svg]:hover:fill-background after:left-[var(--icon-link-hover-left)] after:bg-foreground'
-        }
-        [&_svg]:relative
-        [&_svg]:z-10
-        user-select-none
-        p-2
-        inline-block
+    const baseBg = inverted ? 'var(--icon-bg)' : 'var(--icon-bg)';
+    const baseFg = inverted ? 'var(--icon-fg)' : 'var(--icon-fg)';
+    const hoverBg = inverted ? 'var(--icon-fg)' : 'var(--icon-bg-hover)';
+    const hoverFg = inverted ? 'var(--icon-bg)' : 'var(--icon-fg-hover)';
+
+    const baseClasses = `
+        inline-flex
+        items-center
+        justify-center
         relative
+        overflow-hidden
         after:content-[""]
         after:block
         after:w-full
@@ -45,42 +44,43 @@ const IconLink = ({
         after:top-0
         after:-left-full
         after:z-0
-        overflow-hidden
-        `;
+        [&_svg]:relative
+        [&_svg]:z-10
+        user-select-none
+        transition-colors
+    `;
 
     const externalProps = !internal && {
         target: '_blank',
         rel: 'noopener noreferrer',
     };
 
-    const variants = {
-        hover: {
-            '--icon-link-hover-left': '0',
-            backgroundColor: inverted
-                ? 'var(--foreground)'
-                : 'var(--background)',
-            transition: {
-                duration: 0.3,
-                ease: [0.4, 0, 0.2, 1],
-            },
-        },
-        initial: {
-            '--icon-link-hover-left': '-100%',
-        },
-        exit: {
-            '--icon-link-hover-left': '100%',
-        },
+    const hoverStyle = {
+        backgroundColor: hoverBg,
+        color: hoverFg,
+        borderColor: 'var(--icon-border-hover)',
+    };
+
+    const hoverTransition = {
+        duration: 0.2,
+        ease: [0.4, 0, 0.2, 1] as const,
     };
 
     if (onClick) {
         return (
             <motion.div
-                variants={variants}
-                initial="initial"
-                animate="exit"
-                exit="exit"
-                whileHover="hover"
-                className={`cursor-pointer ${hoverClasses} ${outerClass ? outerClass : ''} ${disabled ? 'pointer-events-none opacity-50' : ''}`}
+                whileHover={hoverStyle}
+                transition={hoverTransition}
+                className={`cursor-pointer ${baseClasses} ${outerClass ? outerClass : ''} ${disabled ? 'pointer-events-none opacity-50' : ''}`}
+                style={{
+                    backgroundColor: baseBg,
+                    color: baseFg,
+                    borderColor: 'var(--icon-border)',
+                    borderWidth: '1px',
+                    borderStyle: 'solid',
+                    borderRadius: 'var(--icon-radius)',
+                    padding: 'var(--icon-padding)',
+                }}
                 onClick={!disabled ? onClick : undefined}
             >
                 {html && (
@@ -100,14 +100,23 @@ const IconLink = ({
 
     return (
         <Link
-            className={`inline-block ${disabled ? 'pointer-events-none opacity-50' : ''} ${outerClass}`}
+            className={`inline-block ${disabled ? 'pointer-events-none opacity-50' : ''} ${outerClass} rounded-full`}
             href={href}
             {...externalProps}
         >
             <motion.div
-                className={`${hoverClasses}`}
-                variants={variants}
-                whileHover="hover"
+                className={`${baseClasses}`}
+                whileHover={hoverStyle}
+                transition={hoverTransition}
+                style={{
+                    backgroundColor: baseBg,
+                    color: baseFg,
+                    borderColor: 'var(--icon-border)',
+                    borderWidth: '1px',
+                    borderStyle: 'solid',
+                    borderRadius: 'var(--icon-radius)',
+                    padding: 'var(--icon-padding)',
+                }}
             >
                 {html && (
                     <div

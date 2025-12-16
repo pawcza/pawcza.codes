@@ -20,7 +20,7 @@ const Navigation = ({ items }: { items: MenuItem[] }) => {
     return (
         <nav className="fixed top-0 z-40 left-1/2 -translate-x-1/2 flex justify-center fade-in">
             <motion.ul
-                className="flex justify-center w-auto overflow-hidden mt-2  shadow-2xl text-lg"
+                className="component flex justify-center w-auto overflow-hidden mt-2 shadow-2xl text-lg px-2 py-1"
                 initial={{ opacity: 0, y: -50 }}
                 animate={{ opacity: 1, y: 0 }}
                 onAnimationComplete={() => setHasAnimationCompleted(true)}

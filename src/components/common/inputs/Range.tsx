@@ -26,12 +26,12 @@ export const Range = ({
     }, [max, min, value]);
 
     return (
-        <div className="relative">
+        <div className="relative py-3">
             <span
-                className="absolute pointer-events-none z-50 text-black font-extrabold"
+                className="absolute pointer-events-none z-50 text-xs font-bold text-foreground top-0"
                 style={{
                     left: `${computedValue}%`,
-                    transform: `translateX(${-computedValue}%)`,
+                    transform: 'translateX(-50%)',
                 }}
             >
                 {Math.floor(value)}
@@ -43,7 +43,7 @@ export const Range = ({
                 step={step}
                 value={value}
                 onChange={(e) => onChange(Number(e.target.value))}
-                className={`w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer`}
+                className="w-full h-2 bg-foreground/10 rounded-full appearance-none cursor-pointer"
             />
         </div>
     );

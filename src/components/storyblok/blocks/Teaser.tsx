@@ -75,7 +75,9 @@ const Teaser = ({ blok }: { blok: TeaserStoryblok }) => {
                     whileInView={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.1 }}
                 >
-                    <p className="text-lg component p-8">{blok.description}</p>
+                    <p className="text-sm md:text-base component p-8">
+                        {blok.description}
+                    </p>
                 </motion.div>
             )}
         </div>

@@ -26,7 +26,7 @@ const Contact = ({ blok }: { blok: ContactStoryblok }) => {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
                 onAnimationComplete={() => setHasAnimationCompleted(true)}
-                className="overflow-hidden flex items-center justify-center component px-4"
+                className="overflow-hidden flex items-center justify-center component px-4 py-2 gap-3"
             >
                 {blok.contactText && (
                     <MatrixText
