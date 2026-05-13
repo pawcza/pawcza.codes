@@ -1,0 +1,14 @@
+node_modules
+.next
+.git
+.gitignore
+.env
+.env.*
+README.md
+DEPLOYMENT.md
+deploy.sh
+webhook
+certificates
+*.log
+.vscode
+.idea
