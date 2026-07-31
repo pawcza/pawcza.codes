@@ -23,6 +23,15 @@ const mono = JetBrains_Mono({
 
 const description = `${profile.role} based in ${profile.location}. Ten years of front-end architecture, UX and end-to-end ownership.`;
 
+/** Rendered from the real hero, so a shared link looks like the site. */
+const ogImage = {
+    url: '/og.jpg',
+    width: 1200,
+    height: 630,
+    alt: `${profile.name} — ${profile.role}`,
+    type: 'image/jpeg',
+};
+
 export const metadata: Metadata = {
     metadataBase: new URL('https://pawcza.codes'),
     title: {
@@ -49,11 +58,13 @@ export const metadata: Metadata = {
         siteName: 'pawcza.codes',
         title: `${profile.name} · ${profile.role}`,
         description,
+        images: [ogImage],
     },
     twitter: {
         card: 'summary_large_image',
         title: `${profile.name} · ${profile.role}`,
         description,
+        images: [ogImage.url],
     },
     alternates: {
         canonical: 'https://pawcza.codes',
