@@ -4,7 +4,9 @@ RUN apt-get update \
   && apt-get install -y --no-install-recommends ca-certificates \
   && update-ca-certificates \
   && rm -rf /var/lib/apt/lists/* \
-  && npm install -g pnpm
+  # Pinned: the lockfile is pnpm 10, and an unpinned global install
+  # picks up whatever is latest, which has broken builds here before.
+  && npm install -g pnpm@10.24.0
 WORKDIR /app
 
 # ----- Dependencies -----

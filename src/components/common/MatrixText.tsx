@@ -21,6 +21,9 @@ const mulberry32 = (seed: number) => {
     };
 };
 
+/** Spaces and newlines are never scrambled. */
+const isWhitespace = (char: string) => /\s/.test(char);
+
 const getRandomChar = (
     exclude: string,
     randomFn: () => number = Math.random,
@@ -39,6 +42,10 @@ interface MatrixTextProps {
     children: string;
     classNames?: string;
     hasStarted?: boolean;
+    /** Hold the scramble until the text is scrolled into view, then resolve. */
+    startOnView?: boolean;
+    /** Monospace keeps glyph widths even while scrambling. */
+    mono?: boolean;
 }
 
 const MatrixText = ({
@@ -47,9 +54,49 @@ const MatrixText = ({
     duration,
     flickerInterval = 25,
     hasStarted = true,
+    startOnView = false,
+    mono = true,
 }: MatrixTextProps) => {
     const headline = children.split('');
     const length = headline.length;
+
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [inView, setInView] = useState(false);
+    const [reduceMotion, setReduceMotion] = useState(false);
+
+    // A character-by-character scramble is precisely what motion sensitivity
+    // struggles with, so resolve straight to the final text instead.
+    useEffect(() => {
+        const query = window.matchMedia('(prefers-reduced-motion: reduce)');
+        const sync = () => setReduceMotion(query.matches);
+
+        sync();
+        query.addEventListener('change', sync);
+        return () => query.removeEventListener('change', sync);
+    }, []);
+
+    // When driven by scroll position, the caller's `hasStarted` still gates it.
+    const started = startOnView ? inView && hasStarted : hasStarted;
+
+    useEffect(() => {
+        if (!startOnView) return;
+
+        const node = containerRef.current;
+        if (!node) return;
+
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (entry.isIntersecting) {
+                    setInView(true);
+                    observer.disconnect();
+                }
+            },
+            { rootMargin: '-10% 0px -10% 0px' },
+        );
+
+        observer.observe(node);
+        return () => observer.disconnect();
+    }, [startOnView]);
 
     const effectiveDuration = duration ?? 500 + length * 20;
 
@@ -65,12 +112,12 @@ const MatrixText = ({
 
     const [displayText, setDisplayText] = useState<string[]>(() =>
         headline.map((ch) =>
-            ch === ' ' ? ' ' : getRandomChar(' ', seededDisplayRandom),
+            isWhitespace(ch) ? ch : getRandomChar(' ', seededDisplayRandom),
         ),
     );
 
     const displayRef = useRef(displayText);
-    const statusRef = useRef<boolean[]>(headline.map((ch) => ch === ' '));
+    const statusRef = useRef<boolean[]>(headline.map(isWhitespace));
     const randomOpacities = useRef(headline.map(() => seededOpacityRandom()));
     const lastFlickerTime = useRef<number[]>(Array(length).fill(0));
     const animationFrame = useRef<number>();
@@ -87,16 +134,17 @@ const MatrixText = ({
         let hasChanged = false;
 
         for (let i = 0; i < length; i++) {
-            if (headline[i] === ' ') {
-                // Skip spaces
-                currentDisplay[i] = ' ';
+            if (isWhitespace(headline[i])) {
+                // Spaces and line breaks pass through untouched, so multi-line
+                // text keeps its shape while the rest scrambles.
+                currentDisplay[i] = headline[i];
                 currentStatus[i] = true;
                 continue;
             }
 
             const timeSinceLastFlicker = time - lastFlickerTime.current[i];
 
-            if (hasStarted) {
+            if (started) {
                 const shouldReveal = elapsed >= timeToReveal.current[i];
                 if (shouldReveal) {
                     currentDisplay[i] = headline[i];
@@ -123,13 +171,20 @@ const MatrixText = ({
             setDisplayText(currentDisplay);
         }
 
-        if (!currentStatus.every(Boolean) || !hasStarted) {
+        if (!currentStatus.every(Boolean) || !started) {
             animationFrame.current = requestAnimationFrame(animate);
         }
     };
 
     useEffect(() => {
-        if (hasStarted) {
+        if (reduceMotion) {
+            displayRef.current = headline;
+            statusRef.current = headline.map(() => true);
+            setDisplayText(headline);
+            return;
+        }
+
+        if (started) {
             startTime.current = performance.now();
         }
         animationFrame.current = requestAnimationFrame(animate);
@@ -139,33 +194,48 @@ const MatrixText = ({
                 cancelAnimationFrame(animationFrame.current);
             }
         };
-    }, [hasStarted]);
+    }, [started, reduceMotion]);
 
     return (
         <div
+            ref={containerRef}
             className={classNames}
             style={{
-                fontFamily: 'monospace',
+                display: 'grid',
+                fontFamily: mono
+                    ? 'var(--font-mono), ui-monospace, monospace'
+                    : undefined,
                 transition: 'opacity 0.2s ease-in-out',
                 whiteSpace: 'pre-wrap', // Preserve spaces and line breaks
             }}
         >
-            {displayText.map((char, index) => (
-                <span
-                    key={index}
-                    style={{
-                        opacity: statusRef.current[index]
-                            ? 1
-                            : randomOpacities.current[index],
-                        willChange: 'opacity',
-                        transition: statusRef.current[index]
-                            ? 'opacity 0.2s ease-in-out'
-                            : 'none',
-                    }}
-                >
-                    {char}
-                </span>
-            ))}
+            {/*
+             * The real text, laid out but invisible. It reserves the final box
+             * so scrambling never shifts the page, and it is what screen
+             * readers and crawlers get. The animated copy on top is decorative.
+             */}
+            <span style={{ gridArea: '1 / 1', opacity: 0 }}>{children}</span>
+            <span
+                aria-hidden="true"
+                style={{ gridArea: '1 / 1', userSelect: 'none' }}
+            >
+                {displayText.map((char, index) => (
+                    <span
+                        key={index}
+                        style={{
+                            opacity: statusRef.current[index]
+                                ? 1
+                                : randomOpacities.current[index],
+                            willChange: 'opacity',
+                            transition: statusRef.current[index]
+                                ? 'opacity 0.2s ease-in-out'
+                                : 'none',
+                        }}
+                    >
+                        {char}
+                    </span>
+                ))}
+            </span>
         </div>
     );
 };

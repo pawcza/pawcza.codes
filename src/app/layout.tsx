@@ -1,56 +1,94 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import React from 'react';
 
-import { ISbStoriesParams, StoryblokClient } from '@storyblok/react';
-import { Montserrat } from 'next/font/google';
-import { ViewTransitions } from 'next-view-transitions';
+import { Inter, JetBrains_Mono } from 'next/font/google';
 
-import { getStoryblokApi } from '@/lib/storyblok';
-
-import Tiles from '@/components/layout/Tiles';
-import Navigation from '@/components/layout/Navigation';
-import StoryblokProvider from '@/components/context/StoryblokProvider';
+import Nav from '@/components/layout/Nav';
+import Loader from '@/components/common/Loader';
+import { profile } from '@/content/profile';
 
 import './globals.css';
 
-const montserrat = Montserrat({
-    subsets: ['latin'],
-    weight: 'variable',
+const sans = Inter({
+    subsets: ['latin', 'latin-ext'],
+    variable: '--font-sans',
+    display: 'swap',
 });
 
+const mono = JetBrains_Mono({
+    subsets: ['latin'],
+    variable: '--font-mono',
+    display: 'swap',
+});
+
+const description = `${profile.role} based in ${profile.location}. Ten years of front-end architecture, UX and end-to-end ownership.`;
+
 export const metadata: Metadata = {
-    title: 'Paweł Czarniecki - Front-end Developer',
-    description: "Let's build something amazing together!",
+    metadataBase: new URL('https://pawcza.codes'),
+    title: {
+        default: `${profile.name} · ${profile.role}`,
+        template: `%s · ${profile.name}`,
+    },
+    description,
+    keywords: [
+        'front-end developer',
+        'senior frontend',
+        'React',
+        'Next.js',
+        'Vue.js',
+        'TypeScript',
+        'Gdańsk',
+        'remote',
+    ],
+    authors: [{ name: profile.name, url: 'https://pawcza.codes' }],
+    creator: profile.name,
+    openGraph: {
+        type: 'website',
+        locale: 'en_GB',
+        url: 'https://pawcza.codes',
+        siteName: 'pawcza.codes',
+        title: `${profile.name} · ${profile.role}`,
+        description,
+    },
+    twitter: {
+        card: 'summary_large_image',
+        title: `${profile.name} · ${profile.role}`,
+        description,
+    },
+    alternates: {
+        canonical: 'https://pawcza.codes',
+    },
 };
 
-const fetchNavigationData = async () => {
-    const sbParams: ISbStoriesParams = {
-        version: 'draft',
-        resolve_relations: 'navigation.items',
-    };
-    const storyblokApi: StoryblokClient = getStoryblokApi();
-
-    const { data } = await storyblokApi.get('cdn/stories/navigation', sbParams);
-    return data.story.content.items;
+export const viewport: Viewport = {
+    themeColor: [
+        { media: '(prefers-color-scheme: light)', color: '#f4f4f1' },
+        { media: '(prefers-color-scheme: dark)', color: '#0c0c0f' },
+    ],
 };
 
-export default async function RootLayout({
+export default function RootLayout({
     children,
 }: Readonly<{
     children: React.ReactNode;
 }>) {
-    const menuItems = await fetchNavigationData();
-
     return (
-        <StoryblokProvider>
-            <ViewTransitions>
-                <html lang="en">
-                    <body className={`${montserrat.className} antialiased`}>
-                        <Navigation items={menuItems} />
-                        <Tiles>{children}</Tiles>
-                    </body>
-                </html>
-            </ViewTransitions>
-        </StoryblokProvider>
+        <html lang="en" className={`${sans.variable} ${mono.variable}`}>
+            <body className="font-sans">
+                {/* The loader is dismissed by JS, so it must never appear without it. */}
+                <noscript>
+                    <style>{`.site-loader { display: none !important; }`}</style>
+                </noscript>
+                <Loader />
+                <a
+                    href="#work"
+                    className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-full focus:bg-ink focus:px-4 focus:py-2 focus:text-sm focus:text-paper"
+                >
+                    Skip to content
+                </a>
+                <Nav />
+                {children}
+            </body>
+        </html>
     );
 }

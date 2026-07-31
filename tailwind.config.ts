@@ -2,46 +2,30 @@ import type { Config } from 'tailwindcss';
 
 export default {
     content: [
-        './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
         './src/components/**/*.{js,ts,jsx,tsx,mdx}',
         './src/app/**/*.{js,ts,jsx,tsx,mdx}',
     ],
     theme: {
         extend: {
             colors: {
-                background: 'var(--background)',
-                foreground: 'var(--foreground)',
-                'theme-gold': 'var(--theme-gold)',
-                'theme-green': 'var(--theme-green)',
-                'theme-blue': 'var(--theme-blue)',
+                paper: 'var(--paper)',
+                'paper-raised': 'var(--paper-raised)',
+                ink: 'var(--ink)',
+                'ink-muted': 'var(--ink-muted)',
+                'ink-faint': 'var(--ink-faint)',
+                line: 'var(--line)',
+                'line-strong': 'var(--line-strong)',
+                accent: 'var(--accent)',
             },
-            container: {
-                screens: {
-                    lg: '768px',
-                    xl: '1024px',
-                },
+            fontFamily: {
+                sans: ['var(--font-sans)', 'ui-sans-serif', 'system-ui'],
+                mono: ['var(--font-mono)', 'ui-monospace', 'monospace'],
+            },
+            maxWidth: {
+                content: '68rem',
+                prose: '44rem',
             },
         },
     },
     plugins: [],
-    safelist: [
-        'justify-start',
-        'justify-center',
-        'justify-end',
-        'justify-around',
-        'justify-evenly',
-        'justify-between',
-        'items-start',
-        'items-center',
-        'items-end',
-        'bg-theme-gold',
-        'bg-theme-blue',
-        'bg-theme-green',
-        'text-theme-gold',
-        'text-theme-blue',
-        'text-theme-green',
-        'border-theme-gold',
-        'border-theme-blue',
-        'border-theme-green',
-    ],
 } satisfies Config;
