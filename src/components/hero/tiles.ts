@@ -37,7 +37,12 @@ export interface WaveSettings {
      * below presses it down into the page.
      */
     lens: number;
-    /** Stretches the lens sideways and vertically, making it an ellipse. */
+    /**
+     * Stretches the lens sideways and vertically, making it an ellipse. Wide
+     * enough at the top of the range to turn it into a band that spans the
+     * whole field on one axis, which is what makes a wave of vertical lines
+     * bend along its entire length as the lens passes.
+     */
     reachX: number;
     reachY: number;
 }
@@ -149,7 +154,7 @@ export const waveRanges: Record<
         randomMax: 0.05,
     },
     lens: {
-        label: 'Cursor lens',
+        label: 'Lens',
         min: 0,
         max: 100,
         step: 1,
@@ -158,19 +163,19 @@ export const waveRanges: Record<
     },
     reachX: {
         label: 'Lens reach X',
-        min: 0.3,
-        max: 2.5,
+        min: 0.2,
+        max: 6,
         step: 0.05,
         randomMin: 0.4,
-        randomMax: 2.4,
+        randomMax: 3.6,
     },
     reachY: {
         label: 'Lens reach Y',
-        min: 0.3,
-        max: 2.5,
+        min: 0.2,
+        max: 6,
         step: 0.05,
         randomMin: 0.4,
-        randomMax: 2.4,
+        randomMax: 3.6,
     },
 };
 

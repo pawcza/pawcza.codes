@@ -25,6 +25,18 @@ const prefersReducedMotion = () =>
 const SETTLE = 0.13;
 /** Seconds for one palette to cross-fade into the next. */
 const PALETTE_FADE = 0.45;
+/** Time constant for the lens trailing after wherever it is headed. */
+const CHASE = 0.09;
+/**
+ * Time constants for the cursor taking the lens over from its own drift, and
+ * for giving it back. Asymmetric on purpose: grabbing it should feel
+ * immediate, while letting go of it in the same time whips the bulge back
+ * across the hero.
+ */
+const GRAB = 0.22;
+const RELEASE = 0.9;
+/** Time constant for the lens fading in on first paint. */
+const BLOOM = 0.5;
 
 /**
  * The tile field, rasterised onto a single canvas.
@@ -73,11 +85,16 @@ const TileCanvas = ({
         // Cached so pointermove never forces a layout.
         let bounds = canvas.getBoundingClientRect();
 
-        // The cursor is followed with easing and its influence fades in and
-        // out, so the field never snaps when the pointer enters or leaves.
+        // The lens wanders the field on its own and only defers to the
+        // cursor while one is actually over the hero. `follow` is how much of
+        // that handover has happened, so neither taking it nor giving it back
+        // ever snaps; `influence` fades the whole lens in on first paint.
         const pointer = { x: -9999, y: -9999, toX: -9999, toY: -9999 };
+        let placed = false;
+        let drift = 0;
+        let follow = 0;
+        let followTarget = 0;
         let influence = 0;
-        let influenceTarget = 0;
 
         // The settings actually being drawn, easing towards whatever the
         // sliders say, so randomising glides into place instead of cutting.
@@ -163,10 +180,41 @@ const TileCanvas = ({
             const tileWidth = width / columns;
             const tileHeight = height / rows;
 
-            // Ease the cursor and its influence towards their targets.
-            pointer.x += (pointer.toX - pointer.x) * 0.2;
-            pointer.y += (pointer.toY - pointer.y) * 0.2;
-            influence += (influenceTarget - influence) * 0.12;
+            // Where the lens wants to be: its own slow wander, handed over
+            // to the cursor for as long as one is hovering. The path is a
+            // Lissajous with deliberately unrelated frequencies, so it crosses
+            // the whole field instead of retracing one short loop.
+            drift += delta;
+            const driftX = width * (0.5 + 0.34 * Math.sin(drift * 0.19));
+            const driftY = height * (0.5 + 0.3 * Math.sin(drift * 0.13 + 1.7));
+
+            const handover = followTarget > follow ? GRAB : RELEASE;
+            follow +=
+                (followTarget - follow) *
+                (delta > 0 ? 1 - Math.exp(-delta / handover) : 0);
+
+            const toX = driftX + (pointer.toX - driftX) * follow;
+            const toY = driftY + (pointer.toY - driftY) * follow;
+
+            // First frame starts on the path rather than gliding in from
+            // wherever the uninitialised pointer happened to be.
+            if (!placed) {
+                placed = true;
+                pointer.x = toX;
+                pointer.y = toY;
+            }
+
+            // Trailing the target rather than pinning to it is what gives a
+            // flicked cursor a bulge that follows it.
+            const chase = delta > 0 ? 1 - Math.exp(-delta / CHASE) : 0;
+            pointer.x += (toX - pointer.x) * chase;
+            pointer.y += (toY - pointer.y) * chase;
+
+            // Nothing repaints under reduced motion, so leaving the lens at
+            // zero there keeps the still frame a plain grid.
+            if (!reducedMotion.matches && delta > 0) {
+                influence += (1 - influence) * (1 - Math.exp(-delta / BLOOM));
+            }
 
             const colorAt = (col: number, row: number) =>
                 ramp[colorIndexAt(col, row, phase, ramp.length, settings)];
@@ -380,24 +428,31 @@ const TileCanvas = ({
 
         const onVisibility = () => (document.hidden ? stop() : play());
 
-        // Nothing repaints under reduced motion, and a touch "pointer" would
-        // leave the field frozen mid-bulge, so this is mouse-only.
+        // Touch has no hover to hand the lens over to, and a pointermove
+        // fired mid scroll-drag would only yank it off its path, so following
+        // is mouse-only. The drift is the whole show on a phone.
         const finePointer = window.matchMedia('(pointer: fine)');
 
         const onPointerMove = (event: PointerEvent) => {
             if (event.pointerType !== 'mouse') return;
-            pointer.toX = event.clientX - bounds.left;
-            pointer.toY = event.clientY - bounds.top;
-            // Jump rather than glide in from the last known position.
-            if (influenceTarget === 0) {
-                pointer.x = pointer.toX;
-                pointer.y = pointer.toY;
+
+            const x = event.clientX - bounds.left;
+            const y = event.clientY - bounds.top;
+
+            // Only a real hover takes the lens over. Anywhere else on the
+            // page it is left to carry on drifting.
+            if (x < 0 || y < 0 || x > width || y > height) {
+                followTarget = 0;
+                return;
             }
-            influenceTarget = 1;
+
+            pointer.toX = x;
+            pointer.toY = y;
+            followTarget = 1;
         };
 
         const onPointerLeave = () => {
-            influenceTarget = 0;
+            followTarget = 0;
         };
 
         const onScroll = () => {
