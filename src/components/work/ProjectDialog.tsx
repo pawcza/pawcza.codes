@@ -148,17 +148,20 @@ const Gallery = ({ shots, name }: { shots: Shot[]; name: string }) => {
                 )}
             </div>
 
-            <div className="flex items-baseline justify-between gap-4 px-4 pt-1 md:px-8">
-                <p
-                    className="min-h-[1.25rem] text-sm text-ink-muted"
-                    aria-live="polite"
-                >
-                    {shot.caption}
-                </p>
-                <span className="shrink-0 font-mono text-xs tabular-nums text-ink-faint">
-                    {index + 1} / {shots.length}
-                </span>
-            </div>
+            {/* A lone image needs no caption or counter: "1 / 1" reads as broken. */}
+            {shots.length > 1 && (
+                <div className="flex items-baseline justify-between gap-4 px-4 pt-1 md:px-8">
+                    <p
+                        className="min-h-[1.25rem] text-sm text-ink-muted"
+                        aria-live="polite"
+                    >
+                        {shot.caption}
+                    </p>
+                    <span className="shrink-0 font-mono text-xs tabular-nums text-ink-faint">
+                        {index + 1} / {shots.length}
+                    </span>
+                </div>
+            )}
 
             {shots.length > 1 && (
                 <ul className="no-scrollbar flex gap-2 overflow-x-auto px-4 pb-4 pt-3 md:px-8 md:pb-6">
@@ -265,9 +268,9 @@ const ProjectDialog = ({
                             </p>
                         ))}
 
-                        <p className="eyebrow mt-8">What I did</p>
+                        <p className="eyebrow mt-8">Features</p>
                         <ul className="mt-3 space-y-2">
-                            {shown.highlights.map((item) => (
+                            {shown.features.map((item) => (
                                 <li
                                     key={item}
                                     className="flex gap-3 text-[0.9375rem] leading-snug text-ink-muted"

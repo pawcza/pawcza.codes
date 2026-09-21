@@ -6,8 +6,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Project } from '@/content/projects';
 
 /**
- * The first screenshot, framed. Projects without screenshots yet fall back to
- * a typographic tile so the layout never shows an empty box.
+ * The project's logo on its brand background, framed.
  *
  * With a `preview` clip, the still crossfades into a short looping recording:
  * on hover or focus with a mouse, and on touch screens while the thumbnail is
@@ -24,7 +23,6 @@ const ProjectCover = ({
     sizes: string;
     priority?: boolean;
 }) => {
-    const cover = project.shots.find((shot) => shot.device === 'desktop');
     const frameRef = useRef<HTMLDivElement>(null);
     const videoRef = useRef<HTMLVideoElement>(null);
     const progressRef = useRef<HTMLDivElement>(null);
@@ -114,22 +112,14 @@ const ProjectCover = ({
                 ref={frameRef}
                 className="relative aspect-[16/10] overflow-hidden rounded-[var(--radius)] bg-paper"
             >
-                {cover ? (
-                    <Image
-                        src={cover.src}
-                        alt=""
-                        fill
-                        sizes={sizes}
-                        priority={priority}
-                        className="object-cover object-top transition-transform duration-700 ease-out group-hover:scale-[1.025]"
-                    />
-                ) : (
-                    <div className="flex h-full items-end p-6">
-                        <span className="heading text-3xl text-ink-faint">
-                            {project.name}
-                        </span>
-                    </div>
-                )}
+                <Image
+                    src={project.logo}
+                    alt=""
+                    fill
+                    sizes={sizes}
+                    priority={priority}
+                    className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.025]"
+                />
                 {project.preview && (
                     <video
                         ref={videoRef}

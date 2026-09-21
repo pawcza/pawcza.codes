@@ -167,11 +167,7 @@ const WorkList = () => {
                 ))}
             </div>
 
-            <Reveal className="mt-20">
-                <p className="eyebrow">More work</p>
-            </Reveal>
-
-            <div className="mt-8 grid gap-x-6 gap-y-12 md:grid-cols-3">
+            <div className="mt-12 grid gap-x-6 gap-y-12 md:grid-cols-3">
                 {moreProjects.map((p, i) => (
                     <SmallProject
                         key={p.slug}

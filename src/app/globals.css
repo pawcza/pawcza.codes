@@ -789,3 +789,29 @@ html:has(.project-dialog[open]) {
 .hairline.edge-line::before {
     inset: 0;
 }
+
+/*
+ * No GPU (see RenderMode): everything that is only cheap on the GPU goes.
+ * The ambient field stops drifting and glass loses its backdrop blur, so the
+ * fill is made denser to keep text on it legible.
+ */
+[data-render='software'] .ambient {
+    animation: none;
+}
+
+[data-render='software'] :is(
+        .glass,
+        .card,
+        .glass-pill,
+        .glass-solid,
+        .project-dialog,
+        .project-dialog::backdrop,
+        .no-scrollbar
+    ) {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+}
+
+[data-render='software'] :is(.glass, .card, .glass-pill):not(.btn-primary) {
+    background-color: var(--glass-fill-strong);
+}

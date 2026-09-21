@@ -7,6 +7,7 @@ import Nav from '@/components/layout/Nav';
 import Loader from '@/components/common/Loader';
 import GlassPointer from '@/components/common/GlassPointer';
 import BackToTop from '@/components/common/BackToTop';
+import RenderMode from '@/components/common/RenderMode';
 import { profile } from '@/content/profile';
 import { themeInitScript } from '@/components/common/theme';
 
@@ -103,6 +104,7 @@ export default function RootLayout({
                 </noscript>
                 <div aria-hidden className="ambient" />
                 <GlassPointer />
+                <RenderMode />
                 <Loader />
                 <a
                     href="#work"

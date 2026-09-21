@@ -14,9 +14,17 @@ import {
     waveKeys,
 } from '@/components/hero/tiles';
 import { markHeroPainted } from '@/components/hero/ready';
+import {
+    SOFTWARE_EVENT,
+    isSoftwareRendered,
+    markSoftwareRendered,
+} from '@/components/common/gpu';
 
 const prefersReducedMotion = () =>
     window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/** Draw one frame and stop, rather than animating. */
+const holdStill = () => prefersReducedMotion() || isSoftwareRendered();
 
 /**
  * Seconds for a settings change to land. Exponential smoothing, so this is the
@@ -62,8 +70,8 @@ const TileCanvas = ({
     useEffect(() => {
         gradientRef.current = gradient;
         waveRef.current = wave;
-        // Under reduced motion no loop is running to pick the change up.
-        if (prefersReducedMotion()) drawStillRef.current();
+        // When holding still, no loop is running to pick the change up.
+        if (holdStill()) drawStillRef.current();
     }, [gradient, wave]);
 
     useEffect(() => {
@@ -212,7 +220,7 @@ const TileCanvas = ({
 
             // Nothing repaints under reduced motion, so leaving the lens at
             // zero there keeps the still frame a plain grid.
-            if (!reducedMotion.matches && delta > 0) {
+            if (!reducedMotion.matches && !isSoftwareRendered() && delta > 0) {
                 influence += (1 - influence) * (1 - Math.exp(-delta / BLOOM));
             }
 
@@ -388,8 +396,53 @@ const TileCanvas = ({
 
         const start = performance.now();
 
+        /*
+         * Frame-rate watchdog. The GPU probe misses some software renderers,
+         * so the loop also times itself: whenever the median gap between
+         * frames over a window of real, visible animation says the page is
+         * struggling, it falls back to a still frame for good.
+         */
+        const gaps: number[] = [];
+        let windowTime = 0;
+        let previous = 0;
+        const SAMPLE = 90;
+        // Below ~25fps. Not 30: Safari in Low Power Mode caps rAF at 30fps on
+        // perfectly capable hardware.
+        const SLOW_MS = 40;
+
+        const watch = (now: number) => {
+            const gap = previous ? now - previous : 0;
+            previous = now;
+            // Pauses (hidden tab, hero scrolled away) go through stop(),
+            // which resets `previous`, so a long gap here is genuine
+            // slowness. Only absurd gaps, like a laptop waking, are skipped.
+            if (gap <= 0 || gap > 5000) return;
+            gaps.push(gap);
+            windowTime += gap;
+            // A window is 90 frames or two seconds, whichever comes first, so
+            // a badly struggling page is caught quickly too.
+            if (
+                gaps.length < SAMPLE &&
+                !(windowTime > 2000 && gaps.length >= 8)
+            ) {
+                return;
+            }
+            // Judged window by window, for as long as it runs: a slow page
+            // is not always slow in the first second after load.
+            const median = gaps.sort((a, b) => a - b)[gaps.length >> 1];
+            gaps.length = 0;
+            windowTime = 0;
+            if (median > SLOW_MS) markSoftwareRendered();
+        };
+
         const loop = (now: number) => {
             drawAndSignal((now - start) / 1000);
+            watch(now);
+            if (isSoftwareRendered()) {
+                frame = 0;
+                drawStillRef.current();
+                return;
+            }
             frame = requestAnimationFrame(loop);
         };
 
@@ -398,11 +451,12 @@ const TileCanvas = ({
                 cancelAnimationFrame(frame);
                 frame = 0;
             }
+            previous = 0;
         };
 
         const play = () => {
             if (frame || !visible || document.hidden) return;
-            if (reducedMotion.matches) {
+            if (holdStill()) {
                 drawAndSignal(0);
                 return;
             }
@@ -459,7 +513,7 @@ const TileCanvas = ({
             bounds = canvas.getBoundingClientRect();
         };
 
-        const interactive = finePointer.matches && !reducedMotion.matches;
+        const interactive = finePointer.matches && !holdStill();
 
         if (interactive) {
             window.addEventListener('pointermove', onPointerMove, {
@@ -473,6 +527,7 @@ const TileCanvas = ({
         play();
 
         window.addEventListener('resize', restart);
+        window.addEventListener(SOFTWARE_EVENT, restart);
         document.addEventListener('visibilitychange', onVisibility);
         reducedMotion.addEventListener('change', restart);
 
@@ -480,6 +535,7 @@ const TileCanvas = ({
             stop();
             observer.disconnect();
             window.removeEventListener('resize', restart);
+            window.removeEventListener(SOFTWARE_EVENT, restart);
             document.removeEventListener('visibilitychange', onVisibility);
             reducedMotion.removeEventListener('change', restart);
             window.removeEventListener('pointermove', onPointerMove);
@@ -488,7 +544,9 @@ const TileCanvas = ({
         };
     }, []);
 
-    return <canvas ref={canvasRef} className="hero-canvas" aria-hidden="true" />;
+    return (
+        <canvas ref={canvasRef} className="hero-canvas" aria-hidden="true" />
+    );
 };
 
 export default TileCanvas;

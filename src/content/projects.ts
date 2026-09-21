@@ -13,8 +13,8 @@ export interface Project {
     blurb: string;
     /** What the project is and how it is built. Not a changelog. */
     description: string[];
-    /** What I actually did on it, as short statements. */
-    highlights: string[];
+    /** Short product highlights, shown under "Features". */
+    features: string[];
     role: string;
     url?: string;
     repo?: string;
@@ -22,6 +22,8 @@ export interface Project {
     privateNote?: string;
     stack: string[];
     shots: Shot[];
+    /** The card's cover: the project's logo on its own brand background. */
+    logo: string;
     /** Short looping screen recording the card crossfades to on hover. */
     preview?: string;
     /** Featured projects get a full row; the rest share one grid. */
@@ -48,13 +50,15 @@ export const projects: Project[] = [
         name: 'Wróżbita Kornel',
         blurb: 'An AI fortune-teller that reads your real natal chart, numerology and tarot, and remembers you.',
         description: [
-            'Polish-first astrology, numerology and tarot, told by a character who knows your birth chart and remembers your last visit. It runs on Persona, my own platform where each character is configuration rather than code, so a second persona, Selena, shipped as a single file.',
+            'A fortune-teller you can talk to. Kornel reads your real natal chart, your numbers and a tarot spread together, answers in one consistent voice, and remembers what you told him last time.',
         ],
-        highlights: [
-            'Designed the product, its design system and a hand-drawn glyph set for the natal wheel',
-            'Computed charts in-house with astronomy-engine, checked against Swiss Ephemeris on 300 charts',
-            'Streamed replies over SSE, with idempotent retries so a wish is never charged twice',
-            'Built the Hono API, Postgres billing and memory, and self-hosted all of it',
+        features: [
+            'Natal charts computed from real astronomy, not pulled from an API',
+            'Hand-drawn SVG glyphs and an interactive chart wheel',
+            'A seven-step tarot ritual that turns the lights down',
+            'Answers stream in live and remember past conversations',
+            'Two personas, Kornel and Selena, on one engine',
+            'English and Polish throughout',
         ],
         role: 'Solo: product, design, full stack, infrastructure',
         url: 'https://kornel.wszystko.app',
@@ -65,10 +69,10 @@ export const projects: Project[] = [
             'next-intl',
             'Hono',
             'Postgres + Drizzle',
-            'Vercel AI SDK',
             'astronomy-engine',
             'Docker',
         ],
+        logo: '/work/kornel/logo.webp',
         shots: [
             desktop(
                 '/work/kornel/01-landing.webp',
@@ -134,13 +138,15 @@ export const projects: Project[] = [
         name: 'flunky.beer',
         blurb: 'Invite-only flunkyball scorekeeper with live scoring, cups, rankings and badges.',
         description: [
-            'A private scorekeeper for a group of friends: tap in every bottle and the score updates live on every phone at the table, while stats, streaks, tournaments and badges build up in the background.',
+            'A scorekeeper for flunkyball, the lawn game with two teams and one bottle. Every throw is tapped in live, and the stats, rankings and badges build themselves.',
         ],
-        highlights: [
-            'Designed the identity, from the SVG mark to a CSS-only carbonation effect',
-            'Built live scoring on server-sent events with automatic reconnects',
-            'Designed badges where shape is the category and layers are the rank',
-            'Modelled 2–4 sided games, brackets and teams in Prisma',
+        features: [
+            'Live score on every phone at the table',
+            'Cup and round-robin tournaments with brackets',
+            'Rankings, streaks and head-to-head records',
+            'A badge ladder that reads without colour',
+            'A carbonated amber identity with no JavaScript animation',
+            'English, Polish and German',
         ],
         role: 'Solo: product, design, full stack, infrastructure',
         url: 'https://flunky.beer',
@@ -156,6 +162,7 @@ export const projects: Project[] = [
             'Server-sent events',
             'Docker',
         ],
+        logo: '/work/flunky-beer/logo.webp',
         shots: [
             desktop(
                 '/work/flunky-beer/01-login.webp',
@@ -211,13 +218,14 @@ export const projects: Project[] = [
         name: 'Słuchanie Receptywne',
         blurb: 'Bilingual site for a 24-hour listening festival, under one moving dithered texture.',
         description: [
-            'Home of a festival held on a forest clearing in Gdynia. A programme that follows the clock sits on muted, angled colour bands, all under a single site-wide WebGL dither layer.',
+            'The home of a 24-hour listening festival on a forest clearing in Gdynia, with the whole site sitting under one slowly moving dithered texture.',
         ],
-        highlights: [
-            'Designed the palette, type and angled band layout',
-            'Built the dither as a React Three Fiber postprocessing effect',
-            'Made the timeline mark blocks past, live or next as the festival runs',
-            'Kept it light on phones: lazy three.js, lower resolution, 30fps cap',
+        features: [
+            'A real-time GLSL dither behind every page',
+            'A programme that marks blocks past, live or next as the festival runs',
+            'Artist cards cut at shifting angles, fading from grey to colour',
+            'Polish and English with an instant switch',
+            'Light on phones: lower resolution and a capped frame rate',
         ],
         role: 'Solo: design, front end, deployment',
         url: 'https://sluchaniereceptywne.com',
@@ -231,6 +239,7 @@ export const projects: Project[] = [
             'nginx',
             'Docker',
         ],
+        logo: '/work/sluchanie-receptywne/logo.webp',
         shots: [
             desktop(
                 '/work/sluchanie-receptywne/01-hero.webp',
@@ -277,17 +286,55 @@ export const projects: Project[] = [
         featured: true,
     },
     {
+        slug: 'persona',
+        name: 'Persona',
+        blurb: 'A platform where an AI character is a config file, not a codebase: chat, voice, images and video from one engine.',
+        description: [
+            'A platform where an AI character is a config file, not a codebase. Personality, voice, memory and pricing are set in a console, and a new character goes live without a deploy.',
+        ],
+        features: [
+            'New characters without writing code',
+            'Chat, cloned voices, images and video',
+            'Remembers each person across conversations',
+            'One engine for web apps and Discord',
+            'Plans, pricing and usage limits built in',
+        ],
+        role: 'Solo: architecture, back end, operator console',
+        privateNote:
+            'Private: the platform and its console are internal, so there is nothing to show beyond the name.',
+        stack: [
+            'TypeScript',
+            'Turborepo',
+            'Hono',
+            'Zod',
+            'Postgres + Drizzle',
+            'Next.js',
+            'Docker',
+        ],
+        logo: '/work/persona/logo.webp',
+        // Nothing public to screenshot: the gallery is the wordmark itself.
+        shots: [
+            desktop(
+                '/work/persona/logo.webp',
+                'The Persona wordmark, its first letter mirrored, on a dark background',
+                'Persona',
+            ),
+        ],
+        featured: false,
+    },
+    {
         slug: 'aleksandra-kolesniak',
         name: 'Aleksandra Koleśniak',
         blurb: 'Scroll-driven portfolio for a painter, with a hand-drawn character as the menu.',
         description: [
-            'Each series is a horizontal gallery moved by vertical scroll, and Bob, the painter’s drawn character, turns as you scroll and opens the menu. She edits everything herself in Sanity, and the site ships as a static export.',
+            "A portfolio that is part of the art. Paintings sit on horizontal galleries moved by scrolling, and the painter's hand-drawn character, Bob, turns as you go and opens the menu.",
         ],
-        highlights: [
-            'Designed the interaction model and visual system with the painter',
-            'Wrote an SVG morphing engine so Bob can hold any in-between pose',
-            'Built a zoom viewer with pinch, momentum pan and double-tap',
-            'Pulled content and images at build time, so visitors never hit the CMS',
+        features: [
+            'Bob morphs smoothly between drawings, to any pose in between',
+            'Horizontal galleries driven by vertical scroll',
+            'A zoom viewer with pinch, momentum and double-tap',
+            "The painter edits everything herself, even Bob's timing",
+            'A static site that never waits on the CMS',
         ],
         role: 'Solo: design, front end, CMS, deployment',
         // Temporary home. Moving to olakolesniak.com.
@@ -302,6 +349,7 @@ export const projects: Project[] = [
             'sharp',
             'Vercel',
         ],
+        logo: '/work/aleksandra-kolesniak/logo.webp',
         shots: [
             desktop(
                 '/work/aleksandra-kolesniak/01-intro.webp',
@@ -347,13 +395,14 @@ export const projects: Project[] = [
         name: 'Butler',
         blurb: 'Voice front end for my home AI agent, with a WebGL particle figure that reacts to every step.',
         description: [
-            'Speak or type, and the agent’s tool calls and reply stream back and are read aloud, paragraph by paragraph. The assistant is a particle system that changes shape as it listens, thinks and speaks.',
+            'A voice for my home AI agent. Speak or type, watch it call tools in real time and hear the answer read back, while a particle figure changes shape with every step.',
         ],
-        highlights: [
-            'Wrote the GLSL shaders for the particles, nebula and heat haze',
-            'Mapped agent states to avatar shape and motion',
-            'Built voice capture with a wake word and streamed speech',
-            'Scaled particles to the GPU, from 12k down to 3k',
+        features: [
+            'A hand-written GLSL particle figure that reacts to every step',
+            'A wake word and hands-free listening',
+            'Starts speaking before the answer is finished',
+            'Tool calls stream in live as the agent works',
+            'Scales itself to the GPU it runs on',
         ],
         role: 'Solo: design and development',
         privateNote:
@@ -369,6 +418,7 @@ export const projects: Project[] = [
             'Zod',
             'Vitest',
         ],
+        logo: '/work/butler/logo.webp',
         shots: [
             desktop(
                 '/work/butler/01-thinking.webp',
@@ -414,13 +464,14 @@ export const projects: Project[] = [
         name: 'Karaluch',
         blurb: 'Absurd browser runner about a cockroach, with live multiplayer for up to 16 players.',
         description: [
-            'Ten levels, a boss fight and multiplayer races where every player sees the same obstacles and everyone else runs as a ghost.',
+            'An absurd browser runner about a cockroach. Ten levels, a boss fight, and live races where up to 16 players dodge the same obstacles at once.',
         ],
-        highlights: [
-            'Designed the levels, pacing, boss fight and touch controls',
-            'Synced obstacles across clients with a seeded generator',
-            'Removed ghost drift with one server-authoritative clock',
-            'Halved asset weight so it plays on a phone over 4G',
+        features: [
+            'Live multiplayer for up to 16 players',
+            'Every player sees exactly the same obstacles',
+            'Ten levels, each with its own art and soundtrack',
+            'A boss fight, weather and death replays',
+            'Plays on a phone with touch controls',
         ],
         role: 'Solo: game design and development',
         url: 'https://cockroach.wszystko.app',
@@ -433,6 +484,7 @@ export const projects: Project[] = [
             'SQLite',
             'ComfyUI',
         ],
+        logo: '/work/cockroach-the-game/logo.webp',
         shots: [
             desktop(
                 '/work/cockroach-the-game/01-menu.webp',
@@ -468,13 +520,14 @@ export const projects: Project[] = [
         name: 'wszystko.app',
         blurb: 'A private dashboard for my home media server, with Plex, requests, books and charts in one place.',
         description: [
-            'The front door for friends who share my media server: new films, shows and books in one feed, their requests and watch stats, and subscribers tied to Plex sharing, all behind SSO.',
+            'The front door to my home media server. Friends see what is new in films, shows and books, request more and check their stats, all behind one sign-in.',
         ],
-        highlights: [
-            'Designed a bento-grid dashboard with a cursor-following glow border',
-            'Built card-to-popup morphs with the View Transitions API',
-            'Tuned scrolling on real phones by removing paint storms',
-            'Merged four service APIs into one feed, on SQLite and Authentik',
+        features: [
+            'New films, shows and books in one feed',
+            'Cards that morph into their details',
+            'Market charts you can customise',
+            'Subscriptions tied to Plex sharing',
+            'Tuned to scroll smoothly on phones',
         ],
         role: 'Solo: product, design, full stack, self-hosting',
         privateNote:
@@ -490,6 +543,7 @@ export const projects: Project[] = [
             'Authentik OIDC',
             'Docker',
         ],
+        logo: '/work/wszystko-app/logo.webp',
         shots: [
             desktop(
                 '/work/wszystko-app/01-dashboard.webp',
@@ -514,13 +568,14 @@ export const projects: Project[] = [
         name: 'Cantara Music',
         blurb: 'Polish music news portal, moved from Storyblok to self-hosted Strapi 5 and Next.js 16.',
         description: [
-            'I built the site in 2022 and have run it since. The 2026 rebuild moved about 14,000 articles to a CMS on the client’s own server, keeping the look readers knew.',
+            "A Polish music news portal with news, reviews, interviews and concert galleries. I built it in 2022 and rebuilt it in 2026 on a CMS that runs on the client's own server.",
         ],
-        highlights: [
-            'Wrote an idempotent migration: 13,917 articles, 19,463 images, 4,984 redirects',
-            'Modelled articles in Strapi 5 with an SEO hook that fills in missing meta',
-            'Built on-demand revalidation, search and consent-aware ads',
-            'Moved deploys to GitHub Actions and GHCR',
+        features: [
+            'About 14,000 articles moved over with nothing lost',
+            '4,984 old links redirected automatically',
+            'Editors build pages from blocks',
+            'Pages update the moment an editor publishes',
+            'SEO filled in automatically, never overwriting an editor',
         ],
         role: 'Solo: design, development, migration, hosting',
         url: 'https://cantaramusic.pl',
@@ -535,6 +590,7 @@ export const projects: Project[] = [
             'GitHub Actions',
             'Docker',
         ],
+        logo: '/work/cantara-music/logo.webp',
         shots: [
             desktop(
                 '/work/cantara-music/01-news.webp',
