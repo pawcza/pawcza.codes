@@ -2,6 +2,96 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * The glass and edge-glow surfaces anchor their ::before layers, so
+ * they need a positioned box. It lives in the components layer so a utility
+ * on the same element (`fixed`, `absolute`) still wins: the playground panel
+ * and the dialog's controls are glass too.
+ */
+@layer components {
+    /*
+     * The one button style: glass material (.glass-pill) in a pill shape.
+     * `.btn` is a labelled button, `.btn-icon` a round icon-only one. Inline
+     * text links (GitHub, LinkedIn) are links and keep link styling.
+     */
+    .btn,
+    .btn-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        border-radius: 9999px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: var(--ink);
+        transition:
+            color 0.2s ease,
+            background-color 0.2s ease,
+            transform 0.2s ease;
+    }
+
+    .btn {
+        padding: 0.625rem 1.25rem;
+    }
+
+    .btn-icon {
+        width: 2.25rem;
+        height: 2.25rem;
+        color: var(--ink-muted);
+    }
+
+    .btn:hover,
+    .btn-icon:hover {
+        color: var(--ink);
+        background-color: var(--glass-fill-strong);
+    }
+
+    /*
+     * The primary action: the same glass, tinted with ink, so the two weights
+     * stay distinct without becoming two different materials. Inverts with
+     * the theme like everything else. Two classes of specificity so it wins
+     * over the .glass-pill fill, which sits later in the file.
+     */
+    .btn.btn-primary {
+        color: var(--paper);
+        background:
+            linear-gradient(
+                180deg,
+                color-mix(in srgb, var(--paper) 22%, transparent) 0%,
+                transparent 55%
+            ),
+            color-mix(in srgb, var(--ink) 86%, transparent);
+        /* The pill's white rim and hairline read as a stray 1px line on ink. */
+        border-color: transparent;
+        box-shadow: 0 4px 16px -8px rgba(0, 0, 0, 0.35);
+    }
+
+    .btn.btn-primary:hover {
+        color: var(--paper);
+        background:
+            linear-gradient(
+                180deg,
+                color-mix(in srgb, var(--paper) 22%, transparent) 0%,
+                transparent 55%
+            ),
+            var(--ink);
+    }
+
+    .btn:active,
+    .btn-icon:active {
+        transform: scale(0.97);
+    }
+
+    .glass,
+    .card,
+    .chip,
+    .glass-pill,
+    .edge,
+    .edge-line {
+        position: relative;
+    }
+}
+
 :root {
     color-scheme: light;
 
@@ -25,27 +115,63 @@
         0 1px 2px rgba(22, 22, 26, 0.04), 0 8px 24px -12px rgba(22, 22, 26, 0.16);
 
     --radius: 0.875rem;
+
+    /* Glass. The fill is kept thin so the ambient field shows through; the
+     * top gloss and the bright rim are what make it read as a surface. */
+    --glass-fill: rgba(255, 255, 255, 0.46);
+    --glass-fill-strong: rgba(255, 255, 255, 0.72);
+    --glass-gloss: rgba(255, 255, 255, 0.55);
+    --glass-rim: rgba(255, 255, 255, 0.95);
+    --glass-edge: rgba(22, 22, 26, 0.09);
+    --glass-shadow:
+        0 1px 2px rgba(22, 22, 26, 0.05),
+        0 18px 40px -18px rgba(22, 22, 26, 0.22);
+
+    /* Edge glow: the border lights up where the cursor is (from wszystko.app).
+     * White under `difference` blending: it inverts whatever it sits on, so
+     * it reads dark on paper and light on ink, hover-inverted buttons too. */
+    --glow-color: #fff;
+
+    /* Ambient field behind the page, the thing the glass refracts. */
+    --ambient-a: rgba(240, 180, 41, 0.42);
+    --ambient-b: rgba(96, 150, 230, 0.36);
+    --ambient-c: rgba(226, 120, 160, 0.3);
 }
 
-@media (prefers-color-scheme: dark) {
-    :root {
-        color-scheme: dark;
+/*
+ * Dark palette. `data-theme` is set before first paint by the script in
+ * layout.tsx, from the visitor's saved choice or, failing that, their system
+ * setting; ThemeToggle changes it afterwards.
+ */
+:root[data-theme='dark'] {
+    color-scheme: dark;
 
-        --paper: #0c0c0f;
-        --paper-raised: #141418;
+    --paper: #0c0c0f;
+    --paper-raised: #141418;
 
-        --ink: #ededf0;
-        --ink-muted: #9a9aa6;
-        --ink-faint: #6a6a76;
+    --ink: #ededf0;
+    --ink-muted: #9a9aa6;
+    --ink-faint: #6a6a76;
 
-        --line: rgba(237, 237, 240, 0.12);
-        --line-strong: rgba(237, 237, 240, 0.26);
+    --line: rgba(237, 237, 240, 0.12);
+    --line-strong: rgba(237, 237, 240, 0.26);
 
-        --accent: #f0b429;
+    --accent: #f0b429;
 
-        --shadow-card:
-            0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px -12px rgba(0, 0, 0, 0.7);
-    }
+    --shadow-card:
+        0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px -12px rgba(0, 0, 0, 0.7);
+
+    --glass-fill: rgba(255, 255, 255, 0.055);
+    --glass-fill-strong: rgba(20, 20, 24, 0.72);
+    --glass-gloss: rgba(255, 255, 255, 0.07);
+    --glass-rim: rgba(255, 255, 255, 0.28);
+    --glass-edge: rgba(255, 255, 255, 0.08);
+    --glass-shadow:
+        0 1px 2px rgba(0, 0, 0, 0.5), 0 24px 48px -20px rgba(0, 0, 0, 0.8);
+
+    --ambient-a: rgba(240, 180, 41, 0.13);
+    --ambient-b: rgba(70, 110, 220, 0.16);
+    --ambient-c: rgba(190, 70, 130, 0.11);
 }
 
 * {
@@ -136,14 +262,248 @@ body {
 
 /* ---------- Surfaces ---------- */
 
+/*
+ * Glass surface. Three layers: a thin frosted fill that blurs and saturates
+ * whatever is behind it, a gloss across the top third, and a rim that is
+ * bright on the top-left edge and fades round the sides (::before, which also
+ * carries the cursor's edge glow).
+ */
+.glass,
 .card {
-    background: var(--paper-raised);
-    border: 1px solid var(--line);
+    isolation: isolate;
+    background:
+        linear-gradient(180deg, var(--glass-gloss) 0%, transparent 38%),
+        var(--glass-fill);
+    -webkit-backdrop-filter: blur(22px) saturate(170%);
+    backdrop-filter: blur(22px) saturate(170%);
+    border: 1px solid var(--glass-edge);
+    box-shadow:
+        inset 0 1px 0 var(--glass-rim),
+        var(--glass-shadow);
+}
+
+.card {
     border-radius: var(--radius);
-    box-shadow: var(--shadow-card);
+}
+
+.glass::before,
+.card::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    z-index: 1;
+    padding: var(--edge-width);
+    border-radius: inherit;
+    background: linear-gradient(
+            135deg,
+            var(--glass-rim) 0%,
+            transparent 30%,
+            transparent 70%,
+            color-mix(in srgb, var(--glass-rim) 50%, transparent) 100%
+        );
+    -webkit-mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+}
+
+/*
+ * Edge glow, ported from wszystko.app. EdgeGlow (a single pointer listener)
+ * writes the cursor position in each nearby element's own coordinates, plus a
+ * strength that falls off over the first 100px outside it. A masked ring then
+ * paints a radial highlight at that spot, so borders light up as the cursor
+ * approaches and follow it along the edge.
+ */
+/*
+ * Registered as non-inheriting. Custom properties inherit by default, so a
+ * chip out of range inside a lit row (an Experience entry, a glass card)
+ * would take the row's strength and row-relative position and glow in the
+ * wrong place. Each element must only ever paint from its own values.
+ */
+@property --glow-x {
+    syntax: '<length>';
+    inherits: false;
+    initial-value: -999px;
+}
+
+@property --glow-y {
+    syntax: '<length>';
+    inherits: false;
+    initial-value: -999px;
+}
+
+@property --glow-o {
+    syntax: '<number>';
+    inherits: false;
+    initial-value: 0;
+}
+
+/* Declared on the elements, not :root: the var()s inside must resolve where
+ * EdgeGlow writes --glow-x/y, and the ::before rings inherit the result. */
+:root {
+    --edge-width: 1.5px;
+}
+
+.glass,
+.card,
+.chip,
+.glass-pill,
+.edge,
+.project-dialog {
+    --edge-glow: radial-gradient(
+        150px circle at var(--glow-x, -999px) var(--glow-y, -999px),
+        color-mix(
+            in srgb,
+            var(--glow-color) calc(var(--glow-o, 0) * 100%),
+            transparent
+        ),
+        transparent 60%
+    );
+}
+
+.chip::before,
+.glass-pill::before,
+.edge::before,
+.project-dialog::before,
+.glass::after,
+.card::after {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    z-index: 2;
+    padding: var(--edge-width);
+    border-radius: inherit;
+    background: var(--edge-glow);
+    mix-blend-mode: difference;
+    -webkit-mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+}
+
+/* Clipped containers keep the ring inside their own edge. */
+.edge::before,
+.project-dialog::before {
+    inset: 0;
+}
+
+/* Divider lines: the same highlight, travelling along a 1px rule. */
+.edge-line {
+    /* Resolved here: the ::before can't see the non-inheriting --glow-*. */
+    --edge-line-glow: radial-gradient(
+        150px 2px at var(--glow-x) 50%,
+        color-mix(
+            in srgb,
+            var(--glow-color) calc(var(--glow-o) * 100%),
+            transparent
+        ),
+        transparent 100%
+    );
+}
+
+.edge-line::before {
+    content: '';
+    position: absolute;
+    inset: -1px 0 auto;
+    height: 1px;
+    background: var(--edge-line-glow);
+    mix-blend-mode: difference;
+    pointer-events: none;
+}
+
+/* The first row sits under the section rule and has no line of its own. */
+.edge-line:first-child::before {
+    display: none;
+}
+
+/* The glossy top of a project thumbnail: a soft sheen and an inner
+ * highlight on the upper edge, over the screenshot or its hover clip. */
+.cover-gloss {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background: linear-gradient(
+        180deg,
+        rgba(255, 255, 255, 0.16) 0%,
+        rgba(255, 255, 255, 0.04) 28%,
+        transparent 45%
+    );
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.35),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+/* Glass that floats over busy colour (the playground panel sits on the hero
+ * tiles): same material, a much denser fill so its controls stay legible. */
+.glass-solid {
+    background:
+        linear-gradient(180deg, var(--glass-gloss) 0%, transparent 38%),
+        var(--glass-fill-strong);
+    -webkit-backdrop-filter: blur(32px) saturate(180%);
+    backdrop-filter: blur(32px) saturate(180%);
+}
+
+/*
+ * Buttons and small controls. Denser than the panels: they sit over the hero
+ * tiles, the footer field and screenshots, and must stay legible on the
+ * darkest preset in light theme as well as the lightest in dark.
+ */
+.glass-pill {
+    background:
+        linear-gradient(180deg, var(--glass-gloss) 0%, transparent 60%),
+        var(--glass-fill-strong);
+    -webkit-backdrop-filter: blur(16px) saturate(170%);
+    backdrop-filter: blur(16px) saturate(170%);
+    border: 1px solid var(--glass-edge);
+    box-shadow:
+        inset 0 1px 0 var(--glass-rim),
+        0 4px 16px -8px rgba(0, 0, 0, 0.25);
+}
+
+/*
+ * The field the glass sits over. Fixed, so cards scrolling past pick up a
+ * shifting tint instead of the same flat grey. It drifts slowly; with
+ * reduced motion it simply holds still.
+ */
+.ambient {
+    position: fixed;
+    inset: -20vmax;
+    z-index: -1;
+    pointer-events: none;
+    background:
+        radial-gradient(
+            38vmax 30vmax at 18% 30%,
+            var(--ambient-a),
+            transparent 70%
+        ),
+        radial-gradient(
+            34vmax 30vmax at 82% 55%,
+            var(--ambient-b),
+            transparent 70%
+        ),
+        radial-gradient(
+            30vmax 26vmax at 40% 85%,
+            var(--ambient-c),
+            transparent 70%
+        );
+    animation: ambient-drift 40s ease-in-out infinite alternate;
+}
+
+@keyframes ambient-drift {
+    to {
+        transform: translate3d(4vmax, -3vmax, 0) rotate(8deg) scale(1.08);
+    }
 }
 
 .chip {
+    background: color-mix(in srgb, var(--glass-fill) 70%, transparent);
+    box-shadow: inset 0 1px 0
+        color-mix(in srgb, var(--glass-rim) 60%, transparent);
     display: inline-flex;
     align-items: center;
     font-family: var(--font-mono), ui-monospace, monospace;
@@ -341,4 +701,91 @@ input[type='range']:active::-moz-range-thumb {
 
 .no-scrollbar::-webkit-scrollbar {
     display: none;
+}
+
+/* ---------- Project dialog ---------- */
+
+/*
+ * A native <dialog> opened with showModal(): the browser handles the focus
+ * trap, Escape and inerting the page. The enter and exit transitions ride on
+ * @starting-style and allow-discrete, so no JS has to hold it open to animate.
+ */
+.project-dialog {
+    position: fixed;
+    inset: 0;
+    margin: auto;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    overflow: hidden;
+    color: var(--ink);
+    background:
+        linear-gradient(180deg, var(--glass-gloss) 0%, transparent 30%),
+        var(--glass-fill-strong);
+    -webkit-backdrop-filter: blur(40px) saturate(180%);
+    backdrop-filter: blur(40px) saturate(180%);
+    border: 0;
+    opacity: 0;
+    transform: translateY(16px) scale(0.985);
+    transition:
+        opacity 0.25s ease,
+        transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
+        overlay 0.35s allow-discrete,
+        display 0.35s allow-discrete;
+}
+
+@media (min-width: 768px) {
+    .project-dialog {
+        width: min(100vw - 3rem, 80rem);
+        height: min(100dvh - 3rem, 52rem);
+        border: 1px solid var(--glass-edge);
+        border-radius: calc(var(--radius) + 0.5rem);
+        box-shadow:
+            inset 0 1px 0 var(--glass-rim),
+            0 40px 100px -30px rgba(0, 0, 0, 0.55);
+    }
+}
+
+.project-dialog[open] {
+    opacity: 1;
+    transform: none;
+}
+
+@starting-style {
+    .project-dialog[open] {
+        opacity: 0;
+        transform: translateY(16px) scale(0.985);
+    }
+}
+
+.project-dialog::backdrop {
+    background: rgba(12, 12, 15, 0.38);
+    -webkit-backdrop-filter: blur(4px) saturate(140%);
+    backdrop-filter: blur(4px) saturate(140%);
+    opacity: 0;
+    transition:
+        opacity 0.3s ease,
+        overlay 0.35s allow-discrete,
+        display 0.35s allow-discrete;
+}
+
+.project-dialog[open]::backdrop {
+    opacity: 1;
+}
+
+@starting-style {
+    .project-dialog[open]::backdrop {
+        opacity: 0;
+    }
+}
+
+/* The page behind stays put while a project is open. */
+html:has(.project-dialog[open]) {
+    overflow: hidden;
+}
+
+.hairline.edge-line::before {
+    inset: 0;
 }

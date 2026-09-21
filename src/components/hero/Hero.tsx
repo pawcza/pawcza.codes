@@ -6,6 +6,7 @@ import { useTileSettings } from '@/components/hero/TileSettings';
 import { Shuffle, Sliders } from '@/components/common/Icons';
 import { useIntroDone } from '@/components/common/intro';
 import { profile } from '@/content/profile';
+import ThemeToggle from '@/components/common/ThemeToggle';
 
 const Hero = () => {
     const { gradient, wave, randomise, controlsOpen, setControlsOpen, played } =
@@ -29,7 +30,7 @@ const Hero = () => {
                         mono={false}
                         classNames="display text-[clamp(2.75rem,1.5rem+6vw,6.5rem)]"
                     >
-                        {'Paweł\nCzarniecki'}
+                        pawcza.codes
                     </MatrixText>
                 </h1>
 
@@ -45,6 +46,12 @@ const Hero = () => {
                         {profile.role}
                     </MatrixText>
                 </div>
+            </div>
+
+            {/* The nav carries its own toggle, and only appears once the hero
+                scrolls away, so until then the switch lives up here. */}
+            <div className="absolute right-4 top-4 z-40 sm:right-6 sm:top-6">
+                <ThemeToggle className="glass-pill btn-icon" />
             </div>
 
             <div
@@ -64,7 +71,7 @@ const Hero = () => {
                     type="button"
                     onClick={randomise}
                     title="Randomise the background"
-                    className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-line bg-paper/60 text-ink-faint backdrop-blur-sm transition-colors hover:border-line-strong hover:text-ink"
+                    className="glass-pill btn-icon"
                 >
                     <Shuffle width={15} height={15} />
                     <span className="sr-only">Randomise the background</span>
@@ -74,10 +81,9 @@ const Hero = () => {
                     onClick={() => setControlsOpen(!controlsOpen)}
                     title="Play with the background"
                     aria-expanded={controlsOpen}
-                    className={`inline-flex h-9 w-9 items-center justify-center rounded-full border backdrop-blur-sm transition-colors ${
-                        controlsOpen
-                            ? 'border-ink bg-ink text-paper'
-                            : 'border-line bg-paper/60 text-ink-faint hover:border-line-strong hover:text-ink'
+                    // Open reads as pressed: same button, ink icon and a ring.
+                    className={`glass-pill btn-icon ${
+                        controlsOpen ? '!text-ink ring-1 ring-inset ring-ink/30' : ''
                     }`}
                 >
                     <Sliders width={15} height={15} />

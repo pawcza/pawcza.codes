@@ -10,7 +10,7 @@ const Stack = () => (
                 <Reveal
                     key={group.label}
                     delay={index * 0.05}
-                    className="grid gap-3 border-t border-line py-6 first:border-t-0 md:grid-cols-12 md:gap-10"
+                    className="edge-line grid gap-3 border-t border-line py-6 first:border-t-0 md:grid-cols-12 md:gap-10"
                 >
                     <dt className="eyebrow md:col-span-3 md:pt-1.5">
                         {group.label}

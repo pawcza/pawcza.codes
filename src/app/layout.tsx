@@ -5,7 +5,10 @@ import { Inter, JetBrains_Mono } from 'next/font/google';
 
 import Nav from '@/components/layout/Nav';
 import Loader from '@/components/common/Loader';
+import GlassPointer from '@/components/common/GlassPointer';
+import BackToTop from '@/components/common/BackToTop';
 import { profile } from '@/content/profile';
+import { themeInitScript } from '@/components/common/theme';
 
 import './globals.css';
 
@@ -46,7 +49,7 @@ export const metadata: Metadata = {
         'Next.js',
         'Vue.js',
         'TypeScript',
-        'Gdańsk',
+        'Gdynia',
         'remote',
     ],
     authors: [{ name: profile.name, url: 'https://pawcza.codes' }],
@@ -84,12 +87,22 @@ export default function RootLayout({
     children: React.ReactNode;
 }>) {
     return (
-        <html lang="en" className={`${sans.variable} ${mono.variable}`}>
+        <html
+            lang="en"
+            className={`${sans.variable} ${mono.variable}`}
+            // data-theme is written by the inline script before hydration.
+            suppressHydrationWarning
+        >
+            <head>
+                <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+            </head>
             <body className="font-sans">
                 {/* The loader is dismissed by JS, so it must never appear without it. */}
                 <noscript>
                     <style>{`.site-loader { display: none !important; }`}</style>
                 </noscript>
+                <div aria-hidden className="ambient" />
+                <GlassPointer />
                 <Loader />
                 <a
                     href="#work"
@@ -98,6 +111,7 @@ export default function RootLayout({
                     Skip to content
                 </a>
                 <Nav />
+                <BackToTop />
                 {children}
             </body>
         </html>

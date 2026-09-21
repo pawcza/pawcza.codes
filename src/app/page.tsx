@@ -20,7 +20,7 @@ const personSchema = {
     sameAs: [profile.github, profile.linkedin],
     address: {
         '@type': 'PostalAddress',
-        addressLocality: 'Gdańsk',
+        addressLocality: 'Gdynia',
         addressCountry: 'PL',
     },
     worksFor: {

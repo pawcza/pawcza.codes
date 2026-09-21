@@ -45,7 +45,10 @@ const Contact = () => {
                         Say hello
                     </MatrixText>
                 </h2>
-                <p className="lede mt-5 max-w-prose">
+                <p className="mt-4 text-[clamp(1.125rem,0.95rem+0.8vw,1.5rem)] font-medium tracking-tight text-ink">
+                    Hey, I’m Paweł.
+                </p>
+                <p className="lede mt-3 max-w-prose">
                     Work, a side project, or something you are just tinkering
                     with. Always up for a conversation and open to new projects.
                 </p>
@@ -55,14 +58,14 @@ const Contact = () => {
                 <div className="mt-10 flex flex-wrap items-center gap-2">
                     <a
                         href={`mailto:${profile.email}`}
-                        className="inline-flex items-center gap-2 rounded-full border border-ink bg-ink px-5 py-2.5 text-sm font-medium text-paper transition-colors hover:border-line-strong hover:bg-paper hover:text-ink"
+                        className="glass-pill btn btn-primary"
                     >
                         <Mail />
                         {profile.email}
                     </a>
                     <a
                         href={`tel:${profile.phoneHref}`}
-                        className="inline-flex items-center gap-2 rounded-full border border-line-strong px-5 py-2.5 text-sm font-medium transition-colors hover:bg-ink hover:text-paper"
+                        className="glass-pill btn"
                     >
                         <Phone />
                         {profile.phone}
@@ -71,7 +74,7 @@ const Contact = () => {
                         href={profile.cv}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex items-center gap-2 rounded-full border border-line-strong px-5 py-2.5 text-sm font-medium transition-colors hover:bg-ink hover:text-paper"
+                        className="glass-pill btn"
                     >
                         <Download />
                         CV
@@ -111,7 +114,7 @@ const Contact = () => {
                             <button
                                 type="button"
                                 onClick={randomise}
-                                className="inline-flex items-center gap-2 rounded-full border border-ink bg-ink px-5 py-2.5 text-sm font-medium text-paper transition-colors hover:border-line-strong hover:bg-paper hover:text-ink"
+                                className="glass-pill btn btn-primary"
                             >
                                 <Shuffle width={15} height={15} />
                                 Randomise it
@@ -119,7 +122,7 @@ const Contact = () => {
                             <button
                                 type="button"
                                 onClick={() => setControlsOpen(true)}
-                                className="inline-flex items-center gap-2 rounded-full border border-line-strong px-5 py-2.5 text-sm font-medium transition-colors hover:bg-ink hover:text-paper"
+                                className="glass-pill btn"
                             >
                                 <Sliders width={15} height={15} />
                                 Open the playground
@@ -128,8 +131,8 @@ const Contact = () => {
                     </div>
                 </Reveal>
 
-                <div className="mt-16 border-t border-line pt-6">
-                <p className="font-mono text-xs text-ink-faint">
+                <div className="edge-line mt-16 border-t border-line pt-6">
+                <p className="font-mono text-xs text-ink-muted">
                     © {new Date().getFullYear()} pawcza.codes
                 </p>
             </div>

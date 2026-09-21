@@ -10,7 +10,7 @@ const Experience = () => (
                 // No border on the first row: the section rule is above it.
                 <li
                     key={role.company}
-                    className="border-t border-line first:border-t-0"
+                    className="edge-line border-t border-line first:border-t-0"
                 >
                     <Reveal className="grid gap-4 py-8 md:grid-cols-12 md:gap-10">
                         <div className="md:col-span-3">

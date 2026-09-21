@@ -92,3 +92,29 @@ export const LinkedIn = (props: IconProps) => (
         <path d="M6.94 8.5H3.56V21h3.38V8.5ZM5.25 3a1.96 1.96 0 1 0 0 3.92 1.96 1.96 0 0 0 0-3.92ZM21 14.13c0-3.5-1.87-5.13-4.36-5.13-2.01 0-2.91 1.11-3.41 1.88V8.5H9.85c.04.95 0 12.5 0 12.5h3.38v-6.98c0-.3.02-.6.11-.82.24-.6.79-1.23 1.72-1.23 1.21 0 1.7.93 1.7 2.28V21H21v-6.87Z" />
     </svg>
 );
+
+export const Sun = (props: IconProps) => (
+    <svg {...base} {...props}>
+        <circle cx="12" cy="12" r="4" />
+        <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+    </svg>
+);
+
+export const Moon = (props: IconProps) => (
+    <svg {...base} {...props}>
+        <path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z" />
+    </svg>
+);
+
+export const Monitor = (props: IconProps) => (
+    <svg {...base} {...props}>
+        <rect x="3" y="4" width="18" height="12" rx="2" />
+        <path d="M8 20h8M12 16v4" />
+    </svg>
+);
+
+export const ArrowUp = (props: IconProps) => (
+    <svg {...base} {...props}>
+        <path d="M12 19V5m0 0-6 6m6-6 6 6" />
+    </svg>
+);

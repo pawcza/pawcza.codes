@@ -26,7 +26,7 @@ const Section = ({
                     {title}
                 </MatrixText>
             </h2>
-            <div className="hairline mt-8" />
+            <div className="hairline edge-line mt-8" />
         </Reveal>
         {children}
     </section>

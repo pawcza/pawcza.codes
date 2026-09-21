@@ -31,6 +31,22 @@ export const skills: SkillGroup[] = [
         ],
     },
     {
+        label: 'AI',
+        items: [
+            'Claude Code',
+            'Codex',
+            'ChatGPT',
+            'Prompt engineering',
+            'Vercel AI SDK',
+            'MCP',
+            'Ollama',
+            'ComfyUI',
+            'Stable Diffusion',
+            'Whisper',
+            'TTS & voice cloning',
+        ],
+    },
+    {
         label: 'Back-end',
         items: [
             'Node.js',

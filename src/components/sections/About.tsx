@@ -26,17 +26,9 @@ const About = () => (
             <Reveal delay={0.1} className="md:col-span-4">
                 <dl className="space-y-6">
                     <div>
-                        <dt className="eyebrow">Based in</dt>
+                        <dt className="eyebrow">Currently in</dt>
                         <dd className="mt-2 text-[0.9375rem]">
                             {profile.location}
-                        </dd>
-                    </div>
-                    <div>
-                        <dt className="eyebrow">Languages</dt>
-                        <dd className="mt-2 text-[0.9375rem]">
-                            Polish, native
-                            <br />
-                            English, fluent
                         </dd>
                     </div>
                 </dl>

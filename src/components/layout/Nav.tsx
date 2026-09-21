@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { motion } from 'motion/react';
 
+import ThemeToggle from '@/components/common/ThemeToggle';
+
 const items = [
     // `compact` items are the ones that still fit in a 390px pill.
     { id: 'top', label: 'pawcza.codes', compact: true, mono: true },
@@ -115,13 +117,18 @@ const Nav = () => {
              * Hidden over the hero, which is meant to be seen unobstructed.
              * `invisible` rather than merely transparent, so the links leave
              * the tab order and the accessibility tree while not shown.
+             * On phones it is a full-width bar pinned to the top rather than a
+             * floating pill: less of a flourish, but far easier to read.
              */
-            className={`fixed inset-x-0 top-0 z-50 flex justify-center px-4 pt-3 transition-[opacity,visibility] duration-300 ${
+            className={`fixed inset-x-0 top-0 z-50 flex justify-center sm:px-4 sm:pt-3 transition-[opacity,visibility] duration-300 ${
                 stuck ? 'visible opacity-100' : 'invisible opacity-0'
             }`}
         >
-            <div className="no-scrollbar flex max-w-full items-center gap-1 overflow-x-auto rounded-full border border-line bg-paper/80 p-1 shadow-[var(--shadow-card)] backdrop-blur-md">
-                <div ref={trackRef} className="relative flex items-center">
+            <div className="no-scrollbar glass-pill flex w-full items-center gap-1 overflow-x-auto rounded-none border-x-0 border-t-0 px-2 pb-1.5 pt-[calc(0.375rem+env(safe-area-inset-top))] sm:w-auto sm:max-w-full sm:rounded-full sm:border sm:p-1">
+                <div
+                    ref={trackRef}
+                    className="relative flex flex-1 items-center justify-between sm:flex-none sm:justify-start"
+                >
                     {/* One element that slides and resizes between links. */}
                     <motion.span
                         aria-hidden="true"
@@ -165,6 +172,8 @@ const Nav = () => {
                     })}
                 </div>
 
+                <span aria-hidden="true" className="mx-0.5 h-4 w-px shrink-0 bg-line-strong" />
+                <ThemeToggle className="btn-icon !h-8 !w-8 shrink-0" />
             </div>
         </nav>
     );

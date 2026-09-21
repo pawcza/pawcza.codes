@@ -21,6 +21,9 @@ const mulberry32 = (seed: number) => {
     };
 };
 
+/** How close, in px, the cursor must come to a letter to scramble it. */
+const HOVER_TOLERANCE = 10;
+
 /** Spaces and newlines are never scrambled. */
 const isWhitespace = (char: string) => /\s/.test(char);
 
@@ -127,6 +130,16 @@ const MatrixText = ({
         headline.map((_, i) => (effectiveDuration / length) * i),
     );
 
+    /*
+     * Hover scramble. A letter under the cursor (within HOVER_TOLERANCE px)
+     * holds until Infinity and keeps flickering; once the cursor moves off it
+     * gets a short random delay, then resolves again like the first reveal.
+     */
+    const charRefs = useRef<(HTMLSpanElement | null)[]>([]);
+    const hoverUntil = useRef<number[]>(Array(length).fill(0));
+    const startedRef = useRef(started);
+    startedRef.current = started;
+
     const animate = (time: number) => {
         const elapsed = time - startTime.current;
         const currentDisplay = [...displayRef.current];
@@ -143,8 +156,17 @@ const MatrixText = ({
             }
 
             const timeSinceLastFlicker = time - lastFlickerTime.current[i];
+            const hoverScramble = time < hoverUntil.current[i];
 
-            if (started) {
+            if (hoverScramble) {
+                if (timeSinceLastFlicker > flickerInterval) {
+                    currentDisplay[i] = getRandomChar(currentDisplay[i] || ' ');
+                    lastFlickerTime.current[i] = time;
+                    hasChanged = true;
+                }
+                if (currentStatus[i]) hasChanged = true;
+                currentStatus[i] = false;
+            } else if (started) {
                 const shouldReveal = elapsed >= timeToReveal.current[i];
                 if (shouldReveal) {
                     currentDisplay[i] = headline[i];
@@ -173,8 +195,74 @@ const MatrixText = ({
 
         if (!currentStatus.every(Boolean) || !started) {
             animationFrame.current = requestAnimationFrame(animate);
+        } else {
+            animationFrame.current = undefined;
         }
     };
+
+    // The loop stops once everything is revealed; hovering restarts it.
+    const animateRef = useRef(animate);
+    animateRef.current = animate;
+
+    useEffect(() => {
+        if (reduceMotion) return;
+        if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+            return;
+        }
+
+        let anyHovered = false;
+
+        const onMove = (event: PointerEvent) => {
+            if (event.pointerType === 'touch' || !startedRef.current) return;
+            const box = containerRef.current?.getBoundingClientRect();
+            if (!box) return;
+
+            const { clientX: x, clientY: y } = event;
+            const inside =
+                x >= box.left - HOVER_TOLERANCE &&
+                x <= box.right + HOVER_TOLERANCE &&
+                y >= box.top - HOVER_TOLERANCE &&
+                y <= box.bottom + HOVER_TOLERANCE;
+            // Far away with nothing scrambled: skip measuring every letter.
+            if (!inside && !anyHovered) return;
+
+            const now = performance.now();
+            const until = hoverUntil.current;
+            let changed = false;
+            anyHovered = false;
+
+            charRefs.current.forEach((el, i) => {
+                if (!el || isWhitespace(headline[i])) return;
+                const r = el.getBoundingClientRect();
+                const near =
+                    inside &&
+                    x >= r.left - HOVER_TOLERANCE &&
+                    x <= r.right + HOVER_TOLERANCE &&
+                    y >= r.top - HOVER_TOLERANCE &&
+                    y <= r.bottom + HOVER_TOLERANCE;
+
+                if (near) {
+                    anyHovered = true;
+                    if (until[i] !== Infinity) {
+                        until[i] = Infinity;
+                        changed = true;
+                    }
+                } else if (until[i] === Infinity) {
+                    until[i] = now + 60 + Math.random() * 240;
+                    changed = true;
+                }
+            });
+
+            if (changed && animationFrame.current === undefined) {
+                animationFrame.current = requestAnimationFrame((t) =>
+                    animateRef.current(t),
+                );
+            }
+        };
+
+        document.addEventListener('pointermove', onMove, { passive: true });
+        return () => document.removeEventListener('pointermove', onMove);
+    }, [reduceMotion]);
 
     useEffect(() => {
         if (reduceMotion) {
@@ -219,22 +307,46 @@ const MatrixText = ({
                 aria-hidden="true"
                 style={{ gridArea: '1 / 1', userSelect: 'none' }}
             >
-                {displayText.map((char, index) => (
-                    <span
-                        key={index}
-                        style={{
-                            opacity: statusRef.current[index]
-                                ? 1
-                                : randomOpacities.current[index],
-                            willChange: 'opacity',
-                            transition: statusRef.current[index]
-                                ? 'opacity 0.2s ease-in-out'
-                                : 'none',
-                        }}
-                    >
-                        {char}
-                    </span>
-                ))}
+                {displayText.map((char, index) =>
+                    isWhitespace(headline[index]) ? (
+                        headline[index]
+                    ) : (
+                        /*
+                         * Each letter gets a slot exactly as wide as its final
+                         * glyph (the hidden copy), and the scrambled character
+                         * is centred over it. Proportional glyphs no longer
+                         * push their neighbours around while they flicker.
+                         */
+                        <span
+                            key={index}
+                            ref={(el) => {
+                                charRefs.current[index] = el;
+                            }}
+                            style={{ position: 'relative' }}
+                        >
+                            <span style={{ visibility: 'hidden' }}>
+                                {headline[index]}
+                            </span>
+                            <span
+                                style={{
+                                    position: 'absolute',
+                                    inset: 0,
+                                    textAlign: 'center',
+                                    whiteSpace: 'nowrap',
+                                    opacity: statusRef.current[index]
+                                        ? 1
+                                        : randomOpacities.current[index],
+                                    willChange: 'opacity',
+                                    transition: statusRef.current[index]
+                                        ? 'opacity 0.2s ease-in-out'
+                                        : 'none',
+                                }}
+                            >
+                                {char}
+                            </span>
+                        </span>
+                    ),
+                )}
             </span>
         </div>
     );

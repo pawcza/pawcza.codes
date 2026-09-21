@@ -13,6 +13,7 @@ import {
     waveRanges,
 } from '@/components/hero/tiles';
 import { presets } from '@/components/hero/presets';
+import PresetPreview from '@/components/hero/PresetPreview';
 import { useTileSettings } from '@/components/hero/TileSettings';
 
 const Slider = ({
@@ -32,8 +33,8 @@ const Slider = ({
     return (
         <label className="block">
             <span className="flex items-baseline justify-between gap-3">
-                <span className="eyebrow">{label}</span>
-                <span className="font-mono text-[0.6875rem] tabular-nums text-ink-faint">
+                <span className="eyebrow !text-ink-muted">{label}</span>
+                <span className="font-mono text-[0.6875rem] tabular-nums text-ink-muted">
                     {value.toFixed(decimals)}
                 </span>
             </span>
@@ -103,22 +104,22 @@ const Controls = () => {
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.2, ease: 'easeOut' }}
-                    className="card fixed bottom-20 right-4 z-40 flex max-h-[min(34rem,calc(100dvh-7rem))] w-[min(20rem,calc(100vw-2rem))] flex-col p-5 backdrop-blur-md sm:right-6"
+                    className="card glass-solid fixed bottom-20 right-4 z-40 flex max-h-[min(34rem,calc(100dvh-7rem))] w-[min(20rem,calc(100vw-2rem))] flex-col p-5 backdrop-blur-md sm:right-6"
                 >
                     <div className="flex items-center justify-between">
-                        <p className="eyebrow">Playground</p>
+                        <p className="eyebrow !text-ink-muted">Playground</p>
                         <button
                             type="button"
                             onClick={onClose}
                             aria-label="Close controls"
-                            className="-mr-1 -mt-1 p-1 text-ink-faint transition-colors hover:text-ink"
+                            className="-mr-1 -mt-1 p-1 text-ink-muted transition-colors hover:text-ink"
                         >
                             <Close width={15} height={15} />
                         </button>
                     </div>
 
                     <div className="-mr-2 mt-4 overflow-y-auto pr-2">
-                        <p className="eyebrow mb-2">Presets</p>
+                        <p className="eyebrow !text-ink-muted mb-2">Presets</p>
                         <div className="grid grid-cols-2 gap-1.5">
                             {presets.map((item) => (
                                 <button
@@ -126,18 +127,21 @@ const Controls = () => {
                                     type="button"
                                     onClick={() => applyPreset(item)}
                                     aria-pressed={preset === item.name}
-                                    className={`rounded-md border px-2 py-1.5 font-mono text-[0.6875rem] transition-colors ${
+                                    className={`group rounded-md border p-1 text-left font-mono text-[0.6875rem] transition-colors ${
                                         preset === item.name
                                             ? 'border-ink bg-ink text-paper'
-                                            : 'border-line text-ink-muted hover:border-line-strong hover:text-ink'
+                                            : 'border-line-strong text-ink hover:border-ink'
                                     }`}
                                 >
-                                    {item.name}
+                                    <PresetPreview preset={item} />
+                                    <span className="block px-1 pb-0.5 pt-1.5">
+                                        {item.name}
+                                    </span>
                                 </button>
                             ))}
                         </div>
 
-                        <p className="eyebrow mb-2 mt-5">Palette</p>
+                        <p className="eyebrow !text-ink-muted mb-2 mt-5">Palette</p>
                         <div className="grid grid-cols-3 gap-1.5">
                             {gradientNames.map((name) => (
                                 <button
@@ -186,7 +190,7 @@ const Controls = () => {
                         <button
                             type="button"
                             onClick={randomise}
-                            className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-full border border-ink bg-ink px-3 py-2 text-[0.8125rem] font-medium text-paper transition-colors hover:border-line-strong hover:bg-paper hover:text-ink"
+                            className="glass-pill btn btn-primary flex-1 px-3 py-2 text-[0.8125rem]"
                         >
                             <Shuffle width={13} height={13} />
                             Randomise
@@ -195,7 +199,7 @@ const Controls = () => {
                             type="button"
                             onClick={() => setWave(defaultWave)}
                             disabled={isDefault}
-                            className="inline-flex items-center justify-center gap-1.5 rounded-full border border-line-strong px-3 py-2 text-[0.8125rem] font-medium transition-colors hover:bg-ink hover:text-paper disabled:pointer-events-none disabled:opacity-40"
+                            className="glass-pill btn px-3 py-2 text-[0.8125rem] disabled:pointer-events-none disabled:opacity-40"
                         >
                             <Restore width={13} height={13} />
                             Reset

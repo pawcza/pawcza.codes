@@ -95,7 +95,7 @@ const QuoteSection = () => {
                             onClick={getQuote}
                             disabled={loading}
                             title="Another one"
-                            className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-line-strong transition-colors hover:bg-ink hover:text-paper disabled:pointer-events-none disabled:opacity-40"
+                            className="glass-pill btn-icon shrink-0 disabled:pointer-events-none disabled:opacity-40"
                         >
                             <Refresh
                                 width={15}
