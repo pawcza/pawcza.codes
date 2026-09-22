@@ -88,9 +88,21 @@
                 transparent 55%
             ),
             color-mix(in srgb, var(--ink) 86%, transparent);
-        /* The pill's white rim and hairline read as a stray 1px line on ink. */
-        border-color: transparent;
+        /* No border and no rim: on ink both read as extra lines around the
+         * fill, so the edge glow ring alone marks the edge. */
+        border: 0;
         box-shadow: 0 4px 16px -8px rgba(0, 0, 0, 0.35);
+    }
+
+    /* Light on the ink fill, blended normally and inside the fill (it has
+     * no border to cover): `difference` left a dark fringe outside it. */
+    .btn.btn-primary {
+        --glow-color: var(--paper);
+    }
+
+    .btn.btn-primary::before {
+        inset: 0;
+        mix-blend-mode: normal;
     }
 
     .btn.btn-primary:hover {
@@ -261,7 +273,6 @@ body {
 :focus-visible {
     outline: 2px solid var(--accent);
     outline-offset: 3px;
-    border-radius: 2px;
 }
 
 /* ---------- Type scale ---------- */
@@ -332,9 +343,9 @@ body {
 .card::before {
     content: '';
     position: absolute;
-    inset: -1px;
+    inset: 0;
     z-index: 1;
-    padding: var(--edge-width);
+    padding: 1px;
     border-radius: inherit;
     background: linear-gradient(
             135deg,
@@ -385,7 +396,10 @@ body {
 /* Declared on the elements, not :root: the var()s inside must resolve where
  * EdgeGlow writes --glow-x/y, and the ::before rings inherit the result. */
 :root {
-    --edge-width: 1.5px;
+    /* Whole pixels only: a 1.5px ring offset by -1px landed on half pixels,
+     * which browsers round differently top and bottom (thick top, thin
+     * bottom) and which bent the corners. */
+    --edge-width: 2px;
 }
 
 .glass,
@@ -413,6 +427,12 @@ body {
 .card::after {
     content: '';
     position: absolute;
+    /*
+     * The ring's box is exactly the element's border box (these all have a
+     * 1px border), so it covers the border itself plus a pixel inside: the
+     * edge lights up, rather than a line beside it. Being the same box, it
+     * can inherit the element's corner radius exactly.
+     */
     inset: -1px;
     z-index: 2;
     padding: var(--edge-width);
@@ -427,7 +447,8 @@ body {
     pointer-events: none;
 }
 
-/* Clipped containers keep the ring inside their own edge. */
+/* No border of their own (a field wrapper; the dialog, which also clips),
+ * so the ring sits flush inside. */
 .edge::before,
 .project-dialog::before {
     inset: 0;
@@ -437,7 +458,7 @@ body {
 .edge-line {
     /* Resolved here: the ::before can't see the non-inheriting --glow-*. */
     --edge-line-glow: radial-gradient(
-        150px 2px at var(--glow-x) 50%,
+        150px 100% at var(--glow-x) 50%,
         color-mix(
             in srgb,
             var(--glow-color) calc(var(--glow-o) * 100%),
@@ -450,15 +471,17 @@ body {
 .edge-line::before {
     content: '';
     position: absolute;
+    /* Starts on the 1px border-top and runs a pixel past it, so the lit
+     * part of a divider reads as thick as the glow on every other edge. */
     inset: -1px 0 auto;
-    height: 1px;
+    height: var(--edge-width);
     background: var(--edge-line-glow);
     mix-blend-mode: difference;
     pointer-events: none;
 }
 
 /* The first row sits under the section rule and has no line of its own. */
-.edge-line:first-child::before {
+.edge-line:first-child:not(.h-px)::before {
     display: none;
 }
 
@@ -807,8 +830,9 @@ html:has(.project-dialog[open]) {
     overflow: hidden;
 }
 
-.hairline.edge-line::before {
-    inset: 0;
+.hairline.edge-line::before,
+.h-px.edge-line::before {
+    inset: 0 0 auto;
 }
 
 /*

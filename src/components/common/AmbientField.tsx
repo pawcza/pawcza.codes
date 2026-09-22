@@ -8,8 +8,8 @@ import { useIntroDone } from '@/components/common/intro';
 const CELL = 48;
 
 /**
- * The build-in once the loader clears, matching the project covers: each
- * square fades on after a delay set by a diagonal sweep plus jitter.
+ * The build-in once the hero is scrolled away, matching the project covers:
+ * each square fades on after a delay set by a diagonal sweep plus jitter.
  */
 const STEP_MS = 34;
 const JITTER_MS = 260;
@@ -146,9 +146,11 @@ const AmbientField = () => {
             frame = requestAnimationFrame(loop);
             const still = reduced.matches || root.dataset.render === 'software';
             if (!revealed) {
-                // Nothing shows until the loader has gone; still modes skip
-                // the sweep and appear at once.
+                // Held back until the visitor scrolls the hero half away, so
+                // the build plays where it is seen rather than behind the
+                // hero on load. Still modes skip the sweep and appear at once.
                 if (!introRef.current) return;
+                if (window.scrollY < window.innerHeight * 0.5) return;
                 if (still) revealed = true;
                 else if (!revealAt) revealAt = now;
                 else if (

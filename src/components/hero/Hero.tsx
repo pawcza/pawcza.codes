@@ -9,7 +9,7 @@ import { profile } from '@/content/profile';
 import ThemeToggle from '@/components/common/ThemeToggle';
 
 const Hero = () => {
-    const { gradient, wave, randomise, controlsOpen, setControlsOpen, played } =
+    const { gradient, wave, effect, randomise, controlsOpen, setControlsOpen, played } =
         useTileSettings();
     // Hold every load-time reveal until the loader has cleared the screen.
     const introDone = useIntroDone();
@@ -19,7 +19,7 @@ const Hero = () => {
             id="top"
             className="relative isolate flex min-h-[92svh] flex-col justify-end overflow-hidden"
         >
-            <TileCanvas gradient={gradient} wave={wave} />
+            <TileCanvas gradient={gradient} wave={wave} effect={effect} />
             <div className="hero-scrim" aria-hidden="true" />
             <div className="hero-fade" aria-hidden="true" />
 

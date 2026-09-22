@@ -4,8 +4,11 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 
 import {
     GradientName,
+    HoverEffect,
     WaveSettings,
-    gradients,
+    defaultCustomColours,
+    paletteStops,
+    setCustomPalette,
     randomGradient,
     randomWave,
 } from '@/components/hero/tiles';
@@ -17,6 +20,12 @@ interface TileSettings {
     setGradient: (name: GradientName) => void;
     wave: WaveSettings;
     setWave: (wave: WaveSettings) => void;
+    /** What the cursor does to the field: bend it (lens) or reveal its grid. */
+    effect: HoverEffect;
+    setEffect: (effect: HoverEffect) => void;
+    /** The two colours the custom palette is mixed from. */
+    customColours: [string, string];
+    setCustomColours: (colours: [string, string]) => void;
     /** Name of the preset currently in force, or null once it's been edited. */
     preset: string | null;
     applyPreset: (preset: Preset) => void;
@@ -45,6 +54,11 @@ export const TileSettingsProvider = ({
         presets[0].gradient,
     );
     const [wave, setWaveState] = useState<WaveSettings>(presets[0].wave);
+    const [effect, setEffectState] = useState<HoverEffect>(
+        presets[0].effect ?? 'lens',
+    );
+    const [customColours, setCustomColoursState] =
+        useState<[string, string]>(defaultCustomColours);
     const [preset, setPreset] = useState<string | null>(presets[0].name);
     const [controlsOpen, setControlsOpenState] = useState(false);
     const [played, setPlayed] = useState(false);
@@ -52,6 +66,7 @@ export const TileSettingsProvider = ({
     const load = (next: Preset) => {
         setGradientState(next.gradient);
         setWaveState(next.wave);
+        setEffectState(next.effect ?? 'lens');
         setPreset(next.name);
     };
 
@@ -72,6 +87,21 @@ export const TileSettingsProvider = ({
         setPlayed(true);
     };
 
+    // Picking a colour switches to the custom palette straight away.
+    const setCustomColours = (next: [string, string]) => {
+        setCustomPalette(...next);
+        setCustomColoursState(next);
+        setGradientState('custom');
+        setPreset(null);
+        setPlayed(true);
+    };
+
+    const setEffect = (next: HoverEffect) => {
+        setEffectState(next);
+        setPreset(null);
+        setPlayed(true);
+    };
+
     const setWave = (next: WaveSettings) => {
         setWaveState(next);
         setPreset(null);
@@ -81,6 +111,7 @@ export const TileSettingsProvider = ({
     const randomise = () => {
         setGradientState((current) => randomGradient(current));
         setWaveState(randomWave());
+        setEffectState(Math.random() < 0.5 ? 'lens' : 'grid');
         setPreset(null);
         setPlayed(true);
     };
@@ -97,12 +128,13 @@ export const TileSettingsProvider = ({
     // The page's ambient glow takes its colours from the tile palette: the
     // first, middle and last stops. globals.css fades between them.
     useEffect(() => {
-        const stops = gradients[gradient];
+        const stops = paletteStops(gradient);
         const root = document.documentElement.style;
         root.setProperty('--palette-a', stops[0]);
         root.setProperty('--palette-b', stops[Math.floor(stops.length / 2)]);
         root.setProperty('--palette-c', stops[stops.length - 1]);
-    }, [gradient]);
+        // customColours: re-mixing the custom palette keeps its name.
+    }, [gradient, customColours]);
 
     return (
         <TileSettingsContext.Provider
@@ -111,6 +143,10 @@ export const TileSettingsProvider = ({
                 setGradient,
                 wave,
                 setWave,
+                effect,
+                setEffect,
+                customColours,
+                setCustomColours,
                 preset,
                 applyPreset,
                 randomise,

@@ -4,9 +4,12 @@ import { useEffect, useRef } from 'react';
 
 import {
     GradientName,
+    HoverEffect,
     RAMP_LENGTH,
     WaveSettings,
     colorIndexAt,
+    customPaletteVersion,
+    previousCustomChannels,
     lensMagnify,
     lensRadius,
     ramps,
@@ -57,22 +60,26 @@ const BLOOM = 0.5;
 const TileCanvas = ({
     gradient,
     wave,
+    effect,
 }: {
     gradient: GradientName;
     wave: WaveSettings;
+    effect: HoverEffect;
 }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     // The loop reads settings from refs, so dragging a slider never restarts it.
     const gradientRef = useRef(gradient);
     const waveRef = useRef(wave);
+    const effectRef = useRef(effect);
     const drawStillRef = useRef<() => void>(() => {});
 
     useEffect(() => {
         gradientRef.current = gradient;
         waveRef.current = wave;
+        effectRef.current = effect;
         // When holding still, no loop is running to pick the change up.
         if (holdStill()) drawStillRef.current();
-    }, [gradient, wave]);
+    }, [gradient, wave, effect]);
 
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -120,6 +127,7 @@ const TileCanvas = ({
         let paletteFrom = new Uint8ClampedArray(rgbRamps[gradientRef.current]);
         let paletteTo: GradientName = gradientRef.current;
         let paletteBlend = 1;
+        let seenCustom = customPaletteVersion();
         const blendedRamp: string[] = new Array(RAMP_LENGTH);
 
         // Warped grid vertices, reused between frames so the draw allocates
@@ -166,7 +174,26 @@ const TileCanvas = ({
             const settings = shown;
             phase += settings.speed * delta * 60;
 
+            // Same name, new colours: the custom palette was re-mixed. Fade
+            // from the outgoing custom ramp, as for any palette change.
+            if (
+                paletteTo === 'custom' &&
+                gradientRef.current === 'custom' &&
+                seenCustom !== customPaletteVersion()
+            ) {
+                seenCustom = customPaletteVersion();
+                if (paletteBlend >= 1) {
+                    paletteFrom = new Uint8ClampedArray(
+                        previousCustomChannels(),
+                    );
+                }
+                paletteBlend = 0;
+            }
+
             if (gradientRef.current !== paletteTo) {
+                if (gradientRef.current === 'custom') {
+                    seenCustom = customPaletteVersion();
+                }
                 // Snapshot whatever is on screen right now, mid-fade or not.
                 snapshotPalette(paletteFrom, paletteTo, paletteBlend);
                 paletteTo = gradientRef.current;
@@ -240,6 +267,61 @@ const TileCanvas = ({
                         Math.ceil(tileHeight) + 1,
                     );
                 }
+            }
+
+            if (effectRef.current === 'grid') {
+                /*
+                 * Grid: the tile boundaries drawn as lines, in the page's ink
+                 * colour, masked by a radial gradient around the cursor (or
+                 * the drift), so a patch of grid shows through and fades out.
+                 */
+                const reach = settings.gridReach;
+                const alpha = settings.gridOpacity * influence;
+                if (alpha < 0.01) return;
+                const ink =
+                    document.documentElement.dataset.theme === 'dark'
+                        ? '237, 237, 240'
+                        : '22, 22, 26';
+                const glow = context.createRadialGradient(
+                    pointer.x,
+                    pointer.y,
+                    0,
+                    pointer.x,
+                    pointer.y,
+                    reach,
+                );
+                glow.addColorStop(0, `rgba(${ink}, ${alpha})`);
+                glow.addColorStop(0.55, `rgba(${ink}, ${alpha * 0.45})`);
+                glow.addColorStop(1, `rgba(${ink}, 0)`);
+                context.strokeStyle = glow;
+                context.lineWidth = settings.gridLine;
+                // Odd widths sit on half pixels to stay crisp.
+                const nudge = Math.round(settings.gridLine) % 2 ? 0.5 : 0;
+                const top = Math.max(0, pointer.y - reach);
+                const bottom = Math.min(height, pointer.y + reach);
+                const left = Math.max(0, pointer.x - reach);
+                const right = Math.min(width, pointer.x + reach);
+                context.beginPath();
+                for (
+                    let col = Math.ceil(left / tileWidth);
+                    col * tileWidth <= right;
+                    col++
+                ) {
+                    const x = Math.round(col * tileWidth) + nudge;
+                    context.moveTo(x, top);
+                    context.lineTo(x, bottom);
+                }
+                for (
+                    let row = Math.ceil(top / tileHeight);
+                    row * tileHeight <= bottom;
+                    row++
+                ) {
+                    const y = Math.round(row * tileHeight) + nudge;
+                    context.moveTo(left, y);
+                    context.lineTo(right, y);
+                }
+                context.stroke();
+                return;
             }
 
             const magnify = lensMagnify(settings.lens, influence);

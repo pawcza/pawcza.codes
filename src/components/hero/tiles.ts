@@ -17,9 +17,14 @@ export const gradients = {
     sand: ['#EFE6D6', '#E3D5BE', '#D6C4A6', '#C9B38E', '#BCA176', '#AF905E'],
 } as const;
 
-export type GradientName = keyof typeof gradients;
+/** A built-in palette, or the one the visitor mixes from two colours. */
+export type GradientName = keyof typeof gradients | 'custom';
 
-export const gradientNames = Object.keys(gradients) as GradientName[];
+/** The built-in palettes only: what Randomise and the swatches draw from. */
+export const gradientNames = Object.keys(gradients) as Exclude<
+    GradientName,
+    'custom'
+>[];
 
 export interface WaveSettings {
     frequency: number;
@@ -45,7 +50,30 @@ export interface WaveSettings {
      */
     reachX: number;
     reachY: number;
+    /** Grid effect: radius of the revealed patch of grid lines, in px. */
+    gridReach: number;
+    /** Grid effect: width of the revealed lines, in px. */
+    gridLine: number;
+    /** Grid effect: how strongly the lines show at the cursor. */
+    gridOpacity: number;
 }
+
+/** What the cursor does to the field. */
+export type HoverEffect = 'lens' | 'grid';
+
+/** The settings each effect owns, so the panel shows only the chosen one's. */
+export const effectKeys: Record<HoverEffect, (keyof WaveSettings)[]> = {
+    lens: ['lens', 'reachX', 'reachY'],
+    grid: ['gridReach', 'gridLine', 'gridOpacity'],
+};
+
+export type GridKey = 'gridReach' | 'gridLine' | 'gridOpacity';
+
+export const defaultGrid: Pick<WaveSettings, GridKey> = {
+    gridReach: 220,
+    gridLine: 1,
+    gridOpacity: 0.55,
+};
 
 export const defaultWave: WaveSettings = {
     frequency: 0.5,
@@ -58,6 +86,7 @@ export const defaultWave: WaveSettings = {
     lens: 70,
     reachX: 1,
     reachY: 1,
+    ...defaultGrid,
 };
 
 /** Neutral point of the bipolar lens slider. */
@@ -71,8 +100,8 @@ export const lensRadius = (lens: number) =>
  * How much the grid spreads at the cursor. Above 1 magnifies, so the field
  * bulges towards the viewer; below 1 minifies, so it dents inwards.
  *
- * The outward side is capped at 2.8 because the warp curve stops being
- * monotonic past 4 and folds. Inwards the curve's tightest slope equals the
+ * The outward side tops out at 3.88 (slider at 130) because the warp curve
+ * stops being monotonic past 4 and folds. Inwards the curve's tightest slope equals the
  * magnification itself, so anything above 0 is safe; 0.3 is simply as deep a
  * dent as still looks like tiles.
  */
@@ -155,27 +184,53 @@ export const waveRanges: Record<
     },
     lens: {
         label: 'Lens',
+        // Past 100 the bulge goes properly wild; 130 is as far as the warp
+        // stays unfolded (see lensMagnify).
         min: 0,
-        max: 100,
+        max: 130,
         step: 1,
-        randomMin: 4,
-        randomMax: 99,
+        randomMin: 0,
+        randomMax: 130,
     },
     reachX: {
         label: 'Lens reach X',
         min: 0.2,
         max: 6,
         step: 0.05,
-        randomMin: 0.4,
-        randomMax: 3.6,
+        randomMin: 0.3,
+        randomMax: 5,
     },
     reachY: {
         label: 'Lens reach Y',
         min: 0.2,
         max: 6,
         step: 0.05,
-        randomMin: 0.4,
-        randomMax: 3.6,
+        randomMin: 0.3,
+        randomMax: 5,
+    },
+    gridReach: {
+        label: 'Grid reach',
+        min: 60,
+        max: 700,
+        step: 10,
+        randomMin: 120,
+        randomMax: 520,
+    },
+    gridLine: {
+        label: 'Grid line',
+        min: 0.5,
+        max: 4,
+        step: 0.5,
+        randomMin: 0.5,
+        randomMax: 2.5,
+    },
+    gridOpacity: {
+        label: 'Grid strength',
+        min: 0.1,
+        max: 1,
+        step: 0.05,
+        randomMin: 0.3,
+        randomMax: 0.9,
     },
 };
 
@@ -235,27 +290,117 @@ const buildRamp = (palette: readonly string[]): string[] => {
     return ramp;
 };
 
+/* ---------- Custom palette ---------- */
+
+// sRGB <-> OKLab, for mixing two picked colours. A straight RGB blend between,
+// say, blue and yellow passes through a muddy grey; OKLab keeps the middle
+// of the ramp as bright and saturated as its ends.
+const toLinear = (c: number) =>
+    (c /= 255) <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+const fromLinear = (c: number) =>
+    Math.round(
+        255 *
+            Math.min(
+                1,
+                Math.max(
+                    0,
+                    c <= 0.0031308 ? c * 12.92 : 1.055 * c ** (1 / 2.4) - 0.055,
+                ),
+            ),
+    );
+
+const toOklab = ([r, g, b]: [number, number, number]) => {
+    const [lr, lg, lb] = [toLinear(r), toLinear(g), toLinear(b)];
+    const l = Math.cbrt(
+        0.4122214708 * lr + 0.5363325363 * lg + 0.0514459929 * lb,
+    );
+    const m = Math.cbrt(
+        0.2119034982 * lr + 0.6806995451 * lg + 0.1073969566 * lb,
+    );
+    const s = Math.cbrt(
+        0.0883024619 * lr + 0.2817188376 * lg + 0.6299787005 * lb,
+    );
+    return [
+        0.2104542553 * l + 0.793617785 * m - 0.0040720468 * s,
+        1.9779984951 * l - 2.428592205 * m + 0.4505937099 * s,
+        0.0259040371 * l + 0.7827717662 * m - 0.808675766 * s,
+    ];
+};
+
+const fromOklab = ([L, a, b]: number[]) => {
+    const l = (L + 0.3963377774 * a + 0.2158037573 * b) ** 3;
+    const m = (L - 0.1055613458 * a - 0.0638541728 * b) ** 3;
+    const s = (L - 0.0894841775 * a - 1.291485548 * b) ** 3;
+    return toHex(
+        fromLinear(4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s),
+        fromLinear(-1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s),
+        fromLinear(-0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s),
+    );
+};
+
+/** Five stops from `from` to `to`, evenly spaced in OKLab. */
+export const mixPaletteStops = (from: string, to: string): string[] => {
+    const a = toOklab(hexToRgb(from));
+    const b = toOklab(hexToRgb(to));
+    return [0, 0.25, 0.5, 0.75, 1].map((t) =>
+        fromOklab(a.map((v, i) => v + (b[i] - v) * t)),
+    );
+};
+
+export const defaultCustomColours: [string, string] = ['#1d2b64', '#f7a48a'];
+let customStops = mixPaletteStops(...defaultCustomColours);
+
+/** The stops behind any palette, the custom one included. */
+export const paletteStops = (name: GradientName): readonly string[] =>
+    name === 'custom' ? customStops : gradients[name];
+
+const toChannels = (ramp: string[]) => {
+    const channels = new Uint8ClampedArray(RAMP_STEPS * 3);
+    ramp.forEach((hex, i) => {
+        const [r, g, b] = hexToRgb(hex);
+        channels[i * 3] = r;
+        channels[i * 3 + 1] = g;
+        channels[i * 3 + 2] = b;
+    });
+    return channels;
+};
+
 /**
  * Precomputed once at module load, so the draw loop stays a plain array
- * lookup and never allocates a colour string per tile per frame.
+ * lookup and never allocates a colour string per tile per frame. The custom
+ * entry is rebuilt in place by setCustomPalette.
  */
 export const ramps = Object.fromEntries(
-    gradientNames.map((name) => [name, buildRamp(gradients[name])]),
+    [...gradientNames, 'custom' as const].map((name) => [
+        name,
+        buildRamp(paletteStops(name)),
+    ]),
 ) as Record<GradientName, string[]>;
 
 /** The same ramps as raw channels, so palettes can be cross-faded. */
 export const rgbRamps = Object.fromEntries(
-    gradientNames.map((name) => {
-        const channels = new Uint8ClampedArray(RAMP_STEPS * 3);
-        ramps[name].forEach((hex, i) => {
-            const [r, g, b] = hexToRgb(hex);
-            channels[i * 3] = r;
-            channels[i * 3 + 1] = g;
-            channels[i * 3 + 2] = b;
-        });
-        return [name, channels];
-    }),
+    [...gradientNames, 'custom' as const].map((name) => [
+        name,
+        toChannels(ramps[name]),
+    ]),
 ) as Record<GradientName, Uint8ClampedArray>;
+
+/**
+ * Bumped on every custom-palette change, so a canvas already showing
+ * "custom" knows to fade; it keeps the outgoing channels for that fade.
+ */
+let customVersion = 0;
+let previousCustom = rgbRamps.custom;
+export const customPaletteVersion = () => customVersion;
+export const previousCustomChannels = () => previousCustom;
+
+export const setCustomPalette = (from: string, to: string) => {
+    previousCustom = rgbRamps.custom;
+    customStops = mixPaletteStops(from, to);
+    ramps.custom = buildRamp(customStops);
+    rgbRamps.custom = toChannels(ramps.custom);
+    customVersion++;
+};
 
 export const RAMP_LENGTH = RAMP_STEPS;
 

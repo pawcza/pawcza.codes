@@ -1,9 +1,17 @@
-import { GradientName, WaveSettings } from '@/components/hero/tiles';
+import {
+    GradientName,
+    GridKey,
+    HoverEffect,
+    WaveSettings,
+    defaultGrid,
+} from '@/components/hero/tiles';
 
 export interface Preset {
     name: string;
     gradient: GradientName;
     wave: WaveSettings;
+    /** Defaults to the lens. */
+    effect?: HoverEffect;
     /**
      * Eligible to appear on page load. The loud ones stay off this list: a
      * first-time visitor should meet something composed, not a strobing
@@ -17,7 +25,11 @@ export interface Preset {
  * load, so the field looks different each visit without ever landing on the
  * duds a fully random roll can produce.
  */
-export const presets: Preset[] = [
+type RawPreset = Omit<Preset, 'wave'> & {
+    wave: Omit<WaveSettings, GridKey> & Partial<Pick<WaveSettings, GridKey>>;
+};
+
+const rawPresets: RawPreset[] = [
     {
         name: 'Pinot',
         gradient: 'pinotNoir',
@@ -100,7 +112,11 @@ export const presets: Preset[] = [
             lens: 58,
             reachX: 2,
             reachY: 0.6,
+            gridReach: 180,
+            gridLine: 1,
+            gridOpacity: 0.6,
         },
+        effect: 'grid',
         calm: true,
     },
     {
@@ -135,7 +151,11 @@ export const presets: Preset[] = [
             speed: 0.009,
             reachX: 1.3,
             reachY: 1.3,
+            gridReach: 260,
+            gridLine: 1.5,
+            gridOpacity: 0.5,
         },
+        effect: 'grid',
         calm: true,
     },
     {
@@ -152,7 +172,11 @@ export const presets: Preset[] = [
             lens: 34,
             reachX: 1,
             reachY: 1,
+            gridReach: 420,
+            gridLine: 1,
+            gridOpacity: 0.7,
         },
+        effect: 'grid',
         calm: false,
     },
     {
@@ -186,7 +210,11 @@ export const presets: Preset[] = [
             lens: 72,
             reachX: 1.1,
             reachY: 1.1,
+            gridReach: 300,
+            gridLine: 1,
+            gridOpacity: 0.45,
         },
+        effect: 'grid',
         calm: true,
     },
     {
@@ -203,7 +231,11 @@ export const presets: Preset[] = [
             lens: 62,
             reachX: 1.6,
             reachY: 0.75,
+            gridReach: 340,
+            gridLine: 0.5,
+            gridOpacity: 0.55,
         },
+        effect: 'grid',
         calm: true,
     },
     {
@@ -237,10 +269,20 @@ export const presets: Preset[] = [
             lens: 74,
             reachX: 1,
             reachY: 1.35,
+            gridReach: 240,
+            gridLine: 2,
+            gridOpacity: 0.4,
         },
+        effect: 'grid',
         calm: true,
     },
 ];
+
+/** The presets were tuned for the lens; the grid settings default. */
+export const presets: Preset[] = rawPresets.map((preset) => ({
+    ...preset,
+    wave: { ...defaultGrid, ...preset.wave },
+}));
 
 /** Only ever draws from the calm set. */
 export const randomPreset = (): Preset => {

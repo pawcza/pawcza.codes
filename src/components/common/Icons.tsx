@@ -155,3 +155,10 @@ export const User = (props: IconProps) => (
         <path d="M4.5 20a7.5 7.5 0 0 1 15 0" />
     </svg>
 );
+
+export const Lens = (props: IconProps) => (
+    <svg {...base} {...props}>
+        <circle cx="12" cy="12" r="8" />
+        <path d="M8 12a4 4 0 0 1 4-4" />
+    </svg>
+);

@@ -11,7 +11,7 @@ const errors: Record<string, string> = {
 };
 
 const field =
-    'glass-pill w-full rounded-[var(--radius)] px-4 py-3 text-body text-ink placeholder:text-ink-faint focus:outline-none focus-visible:ring-2 focus-visible:ring-accent';
+    'glass-pill block w-full rounded-[var(--radius)] px-4 py-3 text-body text-ink placeholder:text-ink-faint focus:outline-none focus-visible:ring-2 focus-visible:ring-accent';
 
 /** "Drop me a line": posts to /contact, which forwards it to ntfy. */
 const ContactForm = () => {
@@ -78,36 +78,43 @@ const ContactForm = () => {
             <div className="grid gap-3 sm:grid-cols-2">
                 <label className="grid gap-1.5">
                     <span className="eyebrow">Name</span>
-                    <input
-                        name="name"
-                        required
-                        maxLength={100}
-                        autoComplete="name"
-                        className={field}
-                    />
+                    {/* A field cannot carry ::before, so the edge glow sits on this. */}
+                    <span className="edge block rounded-[var(--radius)]">
+                        <input
+                            name="name"
+                            required
+                            maxLength={100}
+                            autoComplete="name"
+                            className={field}
+                        />
+                    </span>
                 </label>
                 <label className="grid gap-1.5">
                     <span className="eyebrow">Email</span>
-                    <input
-                        name="email"
-                        type="email"
-                        required
-                        maxLength={200}
-                        autoComplete="email"
-                        className={field}
-                    />
+                    <span className="edge block rounded-[var(--radius)]">
+                        <input
+                            name="email"
+                            type="email"
+                            required
+                            maxLength={200}
+                            autoComplete="email"
+                            className={field}
+                        />
+                    </span>
                 </label>
             </div>
             <label className="grid gap-1.5">
                 <span className="eyebrow">Message</span>
-                <textarea
-                    name="message"
-                    required
-                    minLength={10}
-                    maxLength={4000}
-                    rows={5}
-                    className={`${field} resize-y`}
-                />
+                <span className="edge block rounded-[var(--radius)]">
+                    <textarea
+                        name="message"
+                        required
+                        minLength={10}
+                        maxLength={4000}
+                        rows={5}
+                        className={`${field} resize-y`}
+                    />
+                </span>
             </label>
             {/* Honeypot: hidden from people and screen readers, bait for bots. */}
             <input

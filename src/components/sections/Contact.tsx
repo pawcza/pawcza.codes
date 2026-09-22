@@ -21,14 +21,14 @@ const links = [
 ];
 
 const Contact = () => {
-    const { gradient, wave, randomise, setControlsOpen } = useTileSettings();
+    const { gradient, wave, effect, randomise, setControlsOpen } = useTileSettings();
 
     return (
         <footer
             id="contact"
-            className="relative isolate mt-8 overflow-hidden border-t border-line"
+            className="relative isolate mt-8 overflow-hidden"
         >
-            <TileCanvas gradient={gradient} wave={wave} />
+            <TileCanvas gradient={gradient} wave={wave} effect={effect} />
             <div className="footer-scrim" aria-hidden="true" />
             <div className="footer-fade" aria-hidden="true" />
 
@@ -129,6 +129,14 @@ const Contact = () => {
                     </p>
                 </div>
             </div>
+            {/* The top rule as an element rather than a border: the footer
+                clips its overflow, which would clip a glow on its own edge.
+                Last in the footer so it paints over the canvas; no z-index,
+                which would isolate its difference-blended glow. */}
+            <div
+                aria-hidden
+                className="edge-line absolute inset-x-0 top-0 h-px bg-line"
+            />
         </footer>
     );
 };

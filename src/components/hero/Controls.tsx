@@ -3,12 +3,21 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 
-import { Close, Restore, Shuffle } from '@/components/common/Icons';
+import {
+    Close,
+    Grid,
+    Lens as LensIcon,
+    Restore,
+    Shuffle,
+} from '@/components/common/Icons';
 import {
     WaveSettings,
     defaultWave,
     gradientNames,
+    mixPaletteStops,
     gradients,
+    HoverEffect,
+    effectKeys,
     waveKeys,
     waveRanges,
 } from '@/components/hero/tiles';
@@ -51,6 +60,20 @@ const Slider = ({
     );
 };
 
+/** Wave settings shared by both hover effects. */
+const sharedKeys = waveKeys.filter(
+    (key) => !effectKeys.lens.includes(key) && !effectKeys.grid.includes(key),
+);
+
+const effects: {
+    id: HoverEffect;
+    label: string;
+    Icon: (props: React.SVGProps<SVGSVGElement>) => React.JSX.Element;
+}[] = [
+    { id: 'lens', label: 'Lens', Icon: LensIcon },
+    { id: 'grid', label: 'Grid', Icon: Grid },
+];
+
 const Controls = () => {
     const {
         gradient,
@@ -62,9 +85,17 @@ const Controls = () => {
         randomise,
         controlsOpen: open,
         setControlsOpen,
+        effect,
+        setEffect,
+        customColours,
+        setCustomColours,
     } = useTileSettings();
+    const mixed = mixPaletteStops(...customColours);
 
-    const onClose = useCallback(() => setControlsOpen(false), [setControlsOpen]);
+    const onClose = useCallback(
+        () => setControlsOpen(false),
+        [setControlsOpen],
+    );
 
     const panelRef = useRef<HTMLDivElement>(null);
     const isDefault = waveKeys.every((key) => wave[key] === defaultWave[key]);
@@ -134,14 +165,29 @@ const Controls = () => {
                                     }`}
                                 >
                                     <PresetPreview preset={item} />
-                                    <span className="block px-1 pb-0.5 pt-1.5">
+                                    <span className="flex items-center justify-between gap-2 px-1 pb-0.5 pt-1.5">
                                         {item.name}
+                                        {item.effect === 'grid' ? (
+                                            <Grid
+                                                width={11}
+                                                height={11}
+                                                aria-label="Grid"
+                                            />
+                                        ) : (
+                                            <LensIcon
+                                                width={11}
+                                                height={11}
+                                                aria-label="Lens"
+                                            />
+                                        )}
                                     </span>
                                 </button>
                             ))}
                         </div>
 
-                        <p className="eyebrow !text-ink-muted mb-2 mt-5">Palette</p>
+                        <p className="eyebrow !text-ink-muted mb-2 mt-5">
+                            Palette
+                        </p>
                         <div className="grid grid-cols-3 gap-1.5">
                             {gradientNames.map((name) => (
                                 <button
@@ -172,8 +218,89 @@ const Controls = () => {
                             ))}
                         </div>
 
-                        <div className="mt-5 space-y-4 pb-1">
-                            {waveKeys.map((key) => (
+                        <div
+                            className={`mt-2 flex items-center gap-2 rounded-md border p-1.5 transition-colors ${
+                                gradient === 'custom'
+                                    ? 'border-ink ring-1 ring-ink'
+                                    : 'border-line'
+                            }`}
+                        >
+                            {/* The mixed palette itself, as the preview. */}
+                            <span className="flex h-7 flex-1 overflow-hidden rounded-[0.3rem]">
+                                {mixed.map((color, index) => (
+                                    <span
+                                        key={index}
+                                        className="h-full flex-1"
+                                        style={{ backgroundColor: color }}
+                                    />
+                                ))}
+                            </span>
+                            {customColours.map((color, index) => (
+                                <label
+                                    key={index}
+                                    title={`Custom colour ${index + 1}`}
+                                    className="relative block h-7 w-7 shrink-0 cursor-pointer overflow-hidden rounded-full border border-line-strong"
+                                    style={{ backgroundColor: color }}
+                                >
+                                    <input
+                                        type="color"
+                                        value={color}
+                                        onChange={(event) => {
+                                            const next: [string, string] = [
+                                                ...customColours,
+                                            ];
+                                            next[index] = event.target.value;
+                                            setCustomColours(next);
+                                        }}
+                                        className="absolute inset-0 cursor-pointer opacity-0"
+                                        aria-label={`Custom colour ${index + 1}`}
+                                    />
+                                </label>
+                            ))}
+                        </div>
+
+                        <div className="mt-5 space-y-4">
+                            {sharedKeys.map((key) => (
+                                <Slider
+                                    key={key}
+                                    settingKey={key}
+                                    value={wave[key]}
+                                    onChange={(value) =>
+                                        setWave({ ...wave, [key]: value })
+                                    }
+                                />
+                            ))}
+                        </div>
+
+                        <p className="eyebrow !text-ink-muted mb-2 mt-6">
+                            Hover
+                        </p>
+                        <div
+                            role="radiogroup"
+                            aria-label="Hover effect"
+                            className="grid grid-cols-2 gap-1.5"
+                        >
+                            {effects.map(({ id, label, Icon }) => (
+                                <button
+                                    key={id}
+                                    type="button"
+                                    role="radio"
+                                    aria-checked={effect === id}
+                                    onClick={() => setEffect(id)}
+                                    className={`flex items-center justify-center gap-2 rounded-md border px-2 py-2 font-mono text-micro transition-colors ${
+                                        effect === id
+                                            ? 'border-ink bg-ink text-paper'
+                                            : 'border-line-strong text-ink hover:border-ink'
+                                    }`}
+                                >
+                                    <Icon width={14} height={14} />
+                                    {label}
+                                </button>
+                            ))}
+                        </div>
+
+                        <div className="mt-4 space-y-4 pb-1">
+                            {effectKeys[effect].map((key) => (
                                 <Slider
                                     key={key}
                                     settingKey={key}
