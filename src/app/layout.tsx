@@ -6,6 +6,7 @@ import { Inter, JetBrains_Mono } from 'next/font/google';
 import Nav from '@/components/layout/Nav';
 import Loader from '@/components/common/Loader';
 import GlassPointer from '@/components/common/GlassPointer';
+import AmbientField from '@/components/common/AmbientField';
 import BackToTop from '@/components/common/BackToTop';
 import RenderMode from '@/components/common/RenderMode';
 import { profile } from '@/content/profile';
@@ -102,13 +103,13 @@ export default function RootLayout({
                 <noscript>
                     <style>{`.site-loader { display: none !important; }`}</style>
                 </noscript>
-                <div aria-hidden className="ambient" />
+                <AmbientField />
                 <GlassPointer />
                 <RenderMode />
                 <Loader />
                 <a
                     href="#work"
-                    className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-full focus:bg-ink focus:px-4 focus:py-2 focus:text-sm focus:text-paper"
+                    className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-full focus:bg-ink focus:px-4 focus:py-2 focus:text-small focus:text-paper"
                 >
                     Skip to content
                 </a>

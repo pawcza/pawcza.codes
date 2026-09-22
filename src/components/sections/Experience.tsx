@@ -4,7 +4,7 @@ import MatrixText from '@/components/common/MatrixText';
 import { experience } from '@/content/experience';
 
 const Experience = () => (
-    <Section id="experience" title="Experience">
+    <Section id="experience" index="02" title="Experience">
         <ol className="mt-4">
             {experience.map((role, index) => (
                 // No border on the first row: the section rule is above it.
@@ -14,13 +14,13 @@ const Experience = () => (
                 >
                     <Reveal className="grid gap-4 py-8 md:grid-cols-12 md:gap-10">
                         <div className="md:col-span-3">
-                            <p className="font-mono text-[0.8125rem] tracking-tight text-ink">
+                            <p className="font-mono text-small tracking-tight text-ink">
                                 {role.from}
                                 <span className="text-ink-faint"> → </span>
                                 {role.to}
                             </p>
                             {index === 0 && (
-                                <span className="mt-2 inline-flex items-center gap-1.5 text-[0.6875rem] font-medium uppercase tracking-[0.14em] text-accent">
+                                <span className="mt-2 inline-flex items-center gap-1.5 text-micro font-medium uppercase tracking-[0.14em] text-accent">
                                     <span className="h-1.5 w-1.5 rounded-full bg-accent" />
                                     Current
                                 </span>
@@ -32,12 +32,12 @@ const Experience = () => (
                                 <MatrixText
                                     startOnView
                                     mono={false}
-                                    classNames="heading text-xl md:text-2xl"
+                                    classNames="heading text-heading"
                                 >
                                     {role.company}
                                 </MatrixText>
                             </h3>
-                            <p className="mt-1.5 text-sm text-ink-muted">
+                            <p className="mt-1.5 text-small text-ink-muted">
                                 {role.title} · {role.location}
                             </p>
 

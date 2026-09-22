@@ -69,7 +69,9 @@ const Gallery = ({ shots, name }: { shots: Shot[]; name: string }) => {
     if (shots.length === 0) {
         return (
             <div className="flex h-full min-h-[16rem] flex-col items-start justify-end gap-2 p-8">
-                <span className="heading text-4xl text-ink-faint">{name}</span>
+                <span className="heading text-title text-ink-faint">
+                    {name}
+                </span>
                 <span className="eyebrow">Screenshots on the way</span>
             </div>
         );
@@ -152,12 +154,12 @@ const Gallery = ({ shots, name }: { shots: Shot[]; name: string }) => {
             {shots.length > 1 && (
                 <div className="flex items-baseline justify-between gap-4 px-4 pt-1 md:px-8">
                     <p
-                        className="min-h-[1.25rem] text-sm text-ink-muted"
+                        className="min-h-[1.25rem] text-small text-ink-muted"
                         aria-live="polite"
                     >
                         {shot.caption}
                     </p>
-                    <span className="shrink-0 font-mono text-xs tabular-nums text-ink-faint">
+                    <span className="shrink-0 font-mono text-micro tabular-nums text-ink-faint">
                         {index + 1} / {shots.length}
                     </span>
                 </div>
@@ -254,7 +256,7 @@ const ProjectDialog = ({
                         <p className="eyebrow pr-10">{shown.role}</p>
                         <h2
                             id="project-dialog-title"
-                            className="heading mt-3 text-[1.75rem]"
+                            className="heading mt-3 text-heading"
                         >
                             {shown.name}
                         </h2>
@@ -262,7 +264,7 @@ const ProjectDialog = ({
                         {shown.description.map((paragraph) => (
                             <p
                                 key={paragraph}
-                                className="prose-body mt-4 text-[0.9375rem]"
+                                className="prose-body mt-4 text-body"
                             >
                                 {paragraph}
                             </p>
@@ -273,7 +275,7 @@ const ProjectDialog = ({
                             {shown.features.map((item) => (
                                 <li
                                     key={item}
-                                    className="flex gap-3 text-[0.9375rem] leading-snug text-ink-muted"
+                                    className="flex gap-3 text-body leading-snug text-ink-muted"
                                 >
                                     <span
                                         aria-hidden
@@ -311,7 +313,7 @@ const ProjectDialog = ({
                                 </a>
                             )}
                             {shown.privateNote && (
-                                <p className="mt-4 flex gap-3 rounded-[var(--radius)] border border-line p-4 text-sm leading-relaxed text-ink-muted">
+                                <p className="mt-4 flex gap-3 rounded-[var(--radius)] border border-line p-4 text-small leading-relaxed text-ink-muted">
                                     <Lock
                                         width={15}
                                         height={15}
@@ -327,7 +329,7 @@ const ProjectDialog = ({
                                 <button
                                     type="button"
                                     onClick={() => onNavigate(next.slug)}
-                                    className="group flex w-full items-center justify-between gap-4 border-t border-line pt-5 text-left text-sm"
+                                    className="group flex w-full items-center justify-between gap-4 border-t border-line pt-5 text-left text-small"
                                 >
                                     <span>
                                         <span className="eyebrow block">

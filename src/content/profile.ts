@@ -1,10 +1,13 @@
 export const profile = {
     name: 'Paweł Czarniecki',
-    role: 'Senior Front-end Developer',
+    /** Professional title: page title, meta description, structured data. */
+    role: 'Front-end developer & designer',
+    /** The hero's line. Warmer than the title, on purpose. */
+    tagline: 'An engineer with a soul for design',
     bio: [
         'I like taking the thing that annoys me and making it stop annoying me.',
-        'So I build things. Apps, tools, whole stacks, whatever the problem turns out to need.',
-        'Ten years of professional front-end taught me to build them properly.',
+        'Usually that means designing it, building it and running it myself.',
+        'And I still sweat the details nobody asked for.',
     ],
     location: 'Gdynia, Poland',
     email: 'hello@pawcza.codes',

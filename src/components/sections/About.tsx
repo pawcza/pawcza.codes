@@ -3,9 +3,9 @@ import Reveal from '@/components/common/Reveal';
 import { profile } from '@/content/profile';
 
 const About = () => (
-    <Section id="about" title="About me">
-        <div className="mt-4 grid gap-10 md:grid-cols-12">
-            <div className="md:col-span-8">
+    <Section id="about" index="04" title="About me">
+        <div className="mt-10 grid gap-10 md:grid-cols-12 md:gap-x-10">
+            <div className="md:col-span-9 md:col-start-4 md:row-start-1">
                 <Reveal>
                     {profile.bio.map((paragraph, index) => (
                         // The opening line carries the section, so give it size.
@@ -13,8 +13,8 @@ const About = () => (
                             key={paragraph}
                             className={
                                 index === 0
-                                    ? 'max-w-prose text-[clamp(1.25rem,1rem+1vw,1.75rem)] font-medium leading-snug tracking-tight text-ink'
-                                    : 'prose-body mt-5 max-w-prose text-[1.0625rem]'
+                                    ? 'max-w-prose text-heading font-medium text-ink'
+                                    : 'prose-body mt-5 max-w-prose text-body'
                             }
                         >
                             {paragraph}
@@ -23,13 +23,14 @@ const About = () => (
                 </Reveal>
             </div>
 
-            <Reveal delay={0.1} className="md:col-span-4">
+            <Reveal
+                delay={0.1}
+                className="md:col-span-3 md:col-start-1 md:row-start-1"
+            >
                 <dl className="space-y-6">
                     <div>
                         <dt className="eyebrow">Currently in</dt>
-                        <dd className="mt-2 text-[0.9375rem]">
-                            {profile.location}
-                        </dd>
+                        <dd className="mt-2 text-body">{profile.location}</dd>
                     </div>
                 </dl>
             </Reveal>

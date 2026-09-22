@@ -118,3 +118,40 @@ export const ArrowUp = (props: IconProps) => (
         <path d="M12 19V5m0 0-6 6m6-6 6 6" />
     </svg>
 );
+
+export const Home = (props: IconProps) => (
+    <svg {...base} {...props}>
+        <path d="M4 11.5 12 5l8 6.5" />
+        <path d="M6.5 10v9h11v-9" />
+    </svg>
+);
+
+export const Grid = (props: IconProps) => (
+    <svg {...base} {...props}>
+        <rect x="4" y="4" width="7" height="7" rx="1" />
+        <rect x="13" y="4" width="7" height="7" rx="1" />
+        <rect x="4" y="13" width="7" height="7" rx="1" />
+        <rect x="13" y="13" width="7" height="7" rx="1" />
+    </svg>
+);
+
+export const Briefcase = (props: IconProps) => (
+    <svg {...base} {...props}>
+        <rect x="3.5" y="7.5" width="17" height="12" rx="2" />
+        <path d="M9 7.5V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v1.5M3.5 13h17" />
+    </svg>
+);
+
+export const Layers = (props: IconProps) => (
+    <svg {...base} {...props}>
+        <path d="m12 4 8.5 4.5L12 13 3.5 8.5z" />
+        <path d="m3.5 12.5 8.5 4.5 8.5-4.5M3.5 16.5 12 21l8.5-4.5" />
+    </svg>
+);
+
+export const User = (props: IconProps) => (
+    <svg {...base} {...props}>
+        <circle cx="12" cy="8.5" r="4" />
+        <path d="M4.5 20a7.5 7.5 0 0 1 15 0" />
+    </svg>
+);

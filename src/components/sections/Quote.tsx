@@ -64,7 +64,7 @@ const QuoteSection = () => {
                         <MatrixText
                             key={quote.id}
                             startOnView
-                            classNames="text-[clamp(1.125rem,0.9rem+1vw,1.5rem)] font-medium leading-relaxed text-ink"
+                            classNames="text-lead font-medium leading-relaxed text-ink"
                         >
                             {quote.content}
                         </MatrixText>
@@ -76,7 +76,7 @@ const QuoteSection = () => {
                                 href={quote.author.link}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="inline-flex items-center gap-1.5 text-sm font-medium text-ink transition-colors hover:text-accent"
+                                className="inline-flex items-center gap-1.5 text-small font-medium text-ink transition-colors hover:text-accent"
                             >
                                 <span className="link-underline">
                                     {quote.author.name}
@@ -84,7 +84,7 @@ const QuoteSection = () => {
                                 <ArrowUpRight width={13} height={13} />
                             </a>
                             {quote.author.description && (
-                                <p className="mt-1 text-sm text-ink-faint">
+                                <p className="mt-1 text-small text-ink-faint">
                                     {quote.author.description}
                                 </p>
                             )}

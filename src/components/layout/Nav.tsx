@@ -4,43 +4,55 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react
 import { motion } from 'motion/react';
 
 import ThemeToggle from '@/components/common/ThemeToggle';
+import {
+    Briefcase,
+    Grid,
+    Home,
+    Layers,
+    Mail,
+    User,
+} from '@/components/common/Icons';
 
+/**
+ * Every section is linked everywhere: phones show the icon, wider screens
+ * the label. Home is phone-only; on desktop the hero is one scroll away.
+ */
 const items = [
-    // `compact` items are the ones that still fit in a 390px pill.
-    { id: 'top', label: 'pawcza.codes', compact: true, mono: true },
-    { id: 'work', label: 'Work', compact: true, mono: false },
-    { id: 'experience', label: 'Experience', compact: true, mono: false },
-    { id: 'stack', label: 'Stack', compact: false, mono: false },
-    { id: 'about', label: 'About', compact: false, mono: false },
-    { id: 'contact', label: 'Contact', compact: true, mono: false },
+    { id: 'top', label: 'Home', Icon: Home, desktop: false },
+    { id: 'work', label: 'Projects', Icon: Grid, desktop: true },
+    { id: 'experience', label: 'Experience', Icon: Briefcase, desktop: true },
+    { id: 'stack', label: 'Stack', Icon: Layers, desktop: true },
+    { id: 'about', label: 'About', Icon: User, desktop: true },
+    { id: 'contact', label: 'Contact', Icon: Mail, desktop: true },
 ];
 
 const Nav = () => {
-    const [active, setActive] = useState('top');
+    const [active, setActive] = useState('work');
     // The link the pill actually sits on. Differs from `active` only when the
     // active section has no visible link at this breakpoint.
-    const [highlighted, setHighlighted] = useState('top');
+    const [highlighted, setHighlighted] = useState('work');
     const [stuck, setStuck] = useState(false);
+    // Tucked away while scrolling down, back as soon as the visitor scrolls
+    // up: going down it only covers what they are reading.
+    const [tucked, setTucked] = useState(false);
     // Rendered position of the travelling highlight, in track coordinates.
     const [pill, setPill] = useState({ left: 0, width: 0, visible: false });
 
     const trackRef = useRef<HTMLDivElement>(null);
     const linkRefs = useRef<Record<string, HTMLAnchorElement | null>>({});
+    // The faint second pill: where on the page the visitor actually is,
+    // sliding between links in step with the scroll, not section by section.
+    const trackerRef = useRef<HTMLSpanElement>(null);
 
     /** Snap the pill onto whichever link is currently active. */
     const measure = useCallback(() => {
-        // Stack and About are hidden on small screens and report zero width.
-        // Rather than dropping the pill, walk back to the last visible link so
-        // it reads as "somewhere past Experience" instead of looking broken.
-        let index = items.findIndex((item) => item.id === active);
-        let link = linkRefs.current[active];
-
-        while (index > 0 && (!link || link.offsetWidth === 0)) {
-            index -= 1;
-            link = linkRefs.current[items[index].id];
-        }
+        // Phones only link a few sections. On one without a link (Stack,
+        // say) the pill steps aside rather than claiming "Projects".
+        const link = linkRefs.current[active];
+        const index = items.findIndex((item) => item.id === active);
 
         if (!link || link.offsetWidth === 0) {
+            setHighlighted('');
             setPill((current) => ({ ...current, visible: false }));
             return;
         }
@@ -64,9 +76,76 @@ const Nav = () => {
 
     useEffect(() => {
         let frame = 0;
+        let lastY = window.scrollY;
+        // Direction is only judged past this many pixels, so a trackpad's
+        // wobble or a bounce at the edge does not flicker the nav.
+        const DEAD_ZONE = 8;
+
+        /**
+         * Places the tracker between the link for the section the probe line
+         * is in and the next one, by how far through that section it is.
+         * Only links shown at this breakpoint count (Home is phone-only).
+         */
+        const track = (probe: number, atBottom: boolean) => {
+            const tracker = trackerRef.current;
+            if (!tracker) return;
+            const stops = items
+                .map((item) => ({
+                    link: linkRefs.current[item.id],
+                    section: document.getElementById(item.id),
+                }))
+                .filter(
+                    (
+                        stop,
+                    ): stop is {
+                        link: HTMLAnchorElement;
+                        section: HTMLElement;
+                    } =>
+                        !!stop.link &&
+                        stop.link.offsetWidth > 0 &&
+                        !!stop.section,
+                )
+                .map(({ link, section }) => ({
+                    link,
+                    top: section.getBoundingClientRect().top + window.scrollY,
+                }));
+            if (stops.length === 0) return;
+
+            let from = stops[0];
+            let to = stops[0];
+            let t = 0;
+            if (atBottom) {
+                from = to = stops[stops.length - 1];
+            } else {
+                for (let i = 0; i < stops.length; i++) {
+                    if (stops[i].top > probe) break;
+                    from = stops[i];
+                    to = stops[i + 1] ?? stops[i];
+                    t =
+                        to === from
+                            ? 0
+                            : (probe - from.top) / (to.top - from.top);
+                }
+            }
+            t = Math.min(1, Math.max(0, t));
+            const left =
+                from.link.offsetLeft +
+                (to.link.offsetLeft - from.link.offsetLeft) * t;
+            const width =
+                from.link.offsetWidth +
+                (to.link.offsetWidth - from.link.offsetWidth) * t;
+            tracker.style.transform = `translateX(${left}px)`;
+            tracker.style.width = `${width}px`;
+        };
 
         const update = () => {
             frame = 0;
+
+            const delta = window.scrollY - lastY;
+            if (Math.abs(delta) > DEAD_ZONE) {
+                setTucked(delta > 0);
+                lastY = window.scrollY;
+            }
 
             // Roughly where the hero leaves the screen.
             setStuck(window.scrollY > window.innerHeight * 0.78);
@@ -78,11 +157,13 @@ const Nav = () => {
                 document.documentElement.scrollHeight - 4;
 
             if (atBottom) {
+                track(0, true);
                 setActive(items[items.length - 1].id);
                 return;
             }
 
             const probe = window.scrollY + window.innerHeight * 0.35;
+            track(probe, atBottom);
             let current = items[0].id;
 
             for (const item of items) {
@@ -117,18 +198,24 @@ const Nav = () => {
              * Hidden over the hero, which is meant to be seen unobstructed.
              * `invisible` rather than merely transparent, so the links leave
              * the tab order and the accessibility tree while not shown.
-             * On phones it is a full-width bar pinned to the top rather than a
-             * floating pill: less of a flourish, but far easier to read.
+             * Tucked (scrolling down) it slides up out of view but stays
+             * reachable, sliding back the moment a link takes keyboard focus.
              */
-            className={`fixed inset-x-0 top-0 z-50 flex justify-center sm:px-4 sm:pt-3 transition-[opacity,visibility] duration-300 ${
-                stuck ? 'visible opacity-100' : 'invisible opacity-0'
+            className={`fixed inset-x-0 top-0 z-50 flex justify-center px-4 pt-[calc(0.75rem+env(safe-area-inset-top))] transition-[opacity,visibility,transform] duration-300 ease-out ${
+                !stuck
+                    ? 'invisible opacity-0'
+                    : tucked
+                      ? 'visible -translate-y-[130%] opacity-0 focus-within:translate-y-0 focus-within:opacity-100'
+                      : 'visible opacity-100'
             }`}
         >
-            <div className="no-scrollbar glass-pill flex w-full items-center gap-1 overflow-x-auto rounded-none border-x-0 border-t-0 px-2 pb-1.5 pt-[calc(0.375rem+env(safe-area-inset-top))] sm:w-auto sm:max-w-full sm:rounded-full sm:border sm:p-1">
-                <div
-                    ref={trackRef}
-                    className="relative flex flex-1 items-center justify-between sm:flex-none sm:justify-start"
-                >
+            <div className="no-scrollbar glass-pill flex max-w-full items-center gap-1 overflow-x-auto rounded-full p-1">
+                <div ref={trackRef} className="relative flex items-center">
+                    <span
+                        ref={trackerRef}
+                        aria-hidden="true"
+                        className="absolute inset-y-0 left-0 rounded-full bg-ink/15 ring-1 ring-inset ring-ink/10"
+                    />
                     {/* One element that slides and resizes between links. */}
                     <motion.span
                         aria-hidden="true"
@@ -158,21 +245,30 @@ const Nav = () => {
                                 }}
                                 href={`#${item.id}`}
                                 aria-current={isActive ? 'true' : undefined}
-                                className={`relative z-10 whitespace-nowrap rounded-full px-2 py-1.5 text-[0.8125rem] font-medium transition-colors duration-200 sm:px-3.5 ${
-                                    item.mono ? 'font-mono' : ''
-                                } ${item.compact ? '' : 'hidden sm:inline-block'} ${
+                                aria-label={item.label}
+                                className={`relative z-10 whitespace-nowrap rounded-full px-2 py-1.5 text-small font-medium transition-colors duration-200 sm:px-3.5 ${item.desktop ? '' : 'sm:hidden'} ${
                                     isActive
                                         ? 'text-paper'
                                         : 'text-ink-muted hover:text-ink'
                                 }`}
                             >
-                                {item.label}
+                                <item.Icon
+                                    width={16}
+                                    height={16}
+                                    className="block px-px sm:hidden"
+                                />
+                                <span className="hidden sm:inline">
+                                    {item.label}
+                                </span>
                             </a>
                         );
                     })}
                 </div>
 
-                <span aria-hidden="true" className="mx-0.5 h-4 w-px shrink-0 bg-line-strong" />
+                <span
+                    aria-hidden="true"
+                    className="mx-0.5 h-4 w-px shrink-0 bg-line-strong"
+                />
                 <ThemeToggle className="btn-icon !h-8 !w-8 shrink-0" />
             </div>
         </nav>

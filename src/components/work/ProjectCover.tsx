@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
 
+import TileReveal from '@/components/work/TileReveal';
 import { Project } from '@/content/projects';
 
 /**
@@ -45,6 +46,36 @@ const ProjectCover = ({
         frame = requestAnimationFrame(tick);
         return () => cancelAnimationFrame(frame);
     }, [playing]);
+
+    // Scroll reveal: the first time the cover is a third on screen it builds
+    // itself from squares (TileReveal), then the real image takes over and
+    // the squares are dropped. Skipped, straight to the image, for reduced
+    // motion and when the page is rendering without a GPU.
+    const [reveal, setReveal] = useState<'waiting' | 'building' | 'done'>(
+        'waiting',
+    );
+
+    useEffect(() => {
+        const frame = frameRef.current;
+        if (!frame) return;
+        if (
+            window.matchMedia('(prefers-reduced-motion: reduce)').matches ||
+            document.documentElement.dataset.render === 'software'
+        ) {
+            setReveal('done');
+            return;
+        }
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (!entry.isIntersecting) return;
+                observer.disconnect();
+                setReveal('building');
+            },
+            { threshold: 0.33 },
+        );
+        observer.observe(frame);
+        return () => observer.disconnect();
+    }, []);
 
     useEffect(() => {
         const video = videoRef.current;
@@ -112,14 +143,28 @@ const ProjectCover = ({
                 ref={frameRef}
                 className="relative aspect-[16/10] overflow-hidden rounded-[var(--radius)] bg-paper"
             >
-                <Image
-                    src={project.logo}
-                    alt=""
-                    fill
-                    sizes={sizes}
-                    priority={priority}
-                    className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.025]"
-                />
+                <div
+                    className={`absolute inset-0 ${
+                        reveal === 'done' ? '' : 'opacity-0'
+                    }`}
+                >
+                    <Image
+                        src={project.logo}
+                        alt=""
+                        fill
+                        sizes={sizes}
+                        priority={priority}
+                        className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.025]"
+                    />
+                </div>
+                {reveal !== 'done' && (
+                    <TileReveal
+                        src={project.logo}
+                        seed={project.slug}
+                        playing={reveal === 'building'}
+                        onDone={() => setReveal('done')}
+                    />
+                )}
                 {project.preview && (
                     <video
                         ref={videoRef}

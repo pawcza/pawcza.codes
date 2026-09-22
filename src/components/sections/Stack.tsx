@@ -3,7 +3,7 @@ import Reveal from '@/components/common/Reveal';
 import { skills } from '@/content/skills';
 
 const Stack = () => (
-    <Section id="stack" title="What I reach for">
+    <Section id="stack" index="03" title="What I reach for">
         <dl className="mt-4">
             {skills.map((group, index) => (
                 // No border on the first row: the section rule is above it.

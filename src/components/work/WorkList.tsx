@@ -56,18 +56,16 @@ const WorkRow = ({
     // thumbnail, not around the whole entry. No rule above the first row, the
     // section rule already sits there.
     <Reveal className="edge-line border-t border-line py-10 first:border-t-0 md:py-12">
-        <article className="group relative grid items-center gap-8 md:grid-cols-12 md:gap-12">
+        <article className="group relative grid items-center gap-6 md:grid-cols-12 md:gap-x-12">
             <div className="md:col-span-5">
                 <h3>
                     <OpenButton
                         project={project}
                         onOpen={onOpen}
-                        classNames="heading text-2xl md:text-[1.75rem]"
+                        classNames="heading text-heading"
                     />
                 </h3>
-                <p className="mt-4 text-[1.0625rem] leading-relaxed text-ink-muted">
-                    {project.blurb}
-                </p>
+                <p className="mt-4 text-lead text-ink-muted">{project.blurb}</p>
                 <p className="eyebrow mt-6 transition-colors group-hover:text-ink">
                     View project →
                 </p>
@@ -103,13 +101,11 @@ const SmallProject = ({
                         <OpenButton
                             project={project}
                             onOpen={onOpen}
-                            classNames="heading text-lg"
+                            classNames="heading text-lead"
                         />
                     </h3>
                 </div>
-                <p className="mt-3 text-[0.9375rem] leading-relaxed text-ink-muted">
-                    {project.blurb}
-                </p>
+                <p className="mt-2 text-body text-ink-muted">{project.blurb}</p>
             </div>
         </article>
     </Reveal>
@@ -167,7 +163,7 @@ const WorkList = () => {
                 ))}
             </div>
 
-            <div className="mt-12 grid gap-x-6 gap-y-12 md:grid-cols-3">
+            <div className="mt-12 grid gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
                 {moreProjects.map((p, i) => (
                     <SmallProject
                         key={p.slug}

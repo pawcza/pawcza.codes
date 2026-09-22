@@ -5,6 +5,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import {
     GradientName,
     WaveSettings,
+    gradients,
     randomGradient,
     randomWave,
 } from '@/components/hero/tiles';
@@ -92,6 +93,16 @@ export const TileSettingsProvider = ({
         // `load`, not `applyPreset`: this is not the visitor playing.
         load(randomPreset());
     }, []);
+
+    // The page's ambient glow takes its colours from the tile palette: the
+    // first, middle and last stops. globals.css fades between them.
+    useEffect(() => {
+        const stops = gradients[gradient];
+        const root = document.documentElement.style;
+        root.setProperty('--palette-a', stops[0]);
+        root.setProperty('--palette-b', stops[Math.floor(stops.length / 2)]);
+        root.setProperty('--palette-c', stops[stops.length - 1]);
+    }, [gradient]);
 
     return (
         <TileSettingsContext.Provider

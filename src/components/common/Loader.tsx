@@ -87,7 +87,7 @@ const Loader = () => {
                     <MatrixText
                         hasStarted={phase === 'revealing'}
                         duration={REVEAL}
-                        classNames="text-sm font-medium tracking-tight text-ink-muted md:text-base"
+                        classNames="text-small font-medium tracking-tight text-ink-muted"
                     >
                         pawcza.codes
                     </MatrixText>

@@ -34,7 +34,7 @@ const Slider = ({
         <label className="block">
             <span className="flex items-baseline justify-between gap-3">
                 <span className="eyebrow !text-ink-muted">{label}</span>
-                <span className="font-mono text-[0.6875rem] tabular-nums text-ink-muted">
+                <span className="font-mono text-micro tabular-nums text-ink-muted">
                     {value.toFixed(decimals)}
                 </span>
             </span>
@@ -127,7 +127,7 @@ const Controls = () => {
                                     type="button"
                                     onClick={() => applyPreset(item)}
                                     aria-pressed={preset === item.name}
-                                    className={`group rounded-md border p-1 text-left font-mono text-[0.6875rem] transition-colors ${
+                                    className={`group rounded-md border p-1 text-left font-mono text-micro transition-colors ${
                                         preset === item.name
                                             ? 'border-ink bg-ink text-paper'
                                             : 'border-line-strong text-ink hover:border-ink'
@@ -190,7 +190,7 @@ const Controls = () => {
                         <button
                             type="button"
                             onClick={randomise}
-                            className="glass-pill btn btn-primary flex-1 px-3 py-2 text-[0.8125rem]"
+                            className="glass-pill btn btn-primary flex-1 px-3 py-2 text-small"
                         >
                             <Shuffle width={13} height={13} />
                             Randomise
@@ -199,7 +199,7 @@ const Controls = () => {
                             type="button"
                             onClick={() => setWave(defaultWave)}
                             disabled={isDefault}
-                            className="glass-pill btn px-3 py-2 text-[0.8125rem] disabled:pointer-events-none disabled:opacity-40"
+                            className="glass-pill btn px-3 py-2 text-small disabled:pointer-events-none disabled:opacity-40"
                         >
                             <Restore width={13} height={13} />
                             Reset

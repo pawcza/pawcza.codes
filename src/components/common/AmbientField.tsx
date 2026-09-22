@@ -1,0 +1,178 @@
+'use client';
+
+import { useEffect, useRef } from 'react';
+
+import { useIntroDone } from '@/components/common/intro';
+
+/** One ambient square per this many CSS pixels, roughly the hero's tiles. */
+const CELL = 48;
+
+/**
+ * The build-in once the loader clears, matching the project covers: each
+ * square fades on after a delay set by a diagonal sweep plus jitter.
+ */
+const STEP_MS = 34;
+const JITTER_MS = 260;
+const FADE_MS = 520;
+
+/**
+ * The soft colour behind the page, drawn as squares to match the tile field:
+ * a canvas with one pixel per cell, scaled up with `image-rendering:
+ * pixelated`. Three glows drift across a fixed grid, so squares brighten and
+ * fade rather than sliding. Colours follow the hero's palette through the
+ * --palette-a/b/c properties, which TileSettings writes and CSS fades.
+ *
+ * A few hundred pixels redrawn about 20 times a second is next to free. With
+ * reduced motion or no GPU the drift stops, but the colours still follow
+ * palette and theme changes.
+ */
+const AmbientField = () => {
+    const ref = useRef<HTMLCanvasElement>(null);
+    const introDone = useIntroDone();
+    const introRef = useRef(false);
+    useEffect(() => {
+        introRef.current = introDone;
+    }, [introDone]);
+
+    useEffect(() => {
+        const canvas = ref.current;
+        const context = canvas?.getContext('2d');
+        if (!canvas || !context) return;
+
+        const root = document.documentElement;
+        const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+        let cols = 0;
+        let rows = 0;
+        let image: ImageData;
+        // Per-cell reveal delay; revealAt is when the sweep began (0 = not yet).
+        let delays = new Float32Array(0);
+        let revealAt = 0;
+        let revealed = false;
+
+        const resize = () => {
+            cols = Math.ceil(window.innerWidth / CELL) + 1;
+            rows = Math.ceil(window.innerHeight / CELL) + 1;
+            canvas.width = cols;
+            canvas.height = rows;
+            image = context.createImageData(cols, rows);
+            delays = new Float32Array(cols * rows);
+            for (let i = 0; i < delays.length; i++) {
+                const col = i % cols;
+                const row = (i - col) / cols;
+                delays[i] = (col + row) * STEP_MS + Math.random() * JITTER_MS;
+            }
+        };
+
+        const rgb = (name: string) => {
+            const match = getComputedStyle(root)
+                .getPropertyValue(name)
+                .match(/[\d.]+/g);
+            return match ? match.slice(0, 3).map(Number) : [128, 128, 128];
+        };
+
+        // Where the glows sit (fractions of the viewport), how wide they are
+        // (in cells of viewport-min) and how strongly each shows per theme.
+        const glows = [
+            { x: 0.12, y: 0.28, r: 0.42, light: 0.34, dark: 0.24, speed: 0.07 },
+            { x: 0.88, y: 0.58, r: 0.38, light: 0.3, dark: 0.26, speed: 0.05 },
+            { x: 0.35, y: 0.9, r: 0.34, light: 0.24, dark: 0.2, speed: 0.06 },
+        ];
+
+        const draw = (seconds: number, now: number) => {
+            const since = revealed ? -1 : now - revealAt;
+            const dark = root.dataset.theme === 'dark';
+            const colours = [
+                rgb('--palette-a'),
+                rgb('--palette-b'),
+                rgb('--palette-c'),
+            ];
+            const unit = Math.min(cols, rows);
+            const data = image.data;
+
+            const centres = glows.map((glow, i) => ({
+                x:
+                    (glow.x + 0.06 * Math.sin(seconds * glow.speed + i * 2)) *
+                    cols,
+                y:
+                    (glow.y + 0.05 * Math.cos(seconds * glow.speed * 1.3 + i)) *
+                    rows,
+                r: glow.r * unit,
+                a: dark ? glow.dark : glow.light,
+            }));
+
+            for (let row = 0; row < rows; row++) {
+                for (let col = 0; col < cols; col++) {
+                    let r = 0;
+                    let g = 0;
+                    let b = 0;
+                    let alpha = 0;
+                    for (let i = 0; i < 3; i++) {
+                        const c = centres[i];
+                        const dx = (col + 0.5 - c.x) / c.r;
+                        const dy = (row + 0.5 - c.y) / c.r;
+                        const w = Math.exp(-(dx * dx + dy * dy) * 3.2) * c.a;
+                        r += colours[i][0] * w;
+                        g += colours[i][1] * w;
+                        b += colours[i][2] * w;
+                        alpha += w;
+                    }
+                    const at = (row * cols + col) * 4;
+                    const norm = alpha > 0 ? 1 / alpha : 0;
+                    data[at] = r * norm;
+                    data[at + 1] = g * norm;
+                    data[at + 2] = b * norm;
+                    const shown =
+                        since < 0
+                            ? 1
+                            : Math.min(
+                                  1,
+                                  Math.max(
+                                      0,
+                                      (since - delays[row * cols + col]) /
+                                          FADE_MS,
+                                  ),
+                              );
+                    data[at + 3] = Math.min(1, alpha) * 255 * shown;
+                }
+            }
+            context.putImageData(image, 0, 0);
+        };
+
+        resize();
+        let frame = 0;
+        let last = 0;
+        const start = performance.now();
+        const loop = (now: number) => {
+            frame = requestAnimationFrame(loop);
+            const still = reduced.matches || root.dataset.render === 'software';
+            if (!revealed) {
+                // Nothing shows until the loader has gone; still modes skip
+                // the sweep and appear at once.
+                if (!introRef.current) return;
+                if (still) revealed = true;
+                else if (!revealAt) revealAt = now;
+                else if (
+                    now - revealAt >
+                    (cols + rows) * STEP_MS + JITTER_MS + FADE_MS
+                )
+                    revealed = true;
+            }
+            // ~20fps drifting, full rate while the squares come in, 4fps when
+            // still (only to pick up colour fades).
+            if (revealed && now - last < (still ? 250 : 50)) return;
+            last = now;
+            draw(still ? 0 : (now - start) / 1000, now);
+        };
+        frame = requestAnimationFrame(loop);
+
+        window.addEventListener('resize', resize);
+        return () => {
+            cancelAnimationFrame(frame);
+            window.removeEventListener('resize', resize);
+        };
+    }, []);
+
+    return <canvas ref={ref} aria-hidden className="ambient" />;
+};
+
+export default AmbientField;

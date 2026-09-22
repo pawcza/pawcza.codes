@@ -28,7 +28,7 @@ const Hero = () => {
                     <MatrixText
                         hasStarted={introDone}
                         mono={false}
-                        classNames="display text-[clamp(2.75rem,1.5rem+6vw,6.5rem)]"
+                        classNames="display text-display"
                     >
                         pawcza.codes
                     </MatrixText>
@@ -41,9 +41,9 @@ const Hero = () => {
                     />
                     <MatrixText
                         hasStarted={introDone}
-                        classNames="text-sm md:text-base font-medium tracking-tight text-ink"
+                        classNames="text-small font-medium tracking-tight text-ink"
                     >
-                        {profile.role}
+                        {profile.tagline}
                     </MatrixText>
                 </div>
             </div>
@@ -60,7 +60,7 @@ const Hero = () => {
             >
                 {/* Quiet nudge, and only until the visitor takes it. */}
                 <span
-                    className={`hidden font-mono text-[0.6875rem] tracking-tight text-ink-faint transition-opacity duration-500 sm:inline ${
+                    className={`hidden font-mono text-micro tracking-tight text-ink-faint transition-opacity duration-500 sm:inline ${
                         introDone && !played ? 'opacity-100' : 'opacity-0'
                     }`}
                     aria-hidden={played}
