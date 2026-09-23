@@ -15,7 +15,7 @@ export interface Preset {
     /**
      * Eligible to appear on page load. The loud ones stay off this list: a
      * first-time visitor should meet something composed, not a strobing
-     * diagonal. They are still one click away in the playground.
+     * diagonal. They are still one click away in the settings.
      */
     calm: boolean;
 }

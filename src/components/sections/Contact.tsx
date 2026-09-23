@@ -125,7 +125,7 @@ const Contact = () => {
                                     className="glass-pill btn"
                                 >
                                     <Sliders width={15} height={15} />
-                                    Open the playground
+                                    Open the settings
                                 </button>
                             </div>
                         </div>

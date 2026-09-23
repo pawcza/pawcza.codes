@@ -10,8 +10,10 @@ import {
     Home,
     Layers,
     Mail,
+    Sliders,
     User,
 } from '@/components/common/Icons';
+import { useTileSettings } from '@/components/hero/TileSettings';
 
 /**
  * Every section is linked everywhere: phones show the icon, wider screens
@@ -27,6 +29,7 @@ const items = [
 ];
 
 const Nav = () => {
+    const { controlsOpen, setControlsOpen } = useTileSettings();
     const [active, setActive] = useState('work');
     // The link the pill actually sits on. Differs from `active` only when the
     // active section has no visible link at this breakpoint.
@@ -195,11 +198,12 @@ const Nav = () => {
     return (
         <nav
             /*
-             * Hidden over the hero, which is meant to be seen unobstructed.
-             * `invisible` rather than merely transparent, so the links leave
-             * the tab order and the accessibility tree while not shown.
-             * Tucked (scrolling down) it slides up out of view but stays
-             * reachable, sliding back the moment a link takes keyboard focus.
+             * On phones it is hidden over the hero, which is meant to be seen
+             * unobstructed. `invisible` rather than merely transparent, so the
+             * links leave the tab order and the accessibility tree while not
+             * shown. Tucked (scrolling down) it slides up out of view but
+             * stays reachable, sliding back the moment a link takes keyboard
+             * focus. From md up there is room for both, so it simply stays.
              */
             className={`fixed inset-x-0 top-0 z-50 flex justify-center px-4 pt-[calc(0.75rem+env(safe-area-inset-top))] transition-[opacity,visibility,transform] duration-300 ease-out ${
                 !stuck
@@ -207,7 +211,7 @@ const Nav = () => {
                     : tucked
                       ? 'visible -translate-y-[130%] opacity-0 focus-within:translate-y-0 focus-within:opacity-100'
                       : 'visible opacity-100'
-            }`}
+            } md:visible md:translate-y-0 md:opacity-100`}
         >
             <div className="no-scrollbar glass-pill flex max-w-full items-center gap-1 overflow-x-auto rounded-full p-1">
                 <div ref={trackRef} className="relative flex items-center">
@@ -270,6 +274,21 @@ const Nav = () => {
                     className="mx-0.5 h-4 w-px shrink-0 bg-line-strong"
                 />
                 <ThemeToggle className="btn-icon !h-8 !w-8 shrink-0" />
+                <button
+                    type="button"
+                    data-settings-toggle
+                    onClick={() => setControlsOpen(!controlsOpen, 'nav')}
+                    title="Background settings"
+                    aria-expanded={controlsOpen}
+                    className={`btn-icon !h-8 !w-8 shrink-0 ${
+                        controlsOpen
+                            ? '!text-ink ring-1 ring-inset ring-ink/30'
+                            : ''
+                    }`}
+                >
+                    <Sliders width={15} height={15} />
+                    <span className="sr-only">Background settings</span>
+                </button>
             </div>
         </nav>
     );

@@ -31,10 +31,17 @@ interface TileSettings {
     applyPreset: (preset: Preset) => void;
     randomise: () => void;
     controlsOpen: boolean;
-    setControlsOpen: (open: boolean) => void;
+    /**
+     * `from` is where it was opened: the nav drops the panel just under
+     * itself, everything else floats it bottom-right by the field's buttons.
+     */
+    setControlsOpen: (open: boolean, from?: ControlsAnchor) => void;
+    controlsAnchor: ControlsAnchor;
     /** True once the visitor has touched the field, so hints can step aside. */
     played: boolean;
 }
+
+export type ControlsAnchor = 'nav' | 'page';
 
 const TileSettingsContext = createContext<TileSettings | null>(null);
 
@@ -61,6 +68,8 @@ export const TileSettingsProvider = ({
         useState<[string, string]>(defaultCustomColours);
     const [preset, setPreset] = useState<string | null>(presets[0].name);
     const [controlsOpen, setControlsOpenState] = useState(false);
+    const [controlsAnchor, setControlsAnchor] =
+        useState<ControlsAnchor>('page');
     const [played, setPlayed] = useState(false);
 
     const load = (next: Preset) => {
@@ -75,7 +84,8 @@ export const TileSettingsProvider = ({
         setPlayed(true);
     };
 
-    const setControlsOpen = (open: boolean) => {
+    const setControlsOpen = (open: boolean, from: ControlsAnchor = 'page') => {
+        if (open) setControlsAnchor(from);
         setControlsOpenState(open);
         if (open) setPlayed(true);
     };
@@ -152,6 +162,7 @@ export const TileSettingsProvider = ({
                 randomise,
                 controlsOpen,
                 setControlsOpen,
+                controlsAnchor,
                 played,
             }}
         >

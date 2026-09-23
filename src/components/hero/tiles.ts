@@ -119,6 +119,8 @@ export const waveRanges: Record<
     keyof WaveSettings,
     {
         label: string;
+        /** One plain line for the settings panel: what moving it does. */
+        description: string;
         min: number;
         max: number;
         step: number;
@@ -128,6 +130,7 @@ export const waveRanges: Record<
 > = {
     tileSize: {
         label: 'Tile size',
+        description: 'How big each square is. Smaller is finer and busier.',
         min: 24,
         max: 200,
         step: 2,
@@ -136,6 +139,7 @@ export const waveRanges: Record<
     },
     frequency: {
         label: 'Wave frequency',
+        description: 'How many bands of colour stack down the field.',
         min: 0,
         max: 1.5,
         step: 0.01,
@@ -144,6 +148,7 @@ export const waveRanges: Record<
     },
     amplitude: {
         label: 'Wave amplitude',
+        description: 'How far the bands swing from side to side.',
         min: 0,
         max: 3,
         step: 0.01,
@@ -152,6 +157,7 @@ export const waveRanges: Record<
     },
     secondaryFrequency: {
         label: 'Secondary frequency',
+        description: 'How quickly that swing repeats across the field.',
         min: 0,
         max: 1,
         step: 0.01,
@@ -160,6 +166,7 @@ export const waveRanges: Record<
     },
     tilt: {
         label: 'Tilt',
+        description: 'Leans the bands, so they run at an angle.',
         min: -1.5,
         max: 1.5,
         step: 0.01,
@@ -168,6 +175,8 @@ export const waveRanges: Record<
     },
     contrast: {
         label: 'Contrast',
+        description:
+            'How much of the palette the wave sweeps through. Lower is calmer.',
         min: 0.2,
         max: 2,
         step: 0.01,
@@ -176,6 +185,7 @@ export const waveRanges: Record<
     },
     speed: {
         label: 'Speed',
+        description: 'How fast the bands drift. All the way down stops them.',
         min: 0,
         max: 0.06,
         step: 0.001,
@@ -184,6 +194,8 @@ export const waveRanges: Record<
     },
     lens: {
         label: 'Lens',
+        description:
+            'Past the middle it bulges the tiles towards you, below it presses them in.',
         // Past 100 the bulge goes properly wild; 130 is as far as the warp
         // stays unfolded (see lensMagnify).
         min: 0,
@@ -194,6 +206,8 @@ export const waveRanges: Record<
     },
     reachX: {
         label: 'Lens reach X',
+        description:
+            'How far the lens reaches sideways. Stretch it into a band.',
         min: 0.2,
         max: 6,
         step: 0.05,
@@ -202,6 +216,7 @@ export const waveRanges: Record<
     },
     reachY: {
         label: 'Lens reach Y',
+        description: 'How far the lens reaches up and down.',
         min: 0.2,
         max: 6,
         step: 0.05,
@@ -210,6 +225,7 @@ export const waveRanges: Record<
     },
     gridReach: {
         label: 'Grid reach',
+        description: 'How big the patch of grid around the cursor is.',
         min: 60,
         max: 700,
         step: 10,
@@ -218,6 +234,7 @@ export const waveRanges: Record<
     },
     gridLine: {
         label: 'Grid line',
+        description: 'How thick the revealed lines are.',
         min: 0.5,
         max: 4,
         step: 0.5,
@@ -226,6 +243,7 @@ export const waveRanges: Record<
     },
     gridOpacity: {
         label: 'Grid strength',
+        description: 'How strongly the lines show.',
         min: 0.1,
         max: 1,
         step: 0.05,

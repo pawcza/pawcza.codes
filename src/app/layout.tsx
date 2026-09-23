@@ -4,6 +4,7 @@ import React from 'react';
 import { Inter, JetBrains_Mono } from 'next/font/google';
 
 import Nav from '@/components/layout/Nav';
+import { TileSettingsProvider } from '@/components/hero/TileSettings';
 import Loader from '@/components/common/Loader';
 import GlassPointer from '@/components/common/GlassPointer';
 import SquareText from '@/components/common/SquareText';
@@ -115,9 +116,12 @@ export default function RootLayout({
                 >
                     Skip to content
                 </a>
-                <Nav />
-                <BackToTop />
-                {children}
+                {/* Above the nav as well as the page: the nav opens settings. */}
+                <TileSettingsProvider>
+                    <Nav />
+                    <BackToTop />
+                    {children}
+                </TileSettingsProvider>
             </body>
         </html>
     );

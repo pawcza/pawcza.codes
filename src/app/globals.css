@@ -6,7 +6,7 @@
 /*
  * The glass and edge-glow surfaces anchor their ::before layers, so
  * they need a positioned box. It lives in the components layer so a utility
- * on the same element (`fixed`, `absolute`) still wins: the playground panel
+ * on the same element (`fixed`, `absolute`) still wins: the settings panel
  * and the dialog's controls are glass too.
  */
 @layer components {
@@ -532,7 +532,7 @@ body {
         inset 0 0 0 1px rgba(255, 255, 255, 0.06);
 }
 
-/* Glass that floats over busy colour (the playground panel sits on the hero
+/* Glass that floats over busy colour (the settings panel sits on the hero
  * tiles): same material, a much denser fill so its controls stay legible. */
 .glass-solid {
     background:
@@ -746,7 +746,7 @@ body {
     opacity: 0;
 }
 
-/* ---------- Range sliders (background playground) ---------- */
+/* ---------- Range sliders (background settings) ---------- */
 
 input[type='range'] {
     -webkit-appearance: none;
@@ -907,4 +907,12 @@ html:has(.project-dialog[open]) {
 
 [data-render='software'] :is(.glass, .card, .glass-pill):not(.btn-primary) {
     background-color: var(--glass-fill-strong);
+}
+
+/* A panel full of controls cannot let a quarter of the page behind through
+ * unblurred: over the hero heading it read as text layered on text. */
+[data-render='software'] .glass-solid:not(.btn-primary) {
+    /* :not() only to match the specificity of the rule above, which the
+     * panel also falls under as a .card; being later, this one wins. */
+    background-color: var(--paper-raised);
 }

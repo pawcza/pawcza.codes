@@ -1,5 +1,4 @@
 import Hero from '@/components/hero/Hero';
-import { TileSettingsProvider } from '@/components/hero/TileSettings';
 import Work from '@/components/sections/Work';
 import Experience from '@/components/sections/Experience';
 import Stack from '@/components/sections/Stack';
@@ -39,17 +38,15 @@ export default function Home() {
                     __html: JSON.stringify(personSchema),
                 }}
             />
-            <TileSettingsProvider>
-                <Hero />
-                <main>
-                    <Work />
-                    <Experience />
-                    <Stack />
-                    <About />
-                    <Quote />
-                </main>
-                <Contact />
-            </TileSettingsProvider>
+            <Hero />
+            <main>
+                <Work />
+                <Experience />
+                <Stack />
+                <About />
+                <Quote />
+            </main>
+            <Contact />
         </div>
     );
 }

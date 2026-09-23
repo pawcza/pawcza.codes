@@ -48,9 +48,10 @@ const Hero = () => {
                 </div>
             </div>
 
-            {/* The nav carries its own toggle, and only appears once the hero
-                scrolls away, so until then the switch lives up here. */}
-            <div className="absolute right-4 top-4 z-40 sm:right-6 sm:top-6">
+            {/* On phones the nav carries the toggle but only appears once the
+                hero scrolls away, so until then the switch lives up here. On
+                wider screens the nav is always there, toggle included. */}
+            <div className="absolute right-4 top-4 z-40 sm:right-6 sm:top-6 md:hidden">
                 <ThemeToggle className="glass-pill btn-icon" />
             </div>
 
