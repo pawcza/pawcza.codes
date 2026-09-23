@@ -10,12 +10,12 @@ const STEP_MS = 28;
 const JITTER_MS = 160;
 
 /** Back-out easing: overshoots a touch, then settles, like a brick clicking in. */
-const backOut = (t: number) => {
+export const backOut = (t: number) => {
     const c = 1.56;
     return 1 + (c + 1) * (t - 1) ** 3 + c * (t - 1) ** 2;
 };
 
-const seeded = (seed: string) => {
+export const seeded = (seed: string) => {
     let h = 2166136261;
     for (let i = 0; i < seed.length; i++) {
         h = Math.imul(h ^ seed.charCodeAt(i), 16777619);

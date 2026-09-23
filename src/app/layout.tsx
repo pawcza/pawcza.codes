@@ -6,6 +6,7 @@ import { Inter, JetBrains_Mono } from 'next/font/google';
 import Nav from '@/components/layout/Nav';
 import Loader from '@/components/common/Loader';
 import GlassPointer from '@/components/common/GlassPointer';
+import SquareText from '@/components/common/SquareText';
 import AmbientField from '@/components/common/AmbientField';
 import BackToTop from '@/components/common/BackToTop';
 import RenderMode from '@/components/common/RenderMode';
@@ -101,10 +102,11 @@ export default function RootLayout({
             <body className="font-sans">
                 {/* The loader is dismissed by JS, so it must never appear without it. */}
                 <noscript>
-                    <style>{`.site-loader { display: none !important; }`}</style>
+                    <style>{`.site-loader { display: none !important; } [data-squares] { opacity: 1 !important; }`}</style>
                 </noscript>
                 <AmbientField />
                 <GlassPointer />
+                <SquareText />
                 <RenderMode />
                 <Loader />
                 <a

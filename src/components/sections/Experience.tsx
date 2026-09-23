@@ -1,5 +1,4 @@
 import Section from '@/components/common/Section';
-import Reveal from '@/components/common/Reveal';
 import MatrixText from '@/components/common/MatrixText';
 import { experience } from '@/content/experience';
 
@@ -12,15 +11,21 @@ const Experience = () => (
                     key={role.company}
                     className="edge-line border-t border-line first:border-t-0"
                 >
-                    <Reveal className="grid gap-4 py-8 md:grid-cols-12 md:gap-10">
+                    <div className="grid gap-4 py-8 md:grid-cols-12 md:gap-10">
                         <div className="md:col-span-3">
-                            <p className="font-mono text-small tracking-tight text-ink">
+                            <p
+                                data-squares=""
+                                className="font-mono text-small tracking-tight text-ink"
+                            >
                                 {role.from}
                                 <span className="text-ink-faint"> → </span>
                                 {role.to}
                             </p>
                             {index === 0 && (
-                                <span className="mt-2 inline-flex items-center gap-1.5 text-micro font-medium uppercase tracking-[0.14em] text-accent">
+                                <span
+                                    data-squares=""
+                                    data-squares-delay="0.08"
+                                    className="mt-2 inline-flex items-center gap-1.5 text-micro font-medium uppercase tracking-[0.14em] text-accent">
                                     <span className="h-1.5 w-1.5 rounded-full bg-accent" />
                                     Current
                                 </span>
@@ -37,11 +42,18 @@ const Experience = () => (
                                     {role.company}
                                 </MatrixText>
                             </h3>
-                            <p className="mt-1.5 text-small text-ink-muted">
+                            <p
+                                data-squares=""
+                                className="mt-1.5 text-small text-ink-muted"
+                            >
                                 {role.title} · {role.location}
                             </p>
 
-                            <ul className="mt-5 flex flex-wrap gap-1.5">
+                            <ul
+                                data-squares=""
+                                data-squares-delay="0.1"
+                                className="mt-5 flex flex-wrap gap-1.5"
+                            >
                                 {role.stack.map((item) => (
                                     <li key={item} className="chip">
                                         {item}
@@ -49,7 +61,7 @@ const Experience = () => (
                                 ))}
                             </ul>
                         </div>
-                    </Reveal>
+                    </div>
                 </li>
             ))}
         </ol>

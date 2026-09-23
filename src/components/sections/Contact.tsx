@@ -34,25 +34,34 @@ const Contact = () => {
 
             <div className="relative mx-auto w-full max-w-content px-6 py-20 md:py-28">
                 <div>
-                    <Reveal>
-                        <p className="eyebrow">05</p>
+                    <div>
+                        <p data-squares="" className="eyebrow">
+                            05
+                        </p>
                         <h2 className="mt-3">
                             <MatrixText
                                 startOnView
                                 mono={false}
                                 classNames="heading max-w-prose text-title"
                             >
-                                Say hello
+                                Let’s build yours
                             </MatrixText>
                         </h2>
-                        <p className="mt-4 text-heading font-medium text-ink">
-                            Hey, I’m Paweł.
+                        <p
+                            data-squares=""
+                            className="mt-4 text-heading font-medium text-ink"
+                        >
+                            You bring the idea, I’ll handle the rest.
                         </p>
-                        <p className="lede mt-3 max-w-prose">
-                            Work, a side project, or something you are just
-                            tinkering with. Drop me a line.
+                        <p
+                            data-squares=""
+                            data-squares-delay="0.1"
+                            className="lede mt-3 max-w-prose"
+                        >
+                            Design, code and launch. Tell me what you’re
+                            building and I’ll show you how I’d get it live.
                         </p>
-                    </Reveal>
+                    </div>
 
                     <Reveal delay={0.1}>
                         <div className="mt-10">

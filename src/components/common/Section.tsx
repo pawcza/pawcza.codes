@@ -1,6 +1,5 @@
 import React from 'react';
 
-import Reveal from '@/components/common/Reveal';
 import MatrixText from '@/components/common/MatrixText';
 
 /**
@@ -24,8 +23,10 @@ const Section = ({
         id={id}
         className="mx-auto w-full max-w-content px-6 py-20 md:py-28"
     >
-        <Reveal>
-            <p className="eyebrow">{index}</p>
+        <div>
+            <p data-squares="" className="eyebrow">
+                {index}
+            </p>
             <h2 className="mt-3">
                 <MatrixText
                     startOnView
@@ -35,7 +36,7 @@ const Section = ({
                     {title}
                 </MatrixText>
             </h2>
-        </Reveal>
+        </div>
         <div className="hairline edge-line mt-8" />
         {children}
     </section>

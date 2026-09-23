@@ -682,6 +682,15 @@ body {
     }
 }
 
+/*
+ * Text that builds in square by square once it scrolls into view (see
+ * SquareText). Opacity rather than visibility, so screen readers still reach
+ * it; the layout's <noscript> shows it when there is no JS to play the build.
+ */
+[data-squares=''] {
+    opacity: 0;
+}
+
 /* ---------- Range sliders (background playground) ---------- */
 
 input[type='range'] {

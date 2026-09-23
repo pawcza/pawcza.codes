@@ -55,7 +55,7 @@ const WorkRow = ({
     // Open rows with hairlines, like Experience: the glass lives on the
     // thumbnail, not around the whole entry. No rule above the first row, the
     // section rule already sits there.
-    <Reveal className="edge-line border-t border-line py-10 first:border-t-0 md:py-12">
+    <div className="edge-line border-t border-line py-10 first:border-t-0 md:py-12">
         <article className="group relative grid items-center gap-6 md:grid-cols-12 md:gap-x-12">
             <div className="md:col-span-5">
                 <h3>
@@ -65,19 +65,26 @@ const WorkRow = ({
                         classNames="heading text-heading"
                     />
                 </h3>
-                <p className="mt-4 text-lead text-ink-muted">{project.blurb}</p>
-                <p className="eyebrow mt-6 transition-colors group-hover:text-ink">
+                <p data-squares="" className="mt-4 text-lead text-ink-muted">
+                    {project.blurb}
+                </p>
+                <p
+                    data-squares=""
+                    data-squares-delay="0.15"
+                    className="eyebrow mt-6 transition-colors group-hover:text-ink"
+                >
                     View project →
                 </p>
             </div>
-            <div className="md:col-span-7">
+            {/* The cover's frame still fades in; the image builds itself. */}
+            <Reveal className="md:col-span-7">
                 <ProjectCover
                     project={project}
                     sizes="(min-width: 1088px) 40rem, (min-width: 768px) 58vw, 100vw"
                 />
-            </div>
+            </Reveal>
         </article>
-    </Reveal>
+    </div>
 );
 
 const SmallProject = ({
@@ -89,12 +96,14 @@ const SmallProject = ({
     delay: number;
     onOpen: (slug: string) => void;
 }) => (
-    <Reveal delay={delay} className="h-full">
+    <div className="h-full">
         <article className="group relative flex h-full flex-col">
-            <ProjectCover
-                project={project}
-                sizes="(min-width: 768px) 22rem, 100vw"
-            />
+            <Reveal delay={delay}>
+                <ProjectCover
+                    project={project}
+                    sizes="(min-width: 768px) 22rem, 100vw"
+                />
+            </Reveal>
             <div className="flex flex-1 flex-col pt-5">
                 <div className="flex items-baseline justify-between gap-3">
                     <h3>
@@ -105,10 +114,16 @@ const SmallProject = ({
                         />
                     </h3>
                 </div>
-                <p className="mt-2 text-body text-ink-muted">{project.blurb}</p>
+                <p
+                    data-squares=""
+                    data-squares-delay={delay}
+                    className="mt-2 text-body text-ink-muted"
+                >
+                    {project.blurb}
+                </p>
             </div>
         </article>
-    </Reveal>
+    </div>
 );
 
 const WorkList = () => {
