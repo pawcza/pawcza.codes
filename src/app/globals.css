@@ -1,31 +1,5 @@
 @tailwind base;
 
-/* Registered so a palette change fades the ambient glow instead of cutting. */
-@property --palette-a {
-    syntax: '<color>';
-    inherits: true;
-    initial-value: #f0b429;
-}
-
-@property --palette-b {
-    syntax: '<color>';
-    inherits: true;
-    initial-value: #6096e6;
-}
-
-@property --palette-c {
-    syntax: '<color>';
-    inherits: true;
-    initial-value: #e278a0;
-}
-
-:root {
-    transition:
-        --palette-a 1.2s ease,
-        --palette-b 1.2s ease,
-        --palette-c 1.2s ease;
-}
-
 @tailwind components;
 @tailwind utilities;
 

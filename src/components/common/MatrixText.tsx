@@ -31,7 +31,8 @@ const getRandomChar = (
     exclude: string,
     randomFn: () => number = Math.random,
 ): string => {
-    const chars = '0123456789#ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+    const chars =
+        '0123456789#ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
     let newChar = exclude;
     while (newChar === exclude) {
         newChar = chars.charAt(Math.floor(randomFn() * chars.length));
@@ -101,13 +102,29 @@ const MatrixText = ({
         return () => observer.disconnect();
     }, [startOnView]);
 
+    // Scrambling text nobody can see is pure cost: a page of headings each
+    // re-rendering every frame kept the main thread busy while idle. The loop
+    // only runs while the text is on screen, and picks up where it left off.
+    const [onScreen, setOnScreen] = useState(false);
+    const onScreenRef = useRef(false);
+
+    useEffect(() => {
+        const node = containerRef.current;
+        if (!node) return;
+
+        const observer = new IntersectionObserver(([entry]) => {
+            onScreenRef.current = entry.isIntersecting;
+            setOnScreen(entry.isIntersecting);
+        });
+
+        observer.observe(node);
+        return () => observer.disconnect();
+    }, []);
+
     const effectiveDuration = duration ?? 500 + length * 20;
 
     const seed = useMemo(() => createSeedFromString(children), [children]);
-    const seededDisplayRandom = useMemo(
-        () => mulberry32(seed || 1),
-        [seed],
-    );
+    const seededDisplayRandom = useMemo(() => mulberry32(seed || 1), [seed]);
     const seededOpacityRandom = useMemo(
         () => mulberry32((seed || 1) ^ 0x9e3779b9),
         [seed],
@@ -193,7 +210,10 @@ const MatrixText = ({
             setDisplayText(currentDisplay);
         }
 
-        if (!currentStatus.every(Boolean) || !started) {
+        if (
+            onScreenRef.current &&
+            (!currentStatus.every(Boolean) || !started)
+        ) {
             animationFrame.current = requestAnimationFrame(animate);
         } else {
             animationFrame.current = undefined;
@@ -263,6 +283,16 @@ const MatrixText = ({
         document.addEventListener('pointermove', onMove, { passive: true });
         return () => document.removeEventListener('pointermove', onMove);
     }, [reduceMotion]);
+
+    // Back on screen: resume, if anything is still left to resolve.
+    useEffect(() => {
+        if (!onScreen || reduceMotion) return;
+        if (animationFrame.current)
+            cancelAnimationFrame(animationFrame.current);
+        animationFrame.current = requestAnimationFrame((t) =>
+            animateRef.current(t),
+        );
+    }, [onScreen, reduceMotion]);
 
     useEffect(() => {
         if (reduceMotion) {

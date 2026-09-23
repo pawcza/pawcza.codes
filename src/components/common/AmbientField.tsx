@@ -6,6 +6,8 @@ import { useIntroDone } from '@/components/common/intro';
 
 /** One ambient square per this many CSS pixels, roughly the hero's tiles. */
 const CELL = 48;
+/** How long a palette change takes to fade through the glow. */
+const PALETTE_FADE_MS = 1200;
 
 /**
  * The build-in once the hero is scrolled away, matching the project covers:
@@ -20,7 +22,10 @@ const FADE_MS = 520;
  * a canvas with one pixel per cell, scaled up with `image-rendering:
  * pixelated`. Three glows drift across a fixed grid, so squares brighten and
  * fade rather than sliding. Colours follow the hero's palette through the
- * --palette-a/b/c properties, which TileSettings writes and CSS fades.
+ * --palette-a/b/c properties, which TileSettings writes. The fade between
+ * palettes happens here, not as a CSS transition: those properties sit on
+ * :root, and transitioning them restyled every element on the page each
+ * frame for as long as the fade ran.
  *
  * A few hundred pixels redrawn about 20 times a second is next to free. With
  * reduced motion or no GPU the drift stops, but the colours still follow
@@ -43,6 +48,13 @@ const AmbientField = () => {
         const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
         let cols = 0;
         let rows = 0;
+        // Kept up to date by listeners: reading innerHeight or scrollY every
+        // frame forced a layout each time.
+        let viewportHeight = window.innerHeight;
+        let pastHero = false;
+        const onScroll = () => {
+            pastHero = window.scrollY >= viewportHeight * 0.5;
+        };
         let image: ImageData;
         // Per-cell reveal delay; revealAt is when the sweep began (0 = not yet).
         let delays = new Float32Array(0);
@@ -50,6 +62,7 @@ const AmbientField = () => {
         let revealed = false;
 
         const resize = () => {
+            viewportHeight = window.innerHeight;
             cols = Math.ceil(window.innerWidth / CELL) + 1;
             rows = Math.ceil(window.innerHeight / CELL) + 1;
             canvas.width = cols;
@@ -63,11 +76,12 @@ const AmbientField = () => {
             }
         };
 
-        const rgb = (name: string) => {
-            const match = getComputedStyle(root)
-                .getPropertyValue(name)
-                .match(/[\d.]+/g);
-            return match ? match.slice(0, 3).map(Number) : [128, 128, 128];
+        // TileSettings writes plain hex onto the root's inline style, so it is
+        // read straight from there; getComputedStyle would force a restyle.
+        const rgb = (name: string, fallback: string) => {
+            const value = root.style.getPropertyValue(name).trim() || fallback;
+            const n = parseInt(value.slice(1), 16);
+            return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
         };
 
         // Where the glows sit (fractions of the viewport), how wide they are
@@ -78,14 +92,50 @@ const AmbientField = () => {
             { x: 0.35, y: 0.9, r: 0.34, light: 0.24, dark: 0.2, speed: 0.06 },
         ];
 
+        // Read only when TileSettings writes new values, never per frame.
+        const readPalette = () => [
+            rgb('--palette-a', '#f0b429'),
+            rgb('--palette-b', '#6096e6'),
+            rgb('--palette-c', '#e278a0'),
+        ];
+        let fadeTo = readPalette();
+        let fadeFrom = fadeTo;
+        let fadeStart = -Infinity;
+        const colours = fadeTo.map((colour) => [...colour]);
+
+        const palette = new MutationObserver(() => {
+            const next = readPalette();
+            if (
+                next.every((colour, i) =>
+                    colour.every((c, j) => c === fadeTo[i][j]),
+                )
+            ) {
+                return;
+            }
+            // From whatever is showing, which may be half way through a fade.
+            fadeFrom = colours.map((colour) => [...colour]);
+            fadeTo = next;
+            fadeStart = performance.now();
+        });
+        palette.observe(root, { attributes: true, attributeFilter: ['style'] });
+
+        const blendPalette = (now: number) => {
+            const t = Math.min(1, (now - fadeStart) / PALETTE_FADE_MS);
+            // Smoothstep, close to the CSS `ease` this used to be.
+            const eased = t * t * (3 - 2 * t);
+            for (let i = 0; i < 3; i++) {
+                for (let j = 0; j < 3; j++) {
+                    colours[i][j] =
+                        fadeFrom[i][j] +
+                        (fadeTo[i][j] - fadeFrom[i][j]) * eased;
+                }
+            }
+        };
+
         const draw = (seconds: number, now: number) => {
             const since = revealed ? -1 : now - revealAt;
             const dark = root.dataset.theme === 'dark';
-            const colours = [
-                rgb('--palette-a'),
-                rgb('--palette-b'),
-                rgb('--palette-c'),
-            ];
+            blendPalette(now);
             const unit = Math.min(cols, rows);
             const data = image.data;
 
@@ -150,7 +200,7 @@ const AmbientField = () => {
                 // the build plays where it is seen rather than behind the
                 // hero on load. Still modes skip the sweep and appear at once.
                 if (!introRef.current) return;
-                if (window.scrollY < window.innerHeight * 0.5) return;
+                if (!pastHero) return;
                 if (still) revealed = true;
                 else if (!revealAt) revealAt = now;
                 else if (
@@ -167,9 +217,13 @@ const AmbientField = () => {
         };
         frame = requestAnimationFrame(loop);
 
+        onScroll();
+        window.addEventListener('scroll', onScroll, { passive: true });
         window.addEventListener('resize', resize);
         return () => {
+            window.removeEventListener('scroll', onScroll);
             cancelAnimationFrame(frame);
+            palette.disconnect();
             window.removeEventListener('resize', resize);
         };
     }, []);
