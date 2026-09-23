@@ -454,6 +454,61 @@ body {
     pointer-events: none;
 }
 
+/* The same divider stood on end: it lights along its length instead. */
+.edge-line-v {
+    --edge-line-v-glow: radial-gradient(
+        100% 150px at 50% var(--glow-y),
+        color-mix(
+            in srgb,
+            var(--glow-color) calc(var(--glow-o) * 100%),
+            transparent
+        ),
+        transparent 100%
+    );
+}
+
+.edge-line-v::before {
+    content: '';
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: var(--edge-width);
+    background: var(--edge-line-v-glow);
+    mix-blend-mode: difference;
+    pointer-events: none;
+}
+
+/*
+ * The hairline through a row of project thumbnails: each one reaches half
+ * the column gap either side, so neighbours meet in the middle, and the ends
+ * of a row start from the thumbnail's own centre, hidden behind it.
+ */
+.project-grid .thumb-link {
+    left: -0.75rem;
+    right: -0.75rem;
+}
+
+@media (max-width: 1023px) {
+    .project-grid > :nth-child(odd) .thumb-link {
+        left: 50%;
+    }
+
+    .project-grid > :nth-child(even) .thumb-link,
+    .project-grid > :last-child .thumb-link {
+        right: 50%;
+    }
+}
+
+@media (min-width: 1024px) {
+    .project-grid > :nth-child(3n + 1) .thumb-link {
+        left: 50%;
+    }
+
+    .project-grid > :nth-child(3n) .thumb-link,
+    .project-grid > :last-child .thumb-link {
+        right: 50%;
+    }
+}
+
 /* The first row sits under the section rule and has no line of its own. */
 .edge-line:first-child:not(.h-px)::before {
     display: none;

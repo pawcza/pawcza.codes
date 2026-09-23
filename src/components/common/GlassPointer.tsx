@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 
 /** Everything with a border that lights up, plus the glass surfaces. */
 const SELECTOR =
-    '.glass, .card, .glass-pill, .chip, .edge, .edge-line, .project-dialog';
+    '.glass, .card, .glass-pill, .chip, .edge, .edge-line, .edge-line-v, .project-dialog';
 
 /** The glow is full strength on the element and gone 100px outside it. */
 const FADE_DISTANCE = 100;

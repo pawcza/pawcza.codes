@@ -48,9 +48,13 @@ const OpenButton = ({
 const WorkRow = ({
     project,
     onOpen,
+    first,
+    last,
 }: {
     project: Project;
     onOpen: (slug: string) => void;
+    first: boolean;
+    last: boolean;
 }) => (
     // Open rows with hairlines, like Experience: the glass lives on the
     // thumbnail, not around the whole entry. No rule above the first row, the
@@ -76,12 +80,26 @@ const WorkRow = ({
                     View project →
                 </p>
             </div>
-            {/* The cover's frame still fades in; the image builds itself. */}
-            <Reveal className="md:col-span-7">
-                <ProjectCover
-                    project={project}
-                    sizes="(min-width: 1088px) 40rem, (min-width: 768px) 58vw, 100vw"
+            {/*
+             * The cover's frame still fades in; the image builds itself.
+             * Stretched to the whole row, so the spine through the covers'
+             * centres can reach the rules above and below. It starts inside
+             * the first cover and ends inside the last, and is only drawn
+             * where text and cover sit side by side.
+             */}
+            <Reveal className="relative md:col-span-7 md:flex md:items-center md:self-stretch">
+                <span
+                    aria-hidden
+                    className={`edge-line-v absolute left-1/2 hidden w-px bg-line md:block ${
+                        first ? 'md:top-1/2' : 'md:-top-12'
+                    } ${last ? 'md:bottom-1/2' : 'md:-bottom-12'}`}
                 />
+                <div className="w-full">
+                    <ProjectCover
+                        project={project}
+                        sizes="(min-width: 1088px) 40rem, (min-width: 768px) 58vw, 100vw"
+                    />
+                </div>
             </Reveal>
         </article>
     </div>
@@ -98,7 +116,12 @@ const SmallProject = ({
 }) => (
     <div className="h-full">
         <article className="group relative flex h-full flex-col">
-            <Reveal delay={delay}>
+            {/* A hairline through the thumbnails' centres links each row. */}
+            <Reveal delay={delay} className="relative">
+                <span
+                    aria-hidden
+                    className="edge-line thumb-link absolute top-1/2 hidden h-px bg-line sm:block"
+                />
                 <ProjectCover
                     project={project}
                     sizes="(min-width: 768px) 22rem, 100vw"
@@ -173,12 +196,18 @@ const WorkList = () => {
     return (
         <>
             <div className="mt-4">
-                {featuredProjects.map((p) => (
-                    <WorkRow key={p.slug} project={p} onOpen={open} />
+                {featuredProjects.map((p, i) => (
+                    <WorkRow
+                        key={p.slug}
+                        project={p}
+                        onOpen={open}
+                        first={i === 0}
+                        last={i === featuredProjects.length - 1}
+                    />
                 ))}
             </div>
 
-            <div className="mt-12 grid gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="project-grid mt-12 grid gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-3">
                 {moreProjects.map((p, i) => (
                     <SmallProject
                         key={p.slug}
