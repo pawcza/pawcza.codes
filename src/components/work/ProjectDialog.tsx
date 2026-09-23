@@ -6,6 +6,7 @@ import { AnimatePresence, motion } from 'motion/react';
 
 import { ArrowUpRight, Close, Lock } from '@/components/common/Icons';
 import { Project, Shot } from '@/content/projects';
+import { useScrollLock } from '@/components/common/scrollLock';
 
 /** Intrinsic sizes of the exported screenshots, per device. */
 const dimensions = {
@@ -166,7 +167,7 @@ const Gallery = ({ shots, name }: { shots: Shot[]; name: string }) => {
             )}
 
             {shots.length > 1 && (
-                <ul className="no-scrollbar flex gap-2 overflow-x-auto px-4 pb-4 pt-3 md:px-8 md:pb-6">
+                <ul className="no-scrollbar flex gap-2 overflow-x-auto overscroll-x-contain px-4 pb-4 pt-3 md:px-8 md:pb-6">
                     {shots.map((thumb, i) => (
                         <li key={thumb.src} className="shrink-0">
                             <button
@@ -217,6 +218,7 @@ const ProjectDialog = ({
     const ref = useRef<HTMLDialogElement>(null);
     // Keeps the content on screen while the dialog animates out.
     const [shown, setShown] = useState(project);
+    useScrollLock(project !== null);
 
     useEffect(() => {
         const dialog = ref.current;
@@ -246,13 +248,13 @@ const ProjectDialog = ({
             {shown && (
                 <div
                     key={shown.slug}
-                    className="grid h-full min-h-0 grid-cols-[minmax(0,1fr)] grid-rows-[auto_auto] overflow-y-auto md:grid-cols-[minmax(0,1fr)_22rem] md:grid-rows-1 md:overflow-hidden"
+                    className="grid h-full min-h-0 grid-cols-[minmax(0,1fr)] grid-rows-[auto_auto] overflow-y-auto overscroll-contain md:grid-cols-[minmax(0,1fr)_22rem] md:grid-rows-1 md:overflow-hidden"
                 >
                     <div className="h-[56svh] min-h-0 md:h-auto">
                         <Gallery shots={shown.shots} name={shown.name} />
                     </div>
 
-                    <aside className="flex flex-col border-t border-line p-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] md:overflow-y-auto md:border-l md:border-t-0 md:p-8">
+                    <aside className="flex flex-col border-t border-line p-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] md:overflow-y-auto md:overscroll-contain md:border-l md:border-t-0 md:p-8">
                         <p className="eyebrow pr-10">{shown.role}</p>
                         <h2
                             id="project-dialog-title"
