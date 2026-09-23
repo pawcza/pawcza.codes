@@ -668,6 +668,20 @@ body {
     );
 }
 
+/*
+ * On wide screens everything in the footer sits in the left column, where the
+ * wash is ~90% paper: blurring the field through it changed nothing visible
+ * (3/255 at most), but the field moves every frame, so every glass surface
+ * there was re-blurred every frame. Firefox dropped a quarter of its frames
+ * doing it. Phones keep the blur; their wash is thinner and it shows.
+ */
+@media (min-width: 768px) {
+    #contact .glass-pill {
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+}
+
 /* ---------- Range sliders (background playground) ---------- */
 
 input[type='range'] {

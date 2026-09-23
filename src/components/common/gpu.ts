@@ -45,3 +45,44 @@ export const markSoftwareRendered = () => {
 
 /** Fired once the page falls back, so every canvas can stop, not just the one that measured. */
 export const SOFTWARE_EVENT = 'software-render';
+
+let refresh: number | undefined;
+let measuring: Promise<void> | undefined;
+
+/**
+ * The display's own frame interval, measured over a few frames while nothing
+ * heavy is animating (the hero holds still under the loader until this
+ * resolves). A fixed "too slow" line cannot work across screens: 37fps is
+ * fine on a 60Hz laptop and a disaster on a 165Hz monitor, which is how
+ * Firefox with hardware acceleration off slipped past it. That setup still
+ * hands out hardware WebGL, so the probe above sees a GPU, but it composites
+ * the page in software and every animated frame costs the CPU a full redraw.
+ */
+export const whenRefreshMeasured = () =>
+    (measuring ??= new Promise<void>((resolve) => {
+        const gaps: number[] = [];
+        let last = 0;
+        const tick = (now: number) => {
+            if (last) gaps.push(now - last);
+            last = now;
+            if (gaps.length < 20) {
+                requestAnimationFrame(tick);
+                return;
+            }
+            // A low percentile, not the median: hydration is running at the
+            // same time and only ever makes gaps longer.
+            refresh = gaps.sort((a, b) => a - b)[2];
+            resolve();
+        };
+        requestAnimationFrame(tick);
+    }));
+
+export const refreshMeasured = () => refresh !== undefined;
+
+/**
+ * A median frame slower than this means the page is struggling: half as fast
+ * again as the screen refreshes, and never stricter than 50fps, so a capable
+ * machine dipping briefly is left alone. Safari's Low Power Mode caps rAF at
+ * 30fps on fine hardware; that shows up in the measured interval itself.
+ */
+export const slowFrameMs = () => Math.max(20, (refresh ?? 1000 / 60) * 1.5);

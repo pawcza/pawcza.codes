@@ -17,10 +17,15 @@ import {
     waveKeys,
 } from '@/components/hero/tiles';
 import { markHeroPainted } from '@/components/hero/ready';
+import { useIntroDone } from '@/components/common/intro';
+import { createTileGl } from '@/components/hero/tileGl';
 import {
     SOFTWARE_EVENT,
     isSoftwareRendered,
     markSoftwareRendered,
+    refreshMeasured,
+    slowFrameMs,
+    whenRefreshMeasured,
 } from '@/components/common/gpu';
 
 const prefersReducedMotion = () =>
@@ -48,6 +53,12 @@ const GRAB = 0.22;
 const RELEASE = 0.9;
 /** Time constant for the lens fading in on first paint. */
 const BLOOM = 0.5;
+/**
+ * The build-in, in the covers' rhythm: how long the diagonal sweep takes to
+ * cross the field, plus TileReveal's jitter and pop (baked into the shader).
+ */
+const REVEAL_SWEEP = 900;
+const REVEAL_TOTAL = REVEAL_SWEEP + 160 + 420;
 
 /**
  * The tile field, rasterised onto a single canvas.
@@ -56,6 +67,10 @@ const BLOOM = 0.5;
  * hundred of them, and re-rendered the whole tree from a 60fps setInterval.
  * Here the grid never touches the DOM: one canvas, one rAF loop, and the loop
  * stops entirely when the hero scrolls out of view or the tab is hidden.
+ *
+ * The pixels come from a WebGL shader (tileGl.ts) wherever WebGL exists; the
+ * Canvas2D drawing below is the fallback. Everything that moves is worked out
+ * here either way.
  */
 const TileCanvas = ({
     gradient,
@@ -72,6 +87,13 @@ const TileCanvas = ({
     const waveRef = useRef(wave);
     const effectRef = useRef(effect);
     const drawStillRef = useRef<() => void>(() => {});
+    // The field builds in once the loader has cleared (the hero) or once it is
+    // scrolled into view (the footer), whichever is later.
+    const introDone = useIntroDone();
+    const introRef = useRef(false);
+    useEffect(() => {
+        introRef.current = introDone;
+    }, [introDone]);
 
     useEffect(() => {
         gradientRef.current = gradient;
@@ -85,8 +107,13 @@ const TileCanvas = ({
         const canvas = canvasRef.current;
         if (!canvas) return;
 
-        const context = canvas.getContext('2d', { alpha: false });
-        if (!context) return;
+        // Decided once: a canvas that has handed out a WebGL context can never
+        // give a 2D one.
+        const glRenderer = createTileGl(canvas, () => restart());
+        const context = glRenderer
+            ? null
+            : canvas.getContext('2d', { alpha: false });
+        if (!glRenderer && !context) return;
 
         const reducedMotion = window.matchMedia(
             '(prefers-reduced-motion: reduce)',
@@ -96,6 +123,17 @@ const TileCanvas = ({
         let width = 0;
         let height = 0;
         let visible = true;
+        let disposed = false;
+
+        // Build-in state. Plain paper until it starts; skipped outright where
+        // nothing animates, and by the Canvas2D fallback.
+        let revealStart = 0;
+        let revealed = !glRenderer;
+        let revealWanted = false;
+        const revealSeed = Math.random() * 100;
+        const revealFromX = Math.random() < 0.5 ? 1 : 0;
+        const revealFromY = Math.random() < 0.5 ? 1 : 0;
+        let paper: [number, number, number] = [244, 244, 241];
 
         // Cached so pointermove never forces a layout.
         let bounds = canvas.getBoundingClientRect();
@@ -155,6 +193,11 @@ const TileCanvas = ({
             width = bounds.width;
             height = bounds.height;
 
+            if (glRenderer) {
+                glRenderer.resize(width, height, dpr);
+                return;
+            }
+            if (!context) return;
             canvas.width = Math.round(width * dpr);
             canvas.height = Math.round(height * dpr);
             context.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -204,11 +247,6 @@ const TileCanvas = ({
                 paletteBlend = Math.min(1, paletteBlend + delta / PALETTE_FADE);
             }
 
-            const ramp =
-                paletteBlend >= 1
-                    ? ramps[paletteTo]
-                    : mixPalette(paletteFrom, paletteTo, paletteBlend);
-
             // Derived per frame so changing tile size needs no canvas resize.
             const columns = Math.max(1, Math.ceil(width / settings.tileSize));
             const rows = Math.max(1, Math.ceil(height / settings.tileSize));
@@ -250,6 +288,59 @@ const TileCanvas = ({
             if (!reducedMotion.matches && !isSoftwareRendered() && delta > 0) {
                 influence += (1 - influence) * (1 - Math.exp(-delta / BLOOM));
             }
+
+            if (glRenderer) {
+                const isGrid = effectRef.current === 'grid';
+                const magnify = lensMagnify(settings.lens, influence);
+                const radius = lensRadius(settings.lens);
+                const gridAlpha = settings.gridOpacity * influence;
+                const lensOn =
+                    influence > 0.01 && Math.abs(magnify - 1) >= 0.002;
+                glRenderer.draw({
+                    width,
+                    height,
+                    columns,
+                    rows,
+                    tileWidth,
+                    tileHeight,
+                    settings,
+                    phase,
+                    ramp:
+                        paletteBlend >= 1
+                            ? rgbRamps[paletteTo]
+                            : mixChannels(paletteFrom, paletteTo, paletteBlend),
+                    rampBlending: paletteBlend < 1,
+                    mode: isGrid
+                        ? gridAlpha < 0.01
+                            ? 'plain'
+                            : 'grid'
+                        : lensOn
+                          ? 'lens'
+                          : 'plain',
+                    pointerX: pointer.x,
+                    pointerY: pointer.y,
+                    radiusX: radius * settings.reachX,
+                    radiusY: radius * settings.reachY,
+                    magnify,
+                    ink:
+                        document.documentElement.dataset.theme === 'dark'
+                            ? [237, 237, 240]
+                            : [22, 22, 26],
+                    gridAlpha,
+                    gridReach: settings.gridReach,
+                    gridLine: settings.gridLine,
+                    gridNudge: Math.round(settings.gridLine) % 2 ? 0.5 : 0,
+                    reveal: revealFrame(columns, rows),
+                });
+                return;
+            }
+
+            if (!context) return;
+
+            const ramp =
+                paletteBlend >= 1
+                    ? ramps[paletteTo]
+                    : mixPalette(paletteFrom, paletteTo, paletteBlend);
 
             const colorAt = (col: number, row: number) =>
                 ramp[colorIndexAt(col, row, phase, ramp.length, settings)];
@@ -441,6 +532,21 @@ const TileCanvas = ({
             }
         }
 
+        /** The in-between palette as channels, for the shader. */
+        const blendedChannels = new Uint8ClampedArray(RAMP_LENGTH * 3);
+        function mixChannels(
+            from: Uint8ClampedArray,
+            to: GradientName,
+            blend: number,
+        ) {
+            const toChannels = rgbRamps[to];
+            for (let i = 0; i < blendedChannels.length; i++) {
+                blendedChannels[i] =
+                    from[i] + (toChannels[i] - from[i]) * blend;
+            }
+            return blendedChannels;
+        }
+
         /** Builds the in-between palette for this frame. */
         function mixPalette(
             from: Uint8ClampedArray,
@@ -461,8 +567,42 @@ const TileCanvas = ({
             return blendedRamp;
         }
 
+        function revealFrame(columns: number, rows: number) {
+            if (revealed) return null;
+            const time = revealStart ? performance.now() - revealStart : -1;
+            if (time >= REVEAL_TOTAL) {
+                revealed = true;
+                return null;
+            }
+            return {
+                time,
+                step: REVEAL_SWEEP / Math.max(1, columns + rows - 2),
+                fromX: revealFromX,
+                fromY: revealFromY,
+                seed: revealSeed,
+                paper,
+            };
+        }
+
+        const startReveal = (now: number) => {
+            if (revealed || revealStart || !revealWanted || !introRef.current) {
+                return;
+            }
+            // Whatever the page is under the field right now, light or dark.
+            const value = getComputedStyle(document.documentElement)
+                .getPropertyValue('--paper')
+                .trim();
+            if (/^#[0-9a-f]{6}$/i.test(value)) {
+                const n = parseInt(value.slice(1), 16);
+                paper = [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+            }
+            revealStart = now;
+        };
+
         // Nothing eases under reduced motion; land on the target immediately.
         drawStillRef.current = () => {
+            // Nor does it build in: a still field is simply there.
+            revealed = true;
             Object.assign(shown, waveRef.current);
             paletteTo = gradientRef.current;
             paletteFrom = new Uint8ClampedArray(rgbRamps[paletteTo]);
@@ -482,15 +622,13 @@ const TileCanvas = ({
          * Frame-rate watchdog. The GPU probe misses some software renderers,
          * so the loop also times itself: whenever the median gap between
          * frames over a window of real, visible animation says the page is
-         * struggling, it falls back to a still frame for good.
+         * struggling (relative to the screen's own refresh, see slowFrameMs),
+         * it falls back to a still frame for good.
          */
         const gaps: number[] = [];
         let windowTime = 0;
         let previous = 0;
         const SAMPLE = 90;
-        // Below ~25fps. Not 30: Safari in Low Power Mode caps rAF at 30fps on
-        // perfectly capable hardware.
-        const SLOW_MS = 40;
 
         const watch = (now: number) => {
             const gap = previous ? now - previous : 0;
@@ -514,10 +652,11 @@ const TileCanvas = ({
             const median = gaps.sort((a, b) => a - b)[gaps.length >> 1];
             gaps.length = 0;
             windowTime = 0;
-            if (median > SLOW_MS) markSoftwareRendered();
+            if (median > slowFrameMs()) markSoftwareRendered();
         };
 
         const loop = (now: number) => {
+            startReveal(now);
             drawAndSignal((now - start) / 1000);
             watch(now);
             if (isSoftwareRendered()) {
@@ -539,7 +678,17 @@ const TileCanvas = ({
         const play = () => {
             if (frame || !visible || document.hidden) return;
             if (holdStill()) {
+                revealed = true;
                 drawAndSignal(0);
+                return;
+            }
+            // First frame only, until the screen's frame rate is known; the
+            // loader is still covering the page while it is measured.
+            if (!refreshMeasured()) {
+                drawAndSignal(0);
+                whenRefreshMeasured().then(() => {
+                    if (!disposed) play();
+                });
                 return;
             }
             frame = requestAnimationFrame(loop);
@@ -561,6 +710,17 @@ const TileCanvas = ({
             { threshold: 0 },
         );
         observer.observe(canvas);
+
+        // Builds once a third of it is on screen, as the covers do.
+        const revealObserver = new IntersectionObserver(
+            ([entry]) => {
+                if (!entry.isIntersecting) return;
+                revealWanted = true;
+                revealObserver.disconnect();
+            },
+            { threshold: 0.33 },
+        );
+        revealObserver.observe(canvas);
 
         const onVisibility = () => (document.hidden ? stop() : play());
 
@@ -614,8 +774,11 @@ const TileCanvas = ({
         reducedMotion.addEventListener('change', restart);
 
         return () => {
+            disposed = true;
             stop();
+            glRenderer?.dispose();
             observer.disconnect();
+            revealObserver.disconnect();
             window.removeEventListener('resize', restart);
             window.removeEventListener(SOFTWARE_EVENT, restart);
             document.removeEventListener('visibilitychange', onVisibility);
