@@ -11,7 +11,9 @@ import { whenHeroPainted } from '@/components/hero/ready';
 const MIN_VISIBLE = 320;
 /** Never trap the page behind a stalled font or a canvas that failed. */
 const HARD_TIMEOUT = 2500;
-const REVEAL = 380;
+const REVEAL = 260;
+/** The overlay fading out; the hero's own reveal plays through it. */
+const EXIT = 0.3;
 
 type Phase = 'scrambling' | 'revealing' | 'gone';
 
@@ -45,8 +47,12 @@ const Loader = () => {
                 if (cancelled) return;
                 setPhase('revealing');
                 window.setTimeout(() => {
-                    if (!cancelled) setPhase('gone');
-                }, REVEAL + 120);
+                    if (cancelled) return;
+                    setPhase('gone');
+                    // Not on exit complete: starting the hero as the overlay
+                    // fades overlaps the two instead of queueing them.
+                    markIntroDone();
+                }, REVEAL + 60);
             }, wait);
         };
 
@@ -74,13 +80,13 @@ const Loader = () => {
     }, [phase]);
 
     return (
-        <AnimatePresence onExitComplete={markIntroDone}>
+        <AnimatePresence>
             {phase !== 'gone' && (
                 <motion.div
                     className="site-loader fixed inset-0 z-[100] flex items-center justify-center bg-paper"
                     initial={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+                    transition={{ duration: EXIT, ease: [0.16, 1, 0.3, 1] }}
                     role="status"
                     aria-label="Loading"
                 >

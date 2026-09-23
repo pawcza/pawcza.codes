@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 
 /**
- * Fires once the loader has finished fading out. Anything that reveals on load
+ * Fires as the loader starts fading out. Anything that reveals on load
  * waits for this, otherwise it plays out of sight behind the loader and is
  * already finished by the time the page is visible.
  */
