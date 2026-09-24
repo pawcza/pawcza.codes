@@ -14,6 +14,7 @@ import {
 } from '@/components/common/Icons';
 import { profile } from '@/content/profile';
 import ContactForm from '@/components/sections/ContactForm';
+import ToyCube from '@/components/cube/ToyCube';
 
 const links = [
     { label: 'GitHub', href: profile.github, Icon: Github },
@@ -101,33 +102,40 @@ const Contact = () => {
 
                     <Reveal delay={0.15}>
                         {/* No surface of its own: the point is to watch the field react. */}
-                        <div className="mt-20 md:mt-24">
-                            <p className="eyebrow">The background</p>
-                            <h3 className="heading mt-2 text-heading">
-                                By the way, all of this is a toy.
-                            </h3>
-                            <p className="prose-body mt-3 max-w-prose text-body">
-                                Try to break it.
-                            </p>
+                        <div className="mt-20 flex flex-col-reverse gap-8 sm:flex-row sm:items-center sm:justify-between md:mt-24">
+                            <div>
+                                <p className="eyebrow">The background</p>
+                                <h3 className="heading mt-2 text-heading">
+                                    The field behind this page is live.
+                                </h3>
+                                <p className="prose-body mt-3 max-w-prose text-body">
+                                    Every tile is drawn as you watch, and the
+                                    cube is built from the same ones: spin it,
+                                    open it up, or change how the whole thing
+                                    moves.
+                                </p>
 
-                            <div className="mt-6 flex flex-wrap gap-2">
-                                <button
-                                    type="button"
-                                    onClick={randomise}
-                                    className="glass-pill btn btn-primary"
-                                >
-                                    <Shuffle width={15} height={15} />
-                                    Randomise it
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setControlsOpen(true)}
-                                    className="glass-pill btn"
-                                >
-                                    <Sliders width={15} height={15} />
-                                    Open the settings
-                                </button>
+                                <div className="mt-6 flex flex-wrap gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={randomise}
+                                        className="glass-pill btn btn-primary"
+                                    >
+                                        <Shuffle width={15} height={15} />
+                                        Randomise it
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setControlsOpen(true)}
+                                        className="glass-pill btn"
+                                    >
+                                        <Sliders width={15} height={15} />
+                                        Open the settings
+                                    </button>
+                                </div>
                             </div>
+
+                            <ToyCube className="w-36 self-end sm:self-auto md:w-48" />
                         </div>
                     </Reveal>
                 </div>

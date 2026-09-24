@@ -68,7 +68,8 @@ void main() {
 }
 `;
 
-const FRAGMENT = `
+/** Also drawn into a texture for the cube's faces (components/cube). */
+export const FRAGMENT = `
 precision highp float;
 
 uniform float uDeviceHeight;
@@ -234,7 +235,7 @@ void main() {
 }
 `;
 
-const UNIFORMS = [
+export const UNIFORMS = [
     'uDeviceHeight',
     'uDpr',
     'uCells',

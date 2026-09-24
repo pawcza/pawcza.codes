@@ -1,6 +1,12 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, {
+    createContext,
+    useCallback,
+    useContext,
+    useEffect,
+    useState,
+} from 'react';
 
 import {
     GradientName,
@@ -14,6 +20,7 @@ import {
 } from '@/components/hero/tiles';
 import { Preset, presets, randomPreset } from '@/components/hero/presets';
 import Controls from '@/components/hero/Controls';
+import CubeView from '@/components/cube/CubeView';
 
 interface TileSettings {
     gradient: GradientName;
@@ -39,9 +46,43 @@ interface TileSettings {
     controlsAnchor: ControlsAnchor;
     /** True once the visitor has touched the field, so hints can step aside. */
     played: boolean;
+    /** The toy cubes, by the hero's title and in the footer. */
+    cube: CubeSettings;
+    setCube: (cube: CubeSettings) => void;
+    /** The cube full-screen, with the settings beside it. */
+    cubeView: boolean;
+    setCubeView: (open: boolean) => void;
 }
 
-export type ControlsAnchor = 'nav' | 'page';
+/** `view`: docked beside the full-screen cube (CubeView). */
+export type ControlsAnchor = 'nav' | 'page' | 'view';
+
+export interface CubeSettings {
+    /** 0–3: how far the wave lifts its blocks off the faces. */
+    relief: number;
+    /** 0.2–1: each block's footprint, as a share of its tile. */
+    blockWidth: number;
+    /** 0.1–1: each block's thickness, as a share of its tile. */
+    blockHeight: number;
+    /** What sits inside the shell of blocks, if anything. */
+    core: CoreShape;
+    coreColor: string;
+    /** 0.1–1: how much of the space inside the blocks the core fills. */
+    coreSize: number;
+}
+
+export type CoreShape = 'none' | 'cube' | 'sphere' | 'diamond';
+
+// Small cuboids with room between them, so relief pulls them visibly apart.
+export const defaultCube: CubeSettings = {
+    relief: 1,
+    blockWidth: 0.78,
+    blockHeight: 0.55,
+    // Hollow by default: the gaps show straight through.
+    core: 'none',
+    coreColor: '#0b0b0f',
+    coreSize: 1,
+};
 
 const TileSettingsContext = createContext<TileSettings | null>(null);
 
@@ -71,6 +112,21 @@ export const TileSettingsProvider = ({
     const [controlsAnchor, setControlsAnchor] =
         useState<ControlsAnchor>('page');
     const [played, setPlayed] = useState(false);
+    // Its own settings: randomising the field leaves the cube as it was set.
+    const [cube, setCubeState] = useState<CubeSettings>(defaultCube);
+    const setCube = (next: CubeSettings) => {
+        setCubeState(next);
+        setPlayed(true);
+    };
+    const [cubeView, setCubeViewState] = useState(false);
+    // Stable, so the view's Escape listener is not re-registered mid-event.
+    const setCubeView = useCallback((open: boolean) => {
+        setCubeViewState(open);
+        setPlayed(true);
+        // The settings come and go with it, docked beside the cube.
+        setControlsAnchor('view');
+        setControlsOpenState(open);
+    }, []);
 
     const load = (next: Preset) => {
         setGradientState(next.gradient);
@@ -164,11 +220,16 @@ export const TileSettingsProvider = ({
                 setControlsOpen,
                 controlsAnchor,
                 played,
+                cube,
+                setCube,
+                cubeView,
+                setCubeView,
             }}
         >
             {children}
             {/* Fixed, so one instance serves the hero and the footer alike. */}
             <Controls />
+            <CubeView />
         </TileSettingsContext.Provider>
     );
 };

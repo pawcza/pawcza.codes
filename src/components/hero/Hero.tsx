@@ -7,6 +7,7 @@ import { Shuffle, Sliders } from '@/components/common/Icons';
 import { useIntroDone } from '@/components/common/intro';
 import { profile } from '@/content/profile';
 import ThemeToggle from '@/components/common/ThemeToggle';
+import ToyCube from '@/components/cube/ToyCube';
 
 const Hero = () => {
     const { gradient, wave, effect, randomise, controlsOpen, setControlsOpen, played } =
@@ -23,29 +24,34 @@ const Hero = () => {
             <div className="hero-scrim" aria-hidden="true" />
             <div className="hero-fade" aria-hidden="true" />
 
-            <div className="relative mx-auto w-full max-w-content px-6 pb-20 pt-32 md:pb-28">
-                <h1>
-                    <MatrixText
-                        hasStarted={introDone}
-                        mono={false}
-                        classNames="display text-display"
-                    >
-                        pawcza.codes
-                    </MatrixText>
-                </h1>
+            <div className="relative mx-auto flex w-full max-w-content flex-col-reverse gap-6 px-6 pb-20 pt-32 sm:flex-row sm:items-end sm:justify-between md:pb-28">
+                {/* The title and its line; on phones the cube sits above them. */}
+                <div className="min-w-0">
+                    <h1>
+                        <MatrixText
+                            hasStarted={introDone}
+                            mono={false}
+                            classNames="display text-display"
+                        >
+                            pawcza.codes
+                        </MatrixText>
+                    </h1>
 
-                <div className="mt-5 flex items-center gap-3">
-                    <span
-                        className="h-px w-8 bg-line-strong shrink-0"
-                        aria-hidden="true"
-                    />
-                    <MatrixText
-                        hasStarted={introDone}
-                        classNames="text-small font-medium tracking-tight text-ink"
-                    >
-                        {profile.tagline}
-                    </MatrixText>
+                    <div className="mt-5 flex items-center gap-3">
+                        <span
+                            className="h-px w-8 bg-line-strong shrink-0"
+                            aria-hidden="true"
+                        />
+                        <MatrixText
+                            hasStarted={introDone}
+                            classNames="text-small font-medium tracking-tight text-ink"
+                        >
+                            {profile.tagline}
+                        </MatrixText>
+                    </div>
                 </div>
+
+                <ToyCube className="w-32 self-end sm:mb-2 sm:w-44 md:w-56" />
             </div>
 
             {/* On phones the nav carries the toggle but only appears once the

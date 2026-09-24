@@ -26,19 +26,27 @@ import {
 } from '@/components/hero/tiles';
 import { presets } from '@/components/hero/presets';
 import PresetPreview from '@/components/hero/PresetPreview';
-import { useTileSettings } from '@/components/hero/TileSettings';
+import { CoreShape, useTileSettings } from '@/components/hero/TileSettings';
 import { useScrollLock } from '@/components/common/scrollLock';
+import { RELIEF_MAX } from '@/components/cube/cubeToy';
 
-const Slider = ({
-    settingKey,
+const RangeSlider = ({
+    label,
+    description,
+    min,
+    max,
+    step,
     value,
     onChange,
 }: {
-    settingKey: keyof WaveSettings;
+    label: string;
+    description: string;
+    min: number;
+    max: number;
+    step: number;
     value: number;
     onChange: (value: number) => void;
 }) => {
-    const { label, description, min, max, step } = waveRanges[settingKey];
     // Match the readout to the slider's precision: 0.05 steps reading "1.000"
     // implies a resolution the control does not have.
     const decimals = step >= 1 ? 0 : step >= 0.01 ? 2 : 3;
@@ -67,6 +75,29 @@ const Slider = ({
     );
 };
 
+const Slider = ({
+    settingKey,
+    value,
+    onChange,
+}: {
+    settingKey: keyof WaveSettings;
+    value: number;
+    onChange: (value: number) => void;
+}) => {
+    const { label, description, min, max, step } = waveRanges[settingKey];
+    return (
+        <RangeSlider
+            label={label}
+            description={description}
+            min={min}
+            max={max}
+            step={step}
+            value={value}
+            onChange={onChange}
+        />
+    );
+};
+
 const effects: {
     id: HoverEffect;
     label: string;
@@ -81,7 +112,7 @@ const effects: {
  * long scroll of every control buried the useful ones; grouped by what they
  * change, each page is short enough to take in at a glance.
  */
-type Section = 'presets' | 'colour' | 'pattern' | 'cursor';
+type Section = 'presets' | 'colour' | 'pattern' | 'cursor' | 'cube';
 
 const sections: {
     id: Section;
@@ -118,6 +149,13 @@ const sections: {
         description:
             'What happens to the field around your cursor, or wherever it wanders on its own.',
     },
+    {
+        id: 'cube',
+        label: 'Cube',
+        hint: 'The toy cubes: their relief and the size of their blocks.',
+        description:
+            'The cubes beside the title and in the footer, built from the same field, one block per tile. Drag one to spin it, click it to open it up.',
+    },
 ];
 
 /** Every wave setting lives on exactly one page. */
@@ -129,6 +167,13 @@ const patternKeys: (keyof WaveSettings)[] = [
     'amplitude',
     'secondaryFrequency',
     'tilt',
+];
+
+const coreShapes: { id: CoreShape; label: string }[] = [
+    { id: 'none', label: 'None' },
+    { id: 'cube', label: 'Cube' },
+    { id: 'sphere', label: 'Sphere' },
+    { id: 'diamond', label: 'Diamond' },
 ];
 
 const Swatches = ({ colors }: { colors: readonly string[] }) => (
@@ -159,6 +204,8 @@ const Controls = () => {
         setEffect,
         customColours,
         setCustomColours,
+        cube,
+        setCube,
     } = useTileSettings();
     const mixed = mixPaletteStops(...customColours);
 
@@ -173,16 +220,22 @@ const Controls = () => {
         [setControlsOpen],
     );
 
-    // Every opening starts on the tiles.
+    // Every opening starts on the tiles; beside the full-screen cube, on the
+    // cube's own page.
     useEffect(() => {
         if (!open) setSection(null);
-    }, [open]);
+        else if (controlsAnchor === 'view') setSection('cube');
+    }, [open, controlsAnchor]);
 
     // Opening a page moves focus to its back button, so keyboard users are
     // not left on a tile that no longer exists.
+    // Not when it opens docked beside the full-screen cube: that view puts
+    // focus on its own close button, and the panel is only alongside it.
     useEffect(() => {
-        if (open && section) backRef.current?.focus();
-    }, [open, section]);
+        if (open && section && controlsAnchor !== 'view') {
+            backRef.current?.focus();
+        }
+    }, [open, section, controlsAnchor]);
 
     const goBack = () => {
         returnTo.current = section;
@@ -199,6 +252,9 @@ const Controls = () => {
         if (!open) return;
 
         const onPointerDown = (event: MouseEvent) => {
+            // Beside the full-screen cube, dragging the cube must not close
+            // it: that view has its own way out.
+            if (controlsAnchor === 'view') return;
             const target = event.target as HTMLElement;
             if (panelRef.current?.contains(target)) return;
             // The toggles (the hero's, the nav's) and randomise live outside
@@ -211,7 +267,9 @@ const Controls = () => {
             onClose();
         };
         const onKeyDown = (event: KeyboardEvent) => {
-            if (event.key === 'Escape') onClose();
+            // Beside the full-screen cube, Escape belongs to the view, which
+            // closes this panel along with itself.
+            if (event.key === 'Escape' && controlsAnchor !== 'view') onClose();
         };
 
         document.addEventListener('mousedown', onPointerDown);
@@ -221,7 +279,7 @@ const Controls = () => {
             document.removeEventListener('mousedown', onPointerDown);
             document.removeEventListener('keydown', onKeyDown);
         };
-    }, [open, onClose]);
+    }, [open, onClose, controlsAnchor]);
 
     const sliders = (keys: (keyof WaveSettings)[]) => (
         <div className="space-y-5">
@@ -250,6 +308,7 @@ const Controls = () => {
         ),
         pattern: `${Math.round(wave.tileSize)}px tiles`,
         cursor: effect === 'lens' ? 'Lens' : 'Grid',
+        cube: `Relief ${cube.relief.toFixed(1)}`,
     };
 
     const current = sections.find((item) => item.id === section);
@@ -267,10 +326,14 @@ const Controls = () => {
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.2, ease: 'easeOut' }}
-                    className={`card glass-solid fixed z-40 flex h-[min(34rem,calc(100dvh-7rem))] w-[min(20rem,calc(100vw-2rem))] flex-col p-5 backdrop-blur-md ${
+                    className={`card glass-solid fixed flex h-[min(34rem,calc(100dvh-7rem))] w-[min(20rem,calc(100vw-2rem))] flex-col p-5 backdrop-blur-md ${
                         controlsAnchor === 'nav'
-                            ? 'inset-x-0 top-[calc(4.25rem+env(safe-area-inset-top))] mx-auto'
-                            : 'bottom-20 right-4 sm:right-6'
+                            ? 'z-40 inset-x-0 top-[calc(4.25rem+env(safe-area-inset-top))] mx-auto'
+                            : controlsAnchor === 'view'
+                              ? // Docked beside the full-screen cube, above its backdrop; along
+                                // the bottom on a phone, leaving the cube the top half.
+                                'z-[70] bottom-4 right-4 max-sm:h-[46dvh] sm:bottom-auto sm:right-6 sm:top-1/2 sm:-translate-y-1/2'
+                              : 'z-40 bottom-20 right-4 sm:right-6'
                     }`}
                 >
                     {/* Fixed height, so the back button on a page and the
@@ -321,7 +384,7 @@ const Controls = () => {
                                 transition={{ duration: 0.14, ease: 'easeOut' }}
                             >
                                 {!current && (
-                                    <div className="grid h-full grid-cols-2 grid-rows-2 gap-1.5">
+                                    <div className="grid h-full grid-cols-2 grid-rows-3 gap-1.5">
                                         {sections.map((item) => (
                                             <button
                                                 key={item.id}
@@ -339,7 +402,11 @@ const Controls = () => {
                                                 onClick={() =>
                                                     setSection(item.id)
                                                 }
-                                                className="group flex min-h-[7rem] flex-col gap-2 rounded-md border border-line-strong p-3 text-left transition-colors hover:border-ink"
+                                                className={`group flex min-h-[6rem] flex-col gap-2 rounded-md border border-line-strong p-3 text-left transition-colors hover:border-ink ${
+                                                    item.id === 'cube'
+                                                        ? 'col-span-2'
+                                                        : ''
+                                                }`}
                                             >
                                                 <span className="flex items-center justify-between gap-2 text-small font-medium text-ink">
                                                     {item.label}
@@ -549,6 +616,144 @@ const Controls = () => {
                                             {sliders(effectKeys[effect])}
                                         </div>
                                     </>
+                                )}
+                                {section === 'cube' && (
+                                    <div className="space-y-5 pb-1">
+                                        <RangeSlider
+                                            label="Relief"
+                                            description="How far the wave lifts the blocks off the cube. All the way up, they fly apart."
+                                            min={0}
+                                            max={RELIEF_MAX}
+                                            step={0.05}
+                                            value={cube.relief}
+                                            onChange={(relief) =>
+                                                setCube({ ...cube, relief })
+                                            }
+                                        />
+                                        <RangeSlider
+                                            label="Block width"
+                                            description="Each block's footprint, as a share of its tile. Smaller leaves gaps between them."
+                                            min={0.2}
+                                            max={1}
+                                            step={0.01}
+                                            value={cube.blockWidth}
+                                            onChange={(blockWidth) =>
+                                                setCube({ ...cube, blockWidth })
+                                            }
+                                        />
+                                        <RangeSlider
+                                            label="Block height"
+                                            description="How thick each block is: thin tiles at the bottom, tall columns at the top."
+                                            min={0.1}
+                                            max={1}
+                                            step={0.01}
+                                            value={cube.blockHeight}
+                                            onChange={(blockHeight) =>
+                                                setCube({
+                                                    ...cube,
+                                                    blockHeight,
+                                                })
+                                            }
+                                        />
+
+                                        <div className="border-t border-line pt-5">
+                                            <p className="eyebrow !text-ink-muted">
+                                                Core
+                                            </p>
+                                            <p className="mt-1 text-micro leading-snug text-ink-faint">
+                                                What sits inside the blocks, if
+                                                anything. None leaves the cube
+                                                hollow.
+                                            </p>
+                                            <div
+                                                role="radiogroup"
+                                                aria-label="Core shape"
+                                                className="mt-2 grid grid-cols-4 gap-1.5"
+                                            >
+                                                {coreShapes.map(
+                                                    ({ id, label }) => (
+                                                        <button
+                                                            key={id}
+                                                            type="button"
+                                                            role="radio"
+                                                            aria-checked={
+                                                                cube.core === id
+                                                            }
+                                                            onClick={() =>
+                                                                setCube({
+                                                                    ...cube,
+                                                                    core: id,
+                                                                })
+                                                            }
+                                                            className={`rounded-md border px-1 py-2 font-mono text-micro transition-colors ${
+                                                                cube.core === id
+                                                                    ? 'border-ink bg-ink text-paper'
+                                                                    : 'border-line-strong text-ink hover:border-ink'
+                                                            }`}
+                                                        >
+                                                            {label}
+                                                        </button>
+                                                    ),
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {cube.core !== 'none' && (
+                                            <>
+                                                <label className="flex items-center justify-between gap-3">
+                                                    <span>
+                                                        <span className="eyebrow !text-ink-muted">
+                                                            Core colour
+                                                        </span>
+                                                        <span className="mt-1 block text-micro leading-snug text-ink-faint">
+                                                            Lit by the same
+                                                            palette light as the
+                                                            blocks.
+                                                        </span>
+                                                    </span>
+                                                    <span
+                                                        className="relative block h-7 w-7 shrink-0 cursor-pointer overflow-hidden rounded-full border border-line-strong"
+                                                        style={{
+                                                            backgroundColor:
+                                                                cube.coreColor,
+                                                        }}
+                                                    >
+                                                        <input
+                                                            type="color"
+                                                            value={
+                                                                cube.coreColor
+                                                            }
+                                                            onChange={(event) =>
+                                                                setCube({
+                                                                    ...cube,
+                                                                    coreColor:
+                                                                        event
+                                                                            .target
+                                                                            .value,
+                                                                })
+                                                            }
+                                                            aria-label="Core colour"
+                                                            className="absolute inset-0 cursor-pointer opacity-0"
+                                                        />
+                                                    </span>
+                                                </label>
+                                                <RangeSlider
+                                                    label="Core size"
+                                                    description="How much of the space inside the blocks it fills."
+                                                    min={0.1}
+                                                    max={1}
+                                                    step={0.01}
+                                                    value={cube.coreSize}
+                                                    onChange={(coreSize) =>
+                                                        setCube({
+                                                            ...cube,
+                                                            coreSize,
+                                                        })
+                                                    }
+                                                />
+                                            </>
+                                        )}
+                                    </div>
                                 )}
                             </motion.div>
                         </AnimatePresence>
