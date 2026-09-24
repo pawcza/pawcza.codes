@@ -188,9 +188,18 @@ const TileCanvas = ({
             return a * u * u * u - 2 * a * u * u + magnify * u;
         };
 
+        /*
+         * How far it has stepped down to keep up (see the watchdog below):
+         * 0 as designed, 1 drawn at a lower resolution, 2 also at half the
+         * frame rate. Only past that does it hold still.
+         */
+        let quality = 0;
+
         const resize = () => {
             bounds = canvas.getBoundingClientRect();
-            const dpr = Math.min(window.devicePixelRatio || 1, 2);
+            const dpr =
+                Math.min(window.devicePixelRatio || 1, 2) *
+                (quality >= 1 ? 0.6 : 1);
 
             width = bounds.width;
             height = bounds.height;
@@ -625,15 +634,23 @@ const TileCanvas = ({
 
         /*
          * Frame-rate watchdog. The GPU probe misses some software renderers,
-         * so the loop also times itself: whenever the median gap between
-         * frames over a window of real, visible animation says the page is
-         * struggling (relative to the screen's own refresh, see slowFrameMs),
-         * it falls back to a still frame for good.
+         * so the loop also times itself over windows of real, visible
+         * animation. A slow window (see slowFrameMs) steps the quality down
+         * rather than stopping: first a lower resolution, then half the
+         * frame rate. Only a page still crawling after both (under ~15fps)
+         * falls back to a still frame for good. Windows while the page is
+         * scrolling, and the first seconds after it starts, are not judged:
+         * a phone drops frames on a fling, and shaders compiling and the
+         * build-in make the start janky, neither for long.
          */
         const gaps: number[] = [];
         let windowTime = 0;
         let previous = 0;
+        let playing = 0;
+        let scrolled = 0;
+        let lastDrawn = 0;
         const SAMPLE = 90;
+        const WARM_UP = 3000;
 
         const watch = (now: number) => {
             const gap = previous ? now - previous : 0;
@@ -642,6 +659,11 @@ const TileCanvas = ({
             // which resets `previous`, so a long gap here is genuine
             // slowness. Only absurd gaps, like a laptop waking, are skipped.
             if (gap <= 0 || gap > 5000) return;
+            if (now - playing < WARM_UP || now - scrolled < 500) {
+                gaps.length = 0;
+                windowTime = 0;
+                return;
+            }
             gaps.push(gap);
             windowTime += gap;
             // A window is 90 frames or two seconds, whichever comes first, so
@@ -652,15 +674,25 @@ const TileCanvas = ({
             ) {
                 return;
             }
-            // Judged window by window, for as long as it runs: a slow page
-            // is not always slow in the first second after load.
             const median = gaps.sort((a, b) => a - b)[gaps.length >> 1];
             gaps.length = 0;
             windowTime = 0;
-            if (median > slowFrameMs()) markSoftwareRendered();
+            if (quality < 2) {
+                if (median <= slowFrameMs()) return;
+                quality += 1;
+                if (quality === 1) resize();
+            } else if (median > 66) {
+                markSoftwareRendered();
+            }
         };
 
         const loop = (now: number) => {
+            // At half rate, every other frame is skipped whole.
+            if (quality >= 2 && now - lastDrawn < 30) {
+                frame = requestAnimationFrame(loop);
+                return;
+            }
+            lastDrawn = now;
             startReveal(now);
             drawAndSignal((now - start) / 1000);
             watch(now);
@@ -678,6 +710,7 @@ const TileCanvas = ({
                 frame = 0;
             }
             previous = 0;
+            lastDrawn = 0;
         };
 
         const play = () => {
@@ -696,6 +729,7 @@ const TileCanvas = ({
                 });
                 return;
             }
+            playing = performance.now();
             frame = requestAnimationFrame(loop);
         };
 
@@ -759,6 +793,10 @@ const TileCanvas = ({
         const onScroll = () => {
             bounds = canvas.getBoundingClientRect();
         };
+        const onAnyScroll = () => {
+            scrolled = performance.now();
+        };
+        window.addEventListener('scroll', onAnyScroll, { passive: true });
 
         const interactive = finePointer.matches && !holdStill();
 
@@ -791,6 +829,7 @@ const TileCanvas = ({
             window.removeEventListener('pointermove', onPointerMove);
             document.removeEventListener('pointerleave', onPointerLeave);
             window.removeEventListener('scroll', onScroll);
+            window.removeEventListener('scroll', onAnyScroll);
         };
     }, []);
 
