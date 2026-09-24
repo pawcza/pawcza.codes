@@ -18,7 +18,12 @@ import {
     randomGradient,
     randomWave,
 } from '@/components/hero/tiles';
-import { Preset, presets, randomPreset } from '@/components/hero/presets';
+import {
+    CubeShape,
+    Preset,
+    presets,
+    randomPreset,
+} from '@/components/hero/presets';
 import Controls from '@/components/hero/Controls';
 import CubeView from '@/components/cube/CubeView';
 
@@ -84,6 +89,17 @@ export const defaultCube: CubeSettings = {
     coreSize: 1,
 };
 
+/** A random build for the cube, from the tidy to the scattered. */
+const randomCubeShape = (): CubeShape => {
+    const roll = (min: number, max: number) =>
+        Math.round((min + Math.random() * (max - min)) * 20) / 20;
+    return {
+        relief: roll(0.4, 2.6),
+        blockWidth: roll(0.35, 0.95),
+        blockHeight: roll(0.2, 0.9),
+    };
+};
+
 const TileSettingsContext = createContext<TileSettings | null>(null);
 
 /**
@@ -112,8 +128,12 @@ export const TileSettingsProvider = ({
     const [controlsAnchor, setControlsAnchor] =
         useState<ControlsAnchor>('page');
     const [played, setPlayed] = useState(false);
-    // Its own settings: randomising the field leaves the cube as it was set.
-    const [cube, setCubeState] = useState<CubeSettings>(defaultCube);
+    // Presets and randomising set its build along with the field; the core
+    // stays as the visitor set it.
+    const [cube, setCubeState] = useState<CubeSettings>({
+        ...defaultCube,
+        ...presets[0].cube,
+    });
     const setCube = (next: CubeSettings) => {
         setCubeState(next);
         setPlayed(true);
@@ -132,6 +152,7 @@ export const TileSettingsProvider = ({
         setGradientState(next.gradient);
         setWaveState(next.wave);
         setEffectState(next.effect ?? 'lens');
+        setCubeState((current) => ({ ...current, ...next.cube }));
         setPreset(next.name);
     };
 
@@ -178,6 +199,7 @@ export const TileSettingsProvider = ({
         setGradientState((current) => randomGradient(current));
         setWaveState(randomWave());
         setEffectState(Math.random() < 0.5 ? 'lens' : 'grid');
+        setCubeState((current) => ({ ...current, ...randomCubeShape() }));
         setPreset(null);
         setPlayed(true);
     };

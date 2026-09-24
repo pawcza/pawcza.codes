@@ -53,6 +53,10 @@ export interface TileFrame {
     gridReach: number;
     gridLine: number;
     gridNudge: number;
+    /** Seconds on the clock the grid's glints ride the wave by. */
+    travel: number;
+    /** How deep the wave is lit (the relief setting); 0 draws it flat. */
+    shade: number;
 }
 
 export interface TileGl {
@@ -89,6 +93,8 @@ uniform float uGridAlpha;
 uniform float uGridReach;
 uniform float uGridLine;
 uniform float uGridNudge;
+uniform float uTravel;
+uniform float uShade;
 uniform int uRevealOn;
 uniform float uRevealTime;
 uniform float uRevealStep;
@@ -96,16 +102,21 @@ uniform vec2 uRevealFrom;
 uniform float uRevealSeed;
 uniform vec3 uPaper;
 
-// Same wave as colorIndexAt in tiles.ts.
-vec3 colorAt(vec2 cell) {
+// The wave at a tile, 0–1: where along the palette it sits, and also how
+// high the tile stands when it is lit as a block (see shade).
+float waveAt(vec2 cell) {
     float value = sin(
         uWave.x * cell.y +
         uWave.y * cell.x +
         uWave.z * sin(uWave.w * cell.x) -
         uShape.y
     );
-    float shaped = clamp(0.5 + ((value + 1.0) * 0.5 - 0.5) * uShape.x, 0.0, 1.0);
-    float index = floor(shaped * (uSteps - 1.0) + 0.5);
+    return clamp(0.5 + ((value + 1.0) * 0.5 - 0.5) * uShape.x, 0.0, 1.0);
+}
+
+// Same wave as colorIndexAt in tiles.ts.
+vec3 colorAt(vec2 cell) {
+    float index = floor(waveAt(cell) * (uSteps - 1.0) + 0.5);
     return texture2D(uRamp, vec2((index + 0.5) / uSteps, 0.5)).rgb;
 }
 
@@ -140,8 +151,12 @@ vec2 lensSource(vec2 css) {
     return uPointer + n * (u / spread) * uRadius;
 }
 
+// Defined further down, with the relief.
+vec3 blockAt(vec2 p);
+
 vec3 lensColor(vec2 css) {
-    return colorAt(clampCell(floor(lensSource(css) / uTile)));
+    vec2 source = lensSource(css);
+    return uShade > 0.0 ? blockAt(source) : colorAt(clampCell(floor(source / uTile)));
 }
 
 // The covers' build-in, per tile: a diagonal sweep plus jitter decides when
@@ -172,6 +187,101 @@ float revealCover(vec2 cell, vec2 css) {
     return max(d.x, d.y) <= side ? min(1.0, p / 0.4) : 0.0;
 }
 
+/*
+ * Relief, as on the toy cube: every tile a block lifted off the page by the
+ * wave (uShade is the relief setting), seen from a little below and to the
+ * right, so a block's top shifts up and left by its height and its bottom
+ * and right sides show beneath. For a pixel, each nearby block covers it
+ * over some stretch of its height; the block that reaches highest there is
+ * the one in front, and whether that highest point is on its top or one of
+ * its sides decides the shade. Tops shift at most a tile or so, so only the
+ * few tiles below and to the right of the pixel can reach it.
+ */
+const vec2 LIFT = vec2(-0.45, -0.6);
+
+// What blockAt found, for the grid effect to trace the blocks: the point on
+// the front block's own tile square, which face of it shows, and how far
+// below its top edge the pixel is, in CSS pixels.
+vec2 gOnTile;
+float gFace;
+float gBelowTop;
+
+vec3 blockAt(vec2 p) {
+    gOnTile = p;
+    gFace = 0.0;
+    gBelowTop = 0.0;
+    if (uShade <= 0.0) return colorAt(plainCell(p));
+    vec2 d = LIFT * uTile;
+    float scale = uShade * 0.6;
+    // Tiles a top can travel, rounded up: 2 × 2 at modest relief, 3 × 3 beyond.
+    float reach = ceil(scale * max(abs(LIFT.x), abs(LIFT.y)));
+    vec2 home = floor(p / uTile);
+    vec2 front = clampCell(home);
+    float best = -1.0;
+    float bestHeight = 0.0;
+    float face = 0.0; // 0 top, 1 bottom side, 2 right side
+    for (int j = 0; j < 3; j++) {
+        for (int i = 0; i < 3; i++) {
+            if (float(i) > reach || float(j) > reach) continue;
+            vec2 cell = home + vec2(float(i), float(j));
+            if (cell.x >= uCells.x || cell.y >= uCells.y) continue;
+            float h = (0.08 + 0.92 * waveAt(cell)) * scale;
+            vec2 lo = cell * uTile;
+            vec2 hi = lo + uTile;
+            // Heights t at which p - t·d lies inside the tile, per axis.
+            vec2 a = (p - lo) / d;
+            vec2 b = (p - hi) / d;
+            vec2 enter = min(a, b);
+            vec2 leave = max(a, b);
+            float from = max(0.0, max(enter.x, enter.y));
+            float to = min(h, min(leave.x, leave.y));
+            if (to < from || to <= best) continue;
+            best = to;
+            bestHeight = h;
+            front = cell;
+            // Reaching its full height means its top; otherwise the side
+            // it leaves by: the right one along x, the bottom one along y.
+            face = to >= h - 1e-4 ? 0.0 : leave.x < leave.y ? 2.0 : 1.0;
+        }
+    }
+    gOnTile = p - best * d;
+    gFace = face;
+    gBelowTop = (bestHeight - best) * length(d);
+    // A side darkens with depth below its top edge, so a hairline step
+    // between two near-equal blocks shows as nothing (it shimmered as the
+    // wave moved), while a real step still reads as a side in shade.
+    float side = face == 2.0 ? 0.8 : 0.66;
+    float light = face == 0.0 ? 1.0 : mix(1.0, side, smoothstep(0.0, 4.0, gBelowTop));
+    return colorAt(front) * light;
+}
+
+// A soft pool of light where the lens (or the cursor) is.
+vec3 pool(vec3 color, vec2 css) {
+    vec2 p = (css - uPointer) / (max(uRadius.x, uRadius.y) * 1.6);
+    return clamp(color * (1.0 + exp(-dot(p, p)) * 0.06), 0.0, 1.0);
+}
+
+// Grid mode's glints: bands of grid sweeping across the field, left to
+// right and top to bottom, showing only where the wave runs dark, so they
+// thread through the troughs and drift with them. 0–1.
+float luma(vec3 c) {
+    return dot(c, vec3(0.2126, 0.7152, 0.0722));
+}
+float rideAt(vec2 css) {
+    vec2 cell = css / uTile;
+    // Dark for this palette, whichever end of it is the dark one.
+    float a = luma(texture2D(uRamp, vec2(0.5 / uSteps, 0.5)).rgb);
+    float b = luma(texture2D(uRamp, vec2(1.0 - 0.5 / uSteps, 0.5)).rgb);
+    float here = (luma(colorAt(floor(cell))) - min(a, b)) / max(abs(a - b), 0.001);
+    float dark = 1.0 - smoothstep(0.3, 0.55, here);
+    if (dark <= 0.0) return 0.0;
+    // Two families of bands, one travelling across, one down.
+    float across = mod(cell.x - uTravel * 5.0, 22.0) - 11.0;
+    float down = mod(cell.y - uTravel * 3.5 + 7.0, 16.0) - 8.0;
+    float sweep = max(exp(-across * across / 4.0), exp(-down * down / 3.0));
+    return dark * sweep;
+}
+
 // Fraction of this pixel covered by the nearest grid line along one axis.
 float lineCover(float at, float spacing, float pixel) {
     float k = floor(at / spacing + 0.5);
@@ -187,7 +297,7 @@ float lineCover(float at, float spacing, float pixel) {
 
 void main() {
     vec2 css = vec2(gl_FragCoord.x, uDeviceHeight - gl_FragCoord.y) / uDpr;
-    vec3 color = colorAt(plainCell(css));
+    vec3 color = blockAt(css);
 
     if (uMode == 1) {
         vec2 n = (css - uPointer) / uRadius;
@@ -210,12 +320,22 @@ void main() {
             t < 0.55
                 ? mix(uGridAlpha, uGridAlpha * 0.45, t / 0.55)
                 : mix(uGridAlpha * 0.45, 0.0, clamp((t - 0.55) / 0.45, 0.0, 1.0));
+        alpha = max(alpha, uGridAlpha * 0.9 * rideAt(css));
         float pixel = 1.0 / uDpr;
-        float coverX = lineCover(css.x, uTile.x, pixel);
-        float coverY = lineCover(css.y, uTile.y, pixel);
-        float cover = coverX + coverY - coverX * coverY;
+        // Traced on the blocks as they stand: the edges of each top where
+        // it shows, and where a side meets the top above it.
+        float cover;
+        if (gFace == 0.0) {
+            float coverX = lineCover(gOnTile.x, uTile.x, pixel);
+            float coverY = lineCover(gOnTile.y, uTile.y, pixel);
+            cover = coverX + coverY - coverX * coverY;
+        } else {
+            cover = 1.0 - smoothstep(0.0, max(uGridLine, pixel), gBelowTop);
+        }
         color = mix(color, uInk, cover * alpha);
     }
+
+    color = pool(color, css);
 
     if (uRevealOn == 1) {
         vec2 cell = floor(css / uTile);
@@ -253,6 +373,8 @@ export const UNIFORMS = [
     'uGridReach',
     'uGridLine',
     'uGridNudge',
+    'uTravel',
+    'uShade',
     'uRevealOn',
     'uRevealTime',
     'uRevealStep',
@@ -426,6 +548,8 @@ export const createTileGl = (
             gl.uniform1f(u.uGridReach, frame.gridReach);
             gl.uniform1f(u.uGridLine, frame.gridLine);
             gl.uniform1f(u.uGridNudge, frame.gridNudge);
+            gl.uniform1f(u.uTravel, frame.travel);
+            gl.uniform1f(u.uShade, frame.shade);
             const { reveal } = frame;
             gl.uniform1i(u.uRevealOn, reveal ? 1 : 0);
             if (reveal) {

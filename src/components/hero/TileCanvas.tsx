@@ -157,6 +157,8 @@ const TileCanvas = ({
         // changing speed alters the rate from here on instead of rewriting
         // where the wave already is.
         let phase = 0;
+        // The grid's glints run on their own clock.
+        let travel = 0;
         let lastFrame = 0;
 
         // Palette cross-fade. `paletteFrom` holds the colours being faded out
@@ -216,6 +218,7 @@ const TileCanvas = ({
 
             const settings = shown;
             phase += settings.speed * delta * 60;
+            travel += delta;
 
             // Same name, new colours: the custom palette was re-mixed. Fade
             // from the outgoing custom ramp, as for any palette change.
@@ -330,6 +333,8 @@ const TileCanvas = ({
                     gridReach: settings.gridReach,
                     gridLine: settings.gridLine,
                     gridNudge: Math.round(settings.gridLine) % 2 ? 0.5 : 0,
+                    travel,
+                    shade: settings.relief,
                     reveal: revealFrame(columns, rows),
                 });
                 return;

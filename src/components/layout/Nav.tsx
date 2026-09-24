@@ -1,6 +1,12 @@
 'use client';
 
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import {
+    useCallback,
+    useEffect,
+    useLayoutEffect,
+    useRef,
+    useState,
+} from 'react';
 import { motion } from 'motion/react';
 
 import ThemeToggle from '@/components/common/ThemeToggle';
@@ -43,9 +49,6 @@ const Nav = () => {
 
     const trackRef = useRef<HTMLDivElement>(null);
     const linkRefs = useRef<Record<string, HTMLAnchorElement | null>>({});
-    // The faint second pill: where on the page the visitor actually is,
-    // sliding between links in step with the scroll, not section by section.
-    const trackerRef = useRef<HTMLSpanElement>(null);
 
     /** Snap the pill onto whichever link is currently active. */
     const measure = useCallback(() => {
@@ -84,63 +87,6 @@ const Nav = () => {
         // wobble or a bounce at the edge does not flicker the nav.
         const DEAD_ZONE = 8;
 
-        /**
-         * Places the tracker between the link for the section the probe line
-         * is in and the next one, by how far through that section it is.
-         * Only links shown at this breakpoint count (Home is phone-only).
-         */
-        const track = (probe: number, atBottom: boolean) => {
-            const tracker = trackerRef.current;
-            if (!tracker) return;
-            const stops = items
-                .map((item) => ({
-                    link: linkRefs.current[item.id],
-                    section: document.getElementById(item.id),
-                }))
-                .filter(
-                    (
-                        stop,
-                    ): stop is {
-                        link: HTMLAnchorElement;
-                        section: HTMLElement;
-                    } =>
-                        !!stop.link &&
-                        stop.link.offsetWidth > 0 &&
-                        !!stop.section,
-                )
-                .map(({ link, section }) => ({
-                    link,
-                    top: section.getBoundingClientRect().top + window.scrollY,
-                }));
-            if (stops.length === 0) return;
-
-            let from = stops[0];
-            let to = stops[0];
-            let t = 0;
-            if (atBottom) {
-                from = to = stops[stops.length - 1];
-            } else {
-                for (let i = 0; i < stops.length; i++) {
-                    if (stops[i].top > probe) break;
-                    from = stops[i];
-                    to = stops[i + 1] ?? stops[i];
-                    t =
-                        to === from
-                            ? 0
-                            : (probe - from.top) / (to.top - from.top);
-                }
-            }
-            t = Math.min(1, Math.max(0, t));
-            const left =
-                from.link.offsetLeft +
-                (to.link.offsetLeft - from.link.offsetLeft) * t;
-            const width =
-                from.link.offsetWidth +
-                (to.link.offsetWidth - from.link.offsetWidth) * t;
-            tracker.style.transform = `translateX(${left}px)`;
-            tracker.style.width = `${width}px`;
-        };
-
         const update = () => {
             frame = 0;
 
@@ -160,13 +106,11 @@ const Nav = () => {
                 document.documentElement.scrollHeight - 4;
 
             if (atBottom) {
-                track(0, true);
                 setActive(items[items.length - 1].id);
                 return;
             }
 
             const probe = window.scrollY + window.innerHeight * 0.35;
-            track(probe, atBottom);
             let current = items[0].id;
 
             for (const item of items) {
@@ -215,11 +159,6 @@ const Nav = () => {
         >
             <div className="no-scrollbar glass-pill flex max-w-full items-center gap-1 overflow-x-auto rounded-full p-1">
                 <div ref={trackRef} className="relative flex items-center">
-                    <span
-                        ref={trackerRef}
-                        aria-hidden="true"
-                        className="absolute inset-y-0 left-0 rounded-full bg-ink/15 ring-1 ring-inset ring-ink/10"
-                    />
                     {/* One element that slides and resizes between links. */}
                     <motion.span
                         aria-hidden="true"

@@ -22,7 +22,9 @@ const CubeView = () => {
         setCubeView,
         controlsOpen,
         setControlsOpen,
+        controlsAnchor,
     } = settings;
+    const docked = controlsOpen && controlsAnchor === 'view';
 
     useScrollLock(open);
     // Rendered into <body>, which only exists once mounted in the browser.
@@ -55,6 +57,7 @@ const CubeView = () => {
                 >
                     <Stage
                         settings={settings}
+                        docked={docked}
                         onClose={() => setCubeView(false)}
                     />
 
@@ -101,9 +104,12 @@ const CubeView = () => {
 /** The canvas and what it listens on: the whole screen. */
 const Stage = ({
     settings,
+    docked,
     onClose,
 }: {
     settings: ReturnType<typeof useTileSettings>;
+    /** The settings are docked beside it: keep the cube clear of them. */
+    docked: boolean;
     onClose: () => void;
 }) => {
     const hostRef = useRef<HTMLDivElement>(null);
@@ -118,11 +124,15 @@ const Stage = ({
         return mountCubeToy({
             host,
             hit: host,
-            // Big, but leaving room around it to spin, grow and zoom.
-            edge: () => Math.min(host.clientWidth, host.clientHeight) * 0.26,
+            // Big, but leaving room around it to spin, grow and zoom, and
+            // below it for its floor.
+            edge: () => Math.min(host.clientWidth, host.clientHeight) * 0.22,
             zoomMax: 1.8,
             ctrlToZoom: false,
             scaleHit: false,
+            // Floating over its floor, like the small ones.
+            float: true,
+            stage: true,
             // A click beside the cube, on the backdrop, closes the view.
             onTap: (onCube) => {
                 if (!onCube) live.current.onClose();
@@ -144,7 +154,14 @@ const Stage = ({
     return (
         <div
             ref={hostRef}
-            className="absolute inset-0 cursor-grab touch-none select-none active:cursor-grabbing"
+            // With the settings docked the cube takes the space they leave:
+            // above the drawer on a phone, following it as it is pulled up
+            // (--settings-sheet), and to their left on anything wider.
+            className={`absolute inset-x-0 top-0 cursor-grab touch-none select-none transition-[right] duration-300 active:cursor-grabbing ${
+                docked
+                    ? 'bottom-[var(--settings-sheet,0px)] sm:bottom-0 sm:right-[calc(20rem+1.5rem)]'
+                    : 'bottom-0 right-0'
+            }`}
         />
     );
 };

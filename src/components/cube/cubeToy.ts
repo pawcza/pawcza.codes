@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 
 import { FRAGMENT } from '@/components/hero/tileGl';
 import type { CoreShape, CubeSettings } from '@/components/hero/TileSettings';
@@ -47,6 +48,16 @@ const FACE = 400;
 export const RELIEF_MAX = 3;
 /** How far one unit of relief lifts a block off its face, as a share of the edge. */
 const RELIEF_DEPTH = 0.16;
+/**
+ * Every block stands at least this far proud of its face, whatever the
+ * relief: a top level with the face is level with the next face's edge
+ * block too, and the two flicker (z-fighting) as the cube turns.
+ */
+const MIN_LIFT = 0.006;
+/** How long a new palette takes to fade in, in seconds (as on the page). */
+const PALETTE_FADE = 0.45;
+/** How quickly the shape follows new settings (as the page's field does). */
+const SETTLE = 0.13;
 
 export interface CubeToyState {
     gradient: GradientName;
@@ -73,12 +84,26 @@ export interface CubeToyOptions {
     scaleHit: boolean;
     /** A click (not a drag): whether it landed on the cube or beside it. */
     onTap?: (onCube: boolean) => void;
+    /**
+     * Hovers over a floor like an artifact: turning slowly by itself, rising
+     * and sinking, with its shadow and a faded reflection below.
+     */
+    float?: boolean;
+    /**
+     * Floating on its own stage (the full-screen view): framed to take in
+     * the floor and reflection too, with a faint pool of light on the floor,
+     * as a shadow on the dark backdrop would not show. The pointer target
+     * must be the whole stage, as the cube then sits above its centre.
+     */
+    stage?: boolean;
     read: () => CubeToyState;
 }
 
 /** Starts the cube in `host`; returns what stops and removes it. */
 export const mountCubeToy = (options: CubeToyOptions) => {
     const { host, hit, edge, zoomMax, ctrlToZoom, scaleHit, read } = options;
+    const float = options.float ?? false;
+    const stage = float && (options.stage ?? false);
     const reduced = window.matchMedia(
         '(prefers-reduced-motion: reduce)',
     ).matches;
@@ -88,8 +113,10 @@ export const mountCubeToy = (options: CubeToyOptions) => {
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setClearColor(0x000000, 0);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.3;
+    // Neutral, not ACES: ACES pushed bright saturated colours towards white,
+    // so a red palette came out pink.
+    renderer.toneMapping = THREE.NeutralToneMapping;
+    renderer.toneMappingExposure = 1.05;
     renderer.domElement.className = 'block h-full w-full';
     host.appendChild(renderer.domElement);
 
@@ -127,12 +154,15 @@ export const mountCubeToy = (options: CubeToyOptions) => {
         uGridReach: { value: 1 },
         uGridLine: { value: 1 },
         uGridNudge: { value: 0 },
+        uTravel: { value: 0 },
         uRevealOn: { value: 0 },
         uRevealTime: { value: 0 },
         uRevealStep: { value: 0 },
         uRevealFrom: { value: new THREE.Vector2() },
         uRevealSeed: { value: 0 },
         uPaper: { value: new THREE.Vector3() },
+        // Flat: the blocks are lit for real, in 3D.
+        uShade: { value: 0 },
     };
     const fieldScene = new THREE.Scene();
     const fieldCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
@@ -163,36 +193,82 @@ export const mountCubeToy = (options: CubeToyOptions) => {
         const c = v / 255;
         return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
     };
-    const syncRamp = (name: GradientName) => {
-        const key = `${name}:${customPaletteVersion()}`;
-        if (key === rampOf) return;
-        rampOf = key;
-        const channels = rgbRamps[name];
-        let sum = 0;
+    // A new palette fades in over the old one, from whatever shows now (which
+    // may be half way through the last fade).
+    const fromChannels = new Float32Array(RAMP_LENGTH * 3);
+    const toChannels = new Float32Array(RAMP_LENGTH * 3);
+    let blend = 1;
+    let gainFrom = 1;
+    let gainTo = 1;
+    const paintRamp = (t: number) => {
         for (let i = 0; i < RAMP_LENGTH; i++) {
-            const r = channels[i * 3];
-            const g = channels[i * 3 + 1];
-            const b = channels[i * 3 + 2];
-            rampData.set([r, g, b, 255], i * 4);
-            sum += 0.2126 * linear(r) + 0.7152 * linear(g) + 0.0722 * linear(b);
+            for (let k = 0; k < 3; k++) {
+                const at = i * 3 + k;
+                rampData[i * 4 + k] = Math.round(
+                    fromChannels[at] + (toChannels[at] - fromChannels[at]) * t,
+                );
+            }
+            rampData[i * 4 + 3] = 255;
         }
         ramp.needsUpdate = true;
-        gain = THREE.MathUtils.clamp(
-            CUBE_LUMINANCE / (sum / RAMP_LENGTH),
-            0.15,
-            2,
-        );
+        gain = gainFrom + (gainTo - gainFrom) * t;
+    };
+    const syncRamp = (name: GradientName, dt: number) => {
+        const key = `${name}:${customPaletteVersion()}`;
+        if (key !== rampOf) {
+            const first = rampOf === '';
+            rampOf = key;
+            const channels = rgbRamps[name];
+            let sum = 0;
+            for (let i = 0; i < RAMP_LENGTH; i++) {
+                for (let k = 0; k < 3; k++) {
+                    fromChannels[i * 3 + k] = rampData[i * 4 + k];
+                    toChannels[i * 3 + k] = channels[i * 3 + k];
+                }
+                sum +=
+                    0.2126 * linear(channels[i * 3]) +
+                    0.7152 * linear(channels[i * 3 + 1]) +
+                    0.0722 * linear(channels[i * 3 + 2]);
+            }
+            gainFrom = gain;
+            gainTo = THREE.MathUtils.clamp(
+                CUBE_LUMINANCE / (sum / RAMP_LENGTH),
+                0.15,
+                // A dark palette is lifted a little, not turned pastel.
+                1.3,
+            );
+            blend = first || reduced ? 1 : 0;
+            paintRamp(blend);
+            return;
+        }
+        if (blend >= 1) return;
+        blend = Math.min(1, blend + dt / PALETTE_FADE);
+        paintRamp(THREE.MathUtils.smoothstep(blend, 0, 1));
     };
 
     /* ---------- Light ---------- */
 
     // The palette's first, middle and last stops, from three sides, as on the
     // page's ambient glow.
-    scene.add(new THREE.HemisphereLight(0xffffff, 0x202028, 0.35));
+    const environment = new THREE.PMREMGenerator(renderer);
+    scene.environment = environment.fromScene(
+        new RoomEnvironment(),
+        0.04,
+    ).texture;
+    environment.dispose();
+    disposables.push(scene.environment);
+    /*
+     * Even, readable light rather than drama. The cube turns but the lights
+     * do not, and a strong light from behind (which you never see) left faces
+     * swinging between blown out and black. So: a soft key from the viewer's
+     * upper left, a gentle fill from the lower right, and a broad sky and
+     * studio reflection doing most of the work, so every face reads whichever
+     * way it points. The lights only take a tint of the palette.
+     */
+    scene.add(new THREE.HemisphereLight(0xffffff, 0x2a2a33, 0.4));
     const lights = [
-        [-2.5, 3, 3.5, 3.6],
-        [3, 1.5, -2.5, 3.2],
-        [1.5, -2.5, 3, 1.3],
+        [-2, 2.6, 4, 1.7],
+        [2.6, -0.8, 3.2, 0.7],
     ].map(([x, y, z, intensity]) => {
         const light = new THREE.DirectionalLight(0xffffff, intensity);
         light.position.set(x, y, z);
@@ -200,25 +276,22 @@ export const mountCubeToy = (options: CubeToyOptions) => {
         return { light, base: intensity };
     });
     let lightsOf = '';
-    const syncLights = (name: GradientName) => {
+    const white = new THREE.Color(0xffffff);
+    // Each light's tint, which it blends towards.
+    const tints = lights.map(() => new THREE.Color(0xffffff));
+    const syncLights = (name: GradientName, k: number) => {
         const stops = paletteStops(name);
         const key = `${name}:${stops.join()}`;
-        if (key === lightsOf) return;
-        lightsOf = key;
-        const picks = [
-            stops[0],
-            stops[Math.floor(stops.length / 2)],
-            stops[stops.length - 1],
-        ];
-        lights.forEach(({ light, base }, i) => {
-            light.color.set(picks[i]);
-            // A near-white stop would bleach its side, a near-black one would
-            // barely show: each is balanced by its own brightness.
-            const { r, g, b } = light.color;
-            const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-            light.intensity =
-                base * THREE.MathUtils.clamp(0.25 / luminance, 0.45, 1.6);
-        });
+        if (key !== lightsOf) {
+            const first = lightsOf === '';
+            lightsOf = key;
+            const picks = [stops[0], stops[stops.length - 1]];
+            tints.forEach((tint, i) => {
+                tint.copy(white).lerp(new THREE.Color(picks[i]), 0.35);
+                if (first) lights[i].light.color.copy(tint);
+            });
+        }
+        lights.forEach(({ light }, i) => light.color.lerp(tints[i], k));
     };
 
     /* ---------- The cube: one block per tile per face ---------- */
@@ -226,17 +299,25 @@ export const mountCubeToy = (options: CubeToyOptions) => {
     const group = new THREE.Group();
     scene.add(group);
 
-    const material = new THREE.MeshStandardMaterial({
+    /*
+     * Lit, not glowing: a glossy clear coat that catches the lights as
+     * highlights, and a soft studio reflected in every face, so
+     * each block's top, sides and edges read differently. Only a trace of
+     * glow is left, to keep the colours alive in shadow.
+     */
+    const material = new THREE.MeshPhysicalMaterial({
         map: target.texture,
         emissiveMap: target.texture,
         emissive: 0xffffff,
-        // A glow of its own, kept low enough for the lights to shape it.
-        emissiveIntensity: 0.3,
-        roughness: 0.45,
-        metalness: 0.08,
+        emissiveIntensity: 0.1,
+        roughness: 0.5,
+        metalness: 0.05,
+        clearcoat: 0.3,
+        clearcoatRoughness: 0.35,
+        envMapIntensity: 0.2,
     });
     // Every block samples the field at its own tile's centre.
-    material.onBeforeCompile = (shader) => {
+    const tileUv = (shader: THREE.WebGLProgramParametersWithUniforms) => {
         shader.vertexShader =
             'attribute vec2 aTileUv;\n' +
             shader.vertexShader.replace(
@@ -244,6 +325,7 @@ export const mountCubeToy = (options: CubeToyOptions) => {
                 '#include <uv_vertex>\n\tvMapUv = aTileUv;\n\tvEmissiveMapUv = aTileUv;',
             );
     };
+    material.onBeforeCompile = tileUv;
     disposables.push(material);
 
     /*
@@ -274,6 +356,128 @@ export const mountCubeToy = (options: CubeToyOptions) => {
     });
     disposables.push(coreMaterial);
     let coreColorOf = '';
+
+    /*
+     * The floor it floats over (float only): nothing of the floor itself, just
+     * a soft shadow that tightens and darkens as the cube sinks towards it,
+     * and the cube mirrored below, fading out with depth.
+     */
+    const floorUniform = { value: -1 };
+    const REFLECTION = 0.35;
+    const fadeBelowFloor = (
+        shader: THREE.WebGLProgramParametersWithUniforms,
+    ) => {
+        shader.uniforms.uFloor = floorUniform;
+        shader.vertexShader = shader.vertexShader
+            .replace(
+                'void main() {',
+                'varying float vBelow;\nuniform float uFloor;\nvoid main() {',
+            )
+            .replace(
+                '#include <project_vertex>',
+                `#include <project_vertex>
+    vec4 floorWorld = vec4(transformed, 1.0);
+    #ifdef USE_INSTANCING
+        floorWorld = instanceMatrix * floorWorld;
+    #endif
+    vBelow = uFloor - (modelMatrix * floorWorld).y;`,
+            );
+        shader.fragmentShader = shader.fragmentShader
+            .replace('void main() {', 'varying float vBelow;\nvoid main() {')
+            .replace(
+                '#include <dithering_fragment>',
+                `#include <dithering_fragment>
+    gl_FragColor.a *= ${REFLECTION.toFixed(2)} * (1.0 - smoothstep(0.0, 1.3, vBelow));`,
+            );
+    };
+    const mirrorMaterial = material.clone();
+    mirrorMaterial.transparent = true;
+    mirrorMaterial.onBeforeCompile = (shader) => {
+        tileUv(shader);
+        fadeBelowFloor(shader);
+    };
+    const mirrorCoreMaterial = coreMaterial.clone();
+    mirrorCoreMaterial.transparent = true;
+    mirrorCoreMaterial.onBeforeCompile = fadeBelowFloor;
+    disposables.push(mirrorMaterial, mirrorCoreMaterial);
+    // Holds the mirrored copies; its matrix is the cube's, reflected in the floor.
+    const mirror = new THREE.Group();
+    mirror.matrixAutoUpdate = false;
+    mirror.visible = float;
+    mirror.renderOrder = 1;
+    scene.add(mirror);
+    const mirrorOf = (mesh: THREE.Mesh) => {
+        const copy = new THREE.Mesh(mesh.geometry, mirrorCoreMaterial);
+        copy.visible = false;
+        copy.renderOrder = 1;
+        mirror.add(copy);
+        return copy;
+    };
+    const mirrorCores: Record<keyof typeof cores, THREE.Mesh> = {
+        cube: mirrorOf(cores.cube),
+        sphere: mirrorOf(cores.sphere),
+        diamond: mirrorOf(cores.diamond),
+    };
+    let mirrorBlocks: THREE.InstancedMesh | null = null;
+
+    const shadowCanvas = document.createElement('canvas');
+    shadowCanvas.width = shadowCanvas.height = 128;
+    const shadowPaint = shadowCanvas.getContext('2d');
+    if (shadowPaint) {
+        const falloff = shadowPaint.createRadialGradient(64, 64, 0, 64, 64, 64);
+        falloff.addColorStop(0, 'rgba(0,0,0,1)');
+        falloff.addColorStop(0.45, 'rgba(0,0,0,0.5)');
+        falloff.addColorStop(1, 'rgba(0,0,0,0)');
+        shadowPaint.fillStyle = falloff;
+        shadowPaint.fillRect(0, 0, 128, 128);
+    }
+    const lightCanvas = document.createElement('canvas');
+    lightCanvas.width = lightCanvas.height = 128;
+    const lightPaint = lightCanvas.getContext('2d');
+    if (lightPaint) {
+        const falloff = lightPaint.createRadialGradient(64, 64, 0, 64, 64, 64);
+        falloff.addColorStop(0, 'rgba(255,255,255,1)');
+        falloff.addColorStop(0.5, 'rgba(255,255,255,0.35)');
+        falloff.addColorStop(1, 'rgba(255,255,255,0)');
+        lightPaint.fillStyle = falloff;
+        lightPaint.fillRect(0, 0, 128, 128);
+    }
+    // The pool of light on the stage's floor, for the shadow to fall in.
+    const floorLight = new THREE.Mesh(
+        new THREE.PlaneGeometry(1, 1),
+        new THREE.MeshBasicMaterial({
+            map: new THREE.CanvasTexture(lightCanvas),
+            transparent: true,
+            depthWrite: false,
+            opacity: 0.1,
+        }),
+    );
+    floorLight.rotation.x = -Math.PI / 2;
+    floorLight.visible = stage;
+    floorLight.renderOrder = 2;
+    scene.add(floorLight);
+    disposables.push(
+        floorLight.geometry,
+        floorLight.material,
+        floorLight.material.map as THREE.Texture,
+    );
+    const shadow = new THREE.Mesh(
+        new THREE.PlaneGeometry(1, 1),
+        new THREE.MeshBasicMaterial({
+            map: new THREE.CanvasTexture(shadowCanvas),
+            transparent: true,
+            depthWrite: false,
+        }),
+    );
+    shadow.rotation.x = -Math.PI / 2;
+    shadow.visible = float;
+    shadow.renderOrder = 3;
+    scene.add(shadow);
+    disposables.push(
+        shadow.geometry,
+        shadow.material,
+        shadow.material.map as THREE.Texture,
+    );
 
     // What a click is tested against: the cube as far out as its blocks go.
     const pick = new THREE.Mesh(
@@ -330,6 +534,20 @@ export const mountCubeToy = (options: CubeToyOptions) => {
         blocks.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
         blocks.frustumCulled = false;
         group.add(blocks);
+        if (mirrorBlocks) {
+            mirror.remove(mirrorBlocks);
+            mirrorBlocks.dispose();
+        }
+        // The same blocks, placed by the same matrices.
+        mirrorBlocks = new THREE.InstancedMesh(
+            geometry,
+            mirrorMaterial,
+            perFace * 6,
+        );
+        mirrorBlocks.instanceMatrix = blocks.instanceMatrix;
+        mirrorBlocks.frustumCulled = false;
+        mirrorBlocks.renderOrder = 1;
+        mirror.add(mirrorBlocks);
         heights = new Float32Array(perFace);
     };
 
@@ -345,15 +563,15 @@ export const mountCubeToy = (options: CubeToyOptions) => {
         const size = 1 / columns;
         const across = size * c.blockWidth;
         const thick = size * c.blockHeight;
-        // Always a little off the face, never level with it: a top exactly on
-        // the face's plane is coplanar with the next face's edge block, and
-        // the two flicker (z-fighting) when the cube is turned.
-        const lift = 0.004 + c.relief * RELIEF_DEPTH;
+        const lift = MIN_LIFT + c.relief * RELIEF_DEPTH;
         for (let row = 0; row < columns; row++) {
             for (let col = 0; col < columns; col++) {
                 const index = colorIndexAt(col, row, phase, RAMP_LENGTH, w);
                 heights[row * columns + col] =
-                    (0.08 + 0.92 * (index / (RAMP_LENGTH - 1))) * lift;
+                    MIN_LIFT +
+                    (0.08 + 0.92 * (index / (RAMP_LENGTH - 1))) *
+                        c.relief *
+                        RELIEF_DEPTH;
             }
         }
         const m = blocks.instanceMatrix.array as Float32Array;
@@ -386,15 +604,20 @@ export const mountCubeToy = (options: CubeToyOptions) => {
             }
         }
         blocks.instanceMatrix.needsUpdate = true;
-        // The core fits inside the blocks' inner faces, at its chosen share.
-        const room = Math.max(0.05, 1 - 2 * thick) * 0.999;
+        // The core fits inside the blocks' inner faces, at its chosen share,
+        // kept clear of them: level with them at full size, the two flicker.
+        const room = Math.max(0.05, 1 - 2 * thick) * 0.96;
         for (const [shape, mesh] of Object.entries(cores)) {
             mesh.visible = c.core === shape;
             if (mesh.visible) mesh.scale.setScalar(room * c.coreSize);
+            const copy = mirrorCores[shape as keyof typeof cores];
+            copy.visible = mesh.visible;
+            copy.scale.copy(mesh.scale);
         }
         if (c.coreColor !== coreColorOf) {
             coreColorOf = c.coreColor;
             coreMaterial.color.set(c.coreColor);
+            mirrorCoreMaterial.color.set(c.coreColor);
         }
         return lift;
     };
@@ -409,6 +632,13 @@ export const mountCubeToy = (options: CubeToyOptions) => {
         renderer.setSize(width, height, false);
         camera.aspect = width / height;
         camera.updateProjectionMatrix();
+        // Resizing clears the canvas, and a resize lands after the frame was
+        // drawn: redraw now, or it shows blank while its box is being resized
+        // (as when the settings drawer is dragged).
+        if (columns > 0) {
+            placeCamera();
+            renderer.render(scene, camera);
+        }
     };
     layout();
     const resizer = new ResizeObserver(layout);
@@ -535,6 +765,67 @@ export const mountCubeToy = (options: CubeToyOptions) => {
     let phase = 0;
     let drift = 0;
     let visible = true;
+    // What shows: eased towards the settings, so a change (a preset, a
+    // randomise) flows into place rather than jumping.
+    let shownWave: WaveSettings | null = null;
+    let shownCube: CubeSettings | null = null;
+    const approach = <T extends object>(shown: T, to: T, k: number) => {
+        const from = shown as Record<string, unknown>;
+        for (const [key, value] of Object.entries(to)) {
+            const was = from[key];
+            from[key] =
+                typeof value === 'number' && typeof was === 'number'
+                    ? was + (value - was) * k
+                    : value;
+        }
+    };
+
+    // Floating: a slow turn, and a rise and fall above the floor.
+    const IDLE_SPIN = 0.3; // rad/s, about the upright
+    const BOB = 0.06; // of the edge, either way
+    const TILT = THREE.MathUtils.degToRad(12); // looking down on the floor
+    const reflect = new THREE.Matrix4();
+    const turned = new THREE.Matrix4();
+    let floorAt = -1;
+    // How far the blocks stood out last frame, for framing the stage.
+    let lastLift = 0;
+
+    const placeCamera = () => {
+        let distance = distanceFor(zoom);
+        let aim = 0;
+        if (stage) {
+            // Zoom 1 fills the stage: as big as the cube can be drawn with
+            // it, its floor and reflection all on screen whichever way it
+            // turns. More relief, and it steps back to keep it all in.
+            const r = (Math.sqrt(3) / 2) * (1 + 2 * lastLift);
+            const top = r + BOB;
+            const bottom = -(r + BOB + 0.14) - 0.8;
+            aim = (top + bottom) / 2;
+            const tanV = Math.tan(THREE.MathUtils.degToRad(FOV / 2));
+            const tanH = tanV * camera.aspect;
+            const fit =
+                Math.max((top - bottom) / 2 / tanV, r / tanH) * 1.06 + r * 0.5;
+            distance = fit / zoom;
+        }
+        // Just deep enough for the cube (and its floor): a tight depth range
+        // keeps the blocks' close faces from flickering against each other.
+        camera.near = Math.max(0.1, distance - 4);
+        camera.far = distance + 4;
+        if (float) {
+            camera.position.set(
+                0,
+                distance * Math.sin(TILT),
+                distance * Math.cos(TILT),
+            );
+        } else {
+            camera.position.set(0, 0, distance);
+        }
+        // Centred on the cube, where the pointer target sits; its floor has
+        // the room below. On a stage, centred on the cube and its reflection
+        // together.
+        camera.lookAt(0, aim, 0);
+        camera.updateProjectionMatrix();
+    };
 
     const ease = (dt: number, tau: number) =>
         reduced ? 1 : 1 - Math.exp(-dt / tau);
@@ -545,9 +836,9 @@ export const mountCubeToy = (options: CubeToyOptions) => {
         last = now;
         const {
             gradient: name,
-            wave: w,
+            wave: wantWave,
             effect: fx,
-            cube: c,
+            cube: wantCube,
             shown,
             active,
         } = read();
@@ -559,7 +850,23 @@ export const mountCubeToy = (options: CubeToyOptions) => {
             return;
         }
 
+        const settle = ease(dt, SETTLE);
+        if (!shownWave || !shownCube) {
+            shownWave = { ...wantWave };
+            shownCube = { ...wantCube };
+        } else {
+            approach(shownWave, wantWave, settle);
+            approach(shownCube, wantCube, settle);
+        }
+        const w = shownWave;
+        const c = shownCube;
+
         if (pointers.size === 0) {
+            if (float && !reduced) {
+                orientation.premultiply(
+                    new THREE.Quaternion().setFromAxisAngle(Y, IDLE_SPIN * dt),
+                );
+            }
             omega.multiplyScalar(reduced ? 0 : Math.exp(-1.1 * dt));
             const speed = omega.length();
             if (speed > 1e-5) {
@@ -576,15 +883,16 @@ export const mountCubeToy = (options: CubeToyOptions) => {
 
         group.quaternion.copy(orientation);
         group.scale.setScalar(Math.max(0.001, scale));
-        camera.position.set(0, 0, distanceFor(zoom));
-        camera.lookAt(0, 0, 0);
+        placeCamera();
         if (scaleHit) hit.style.transform = `scale(${zoom.toFixed(3)})`;
 
         // The field.
-        syncRamp(name);
-        syncLights(name);
+        syncRamp(name, dt);
+        syncLights(name, ease(dt, PALETTE_FADE / 3));
         material.color.setScalar(gain);
-        material.emissiveIntensity = 0.3 * gain;
+        material.emissiveIntensity = 0.1 * gain;
+        mirrorMaterial.color.copy(material.color);
+        mirrorMaterial.emissiveIntensity = material.emissiveIntensity;
         phase += w.speed * dt * 60;
         drift += dt;
         const count = THREE.MathUtils.clamp(
@@ -594,7 +902,55 @@ export const mountCubeToy = (options: CubeToyOptions) => {
         );
         if (count !== columns) buildBlocks(count);
         const lift = placeBlocks(w, phase, c);
+        lastLift = lift;
         pick.scale.setScalar(1 + 2 * lift);
+
+        if (float) {
+            // The floor sits just clear of the cube as it is turned now: at
+            // once lower when a corner swings down, slowly back up after.
+            const half = (0.5 + lift) * scale;
+            const e = turned.makeRotationFromQuaternion(orientation).elements;
+            const low =
+                half * (Math.abs(e[1]) + Math.abs(e[5]) + Math.abs(e[9]));
+            const reach = (Math.sqrt(3) / 2) * (1 + 2 * lift) * scale;
+            const clear = -low - BOB - 0.14;
+            floorAt =
+                clear < floorAt
+                    ? clear
+                    : floorAt + (clear - floorAt) * ease(dt, 1.2);
+            const floor = floorAt;
+            const rise = reduced ? 0 : Math.sin(drift * 0.9);
+            group.position.y = rise * BOB;
+            floorUniform.value = floor;
+            shadow.position.y = floor;
+            floorLight.position.y = floor;
+            floorLight.scale.setScalar(reach * 5);
+            // Nearer the floor: a smaller, darker shadow.
+            const near = 0.5 - 0.5 * rise;
+            shadow.scale.setScalar(reach * (2.1 - 0.35 * near));
+            shadow.material.opacity = (0.35 + 0.2 * near) * scale;
+            group.updateMatrixWorld();
+            reflect.set(
+                1,
+                0,
+                0,
+                0,
+                0,
+                -1,
+                0,
+                2 * floor,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                1,
+            );
+            mirror.matrix.multiplyMatrices(reflect, group.matrixWorld);
+            mirror.matrixWorldNeedsUpdate = true;
+        }
         const u = fieldUniforms;
         u.uCells.value.set(count, count);
         u.uTile.value.set(FACE / count, FACE / count);
@@ -616,6 +972,7 @@ export const mountCubeToy = (options: CubeToyOptions) => {
         u.uGridAlpha.value = w.gridOpacity;
         u.uGridReach.value = w.gridReach * (FACE / 900);
         u.uGridLine.value = w.gridLine;
+        u.uTravel.value = drift;
 
         renderer.setRenderTarget(target);
         renderer.render(fieldScene, fieldCamera);
@@ -659,6 +1016,7 @@ export const mountCubeToy = (options: CubeToyOptions) => {
             blocks.geometry.dispose();
             blocks.dispose();
         }
+        mirrorBlocks?.dispose();
         renderer.dispose();
         renderer.domElement.remove();
     };

@@ -56,6 +56,11 @@ export interface WaveSettings {
     gridLine: number;
     /** Grid effect: how strongly the lines show at the cursor. */
     gridOpacity: number;
+    /**
+     * How deep the wave looks: the field is lit as if its colours were
+     * heights, light rolling over the crests and into the troughs. 0 is flat.
+     */
+    relief: number;
 }
 
 /** What the cursor does to the field. */
@@ -86,6 +91,7 @@ export const defaultWave: WaveSettings = {
     lens: 70,
     reachX: 1,
     reachY: 1,
+    relief: 2,
     ...defaultGrid,
 };
 
@@ -201,8 +207,10 @@ export const waveRanges: Record<
         min: 0,
         max: 130,
         step: 1,
-        randomMin: 0,
-        randomMax: 130,
+        // Randomise keeps it gentle: a nudge either way, never a crater or
+        // a blow-up. The slider still goes all the way.
+        randomMin: 30,
+        randomMax: 78,
     },
     reachX: {
         label: 'Lens reach X',
@@ -211,8 +219,8 @@ export const waveRanges: Record<
         min: 0.2,
         max: 6,
         step: 0.05,
-        randomMin: 0.3,
-        randomMax: 5,
+        randomMin: 0.8,
+        randomMax: 1.8,
     },
     reachY: {
         label: 'Lens reach Y',
@@ -220,8 +228,8 @@ export const waveRanges: Record<
         min: 0.2,
         max: 6,
         step: 0.05,
-        randomMin: 0.3,
-        randomMax: 5,
+        randomMin: 0.8,
+        randomMax: 1.8,
     },
     gridReach: {
         label: 'Grid reach',
@@ -240,6 +248,16 @@ export const waveRanges: Record<
         step: 0.5,
         randomMin: 0.5,
         randomMax: 2.5,
+    },
+    relief: {
+        label: 'Relief',
+        description:
+            'How deep the wave looks, lit from the top left. All the way down, flat.',
+        min: 0,
+        max: 3,
+        step: 0.05,
+        randomMin: 1.5,
+        randomMax: 2.8,
     },
     gridOpacity: {
         label: 'Grid strength',

@@ -15,7 +15,8 @@ const EDGE = 0.5;
 /**
  * A toy cube, built from the same field as the page: beside the hero's title
  * and in the footer. Drag to spin it; a click opens it up full-screen with
- * its settings (CubeView). Nothing on it is to be read.
+ * its settings (CubeView). It floats over a floor of its own, turning
+ * slowly, like an artifact on display. Nothing on it is to be read.
  */
 const ToyCube = ({ className = '' }: { className?: string }) => {
     const settings = useTileSettings();
@@ -49,6 +50,7 @@ const ToyCube = ({ className = '' }: { className?: string }) => {
             zoomMax: 1,
             ctrlToZoom: true,
             scaleHit: false,
+            float: true,
             onTap: (onCube) => {
                 if (onCube) live.current.settings.setCubeView(true);
             },

@@ -1,7 +1,19 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { AnimatePresence, motion } from 'motion/react';
+import {
+    useCallback,
+    useEffect,
+    useLayoutEffect,
+    useRef,
+    useState,
+} from 'react';
+import {
+    AnimatePresence,
+    animate,
+    motion,
+    useMotionValue,
+    useMotionValueEvent,
+} from 'motion/react';
 
 import {
     ChevronLeft,
@@ -167,6 +179,7 @@ const patternKeys: (keyof WaveSettings)[] = [
     'amplitude',
     'secondaryFrequency',
     'tilt',
+    'relief',
 ];
 
 const coreShapes: { id: CoreShape; label: string }[] = [
@@ -187,6 +200,12 @@ const Swatches = ({ colors }: { colors: readonly string[] }) => (
         ))}
     </span>
 );
+
+/** Below this, the panel is a drawer along the bottom of the screen. */
+const SHEET_QUERY = '(max-width: 639px)';
+/** How far a drawer can be pulled open, as shares of the screen's height. */
+const SHEET_MIN = 0.4;
+const SHEET_MAX = 0.6;
 
 const Controls = () => {
     const {
@@ -220,12 +239,145 @@ const Controls = () => {
         [setControlsOpen],
     );
 
-    // Every opening starts on the tiles; beside the full-screen cube, on the
-    // cube's own page.
+    // Every opening starts on the tiles: everything there matters to the
+    // cube as much as to the page.
     useEffect(() => {
         if (!open) setSection(null);
-        else if (controlsAnchor === 'view') setSection('cube');
-    }, [open, controlsAnchor]);
+    }, [open]);
+
+    /*
+     * On a phone the panel is a drawer across the bottom. Collapsed it shows
+     * only its handle and randomise; pulled up, anywhere from 40% to 60% of
+     * the screen. Its height is published as --settings-sheet, so the
+     * full-screen cube can keep above it.
+     */
+    const [sheet, setSheet] = useState(false);
+    useEffect(() => {
+        const query = window.matchMedia(SHEET_QUERY);
+        const sync = () => setSheet(query.matches);
+        sync();
+        query.addEventListener('change', sync);
+        return () => query.removeEventListener('change', sync);
+    }, []);
+    const sheetHeight = useMotionValue(0);
+    useMotionValueEvent(sheetHeight, 'change', (height) =>
+        document.documentElement.style.setProperty(
+            '--settings-sheet',
+            `${height}px`,
+        ),
+    );
+    const grabRef = useRef<HTMLDivElement>(null);
+    const scrollRef = useRef<HTMLDivElement>(null);
+    const footerRef = useRef<HTMLDivElement>(null);
+    /** The drawer's height with only its handle and buttons showing. */
+    const collapsedHeight = () => {
+        const panel = panelRef.current;
+        const footer = footerRef.current;
+        if (!panel || !footer) return 0;
+        const box = getComputedStyle(panel);
+        return (
+            (grabRef.current?.offsetHeight ?? 0) +
+            footer.offsetHeight +
+            parseFloat(getComputedStyle(footer).marginTop) +
+            parseFloat(box.paddingBottom) +
+            parseFloat(box.borderTopWidth)
+        );
+    };
+    /** Tallest it goes: 60% of the screen, or less if its page is short. */
+    const openHeight = () => {
+        const scroll = scrollRef.current;
+        const cap = window.innerHeight * SHEET_MAX;
+        if (!scroll) return cap;
+        const heading = scroll.previousElementSibling as HTMLElement | null;
+        const natural =
+            collapsedHeight() +
+            (heading?.offsetHeight ?? 0) +
+            parseFloat(getComputedStyle(scroll).marginTop) +
+            scroll.scrollHeight;
+        return Math.min(cap, natural);
+    };
+    const settleSheet = (to: number) =>
+        animate(sheetHeight, to, {
+            type: 'spring',
+            stiffness: 380,
+            damping: 38,
+        });
+    // Beside the full-screen cube it opens collapsed, leaving the cube the
+    // screen; over the page it opens part way up, as asked for.
+    useLayoutEffect(() => {
+        if (!open || !sheet) return;
+        sheetHeight.jump(
+            controlsAnchor === 'view'
+                ? collapsedHeight()
+                : Math.min(window.innerHeight * 0.55, openHeight()),
+        );
+    }, [open, sheet, controlsAnchor]);
+    useEffect(() => {
+        if (open && sheet) return;
+        document.documentElement.style.removeProperty('--settings-sheet');
+    }, [open, sheet]);
+
+    const drag = useRef<{
+        fromY: number;
+        fromHeight: number;
+        lastY: number;
+        lastTime: number;
+        velocity: number;
+        moved: boolean;
+    } | null>(null);
+    const onGrabDown = (event: React.PointerEvent<HTMLDivElement>) => {
+        event.currentTarget.setPointerCapture(event.pointerId);
+        drag.current = {
+            fromY: event.clientY,
+            fromHeight: sheetHeight.get(),
+            lastY: event.clientY,
+            lastTime: event.timeStamp,
+            velocity: 0,
+            moved: false,
+        };
+    };
+    const onGrabMove = (event: React.PointerEvent<HTMLDivElement>) => {
+        const d = drag.current;
+        if (!d) return;
+        if (Math.abs(event.clientY - d.fromY) > 4) d.moved = true;
+        const dt = Math.max(1, event.timeStamp - d.lastTime);
+        // Upwards is negative: px per ms.
+        d.velocity = (event.clientY - d.lastY) / dt;
+        d.lastY = event.clientY;
+        d.lastTime = event.timeStamp;
+        const low = collapsedHeight();
+        const high = openHeight();
+        sheetHeight.set(
+            Math.min(
+                high,
+                Math.max(low, d.fromHeight + d.fromY - event.clientY),
+            ),
+        );
+    };
+    const onGrabUp = () => {
+        const d = drag.current;
+        drag.current = null;
+        if (!d) return;
+        const low = collapsedHeight();
+        const max = openHeight();
+        const min = Math.min(max, window.innerHeight * SHEET_MIN);
+        const height = sheetHeight.get();
+        // A tap on the handle opens or closes it.
+        if (!d.moved) {
+            settleSheet(
+                height > low + 8
+                    ? low
+                    : Math.min(window.innerHeight * 0.55, max),
+            );
+            return;
+        }
+        // A flick goes where it was flicked; otherwise it rests where it
+        // was let go, within its range, or closes if barely pulled.
+        if (d.velocity < -0.4)
+            settleSheet(Math.min(max, Math.max(min, height)));
+        else if (d.velocity > 0.4 || height < low + 60) settleSheet(low);
+        else settleSheet(Math.min(max, Math.max(min, height)));
+    };
 
     // Opening a page moves focus to its back button, so keyboard users are
     // not left on a tile that no longer exists.
@@ -313,6 +465,15 @@ const Controls = () => {
 
     const current = sections.find((item) => item.id === section);
 
+    // Where the floating panel sits (from the phone's drawer up).
+    const panelPlace =
+        controlsAnchor === 'nav'
+            ? 'z-40 inset-x-0 top-[calc(4.25rem+env(safe-area-inset-top))] mx-auto'
+            : controlsAnchor === 'view'
+              ? // Docked beside the full-screen cube, above its backdrop.
+                'z-[70] right-6 top-1/2 -translate-y-1/2'
+              : 'z-40 bottom-20 right-4 sm:right-6';
+
     return (
         <AnimatePresence>
             {open && (
@@ -322,444 +483,496 @@ const Controls = () => {
                     aria-label="Background settings"
                     // One fixed height for every page, so moving between them
                     // never makes the panel jump; the pages scroll inside it.
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
+                    initial={{ opacity: 0, y: sheet ? 24 : 0 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: sheet ? 24 : 0 }}
                     transition={{ duration: 0.2, ease: 'easeOut' }}
-                    className={`card glass-solid fixed flex h-[min(34rem,calc(100dvh-7rem))] w-[min(20rem,calc(100vw-2rem))] flex-col p-5 backdrop-blur-md ${
-                        controlsAnchor === 'nav'
-                            ? 'z-40 inset-x-0 top-[calc(4.25rem+env(safe-area-inset-top))] mx-auto'
-                            : controlsAnchor === 'view'
-                              ? // Docked beside the full-screen cube, above its backdrop; along
-                                // the bottom on a phone, leaving the cube the top half.
-                                'z-[70] bottom-4 right-4 max-sm:h-[46dvh] sm:bottom-auto sm:right-6 sm:top-1/2 sm:-translate-y-1/2'
-                              : 'z-40 bottom-20 right-4 sm:right-6'
+                    style={sheet ? { height: sheetHeight } : undefined}
+                    className={`card glass-solid fixed flex flex-col backdrop-blur-md ${
+                        sheet
+                            ? `inset-x-0 bottom-0 overflow-hidden rounded-b-none px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] ${
+                                  controlsAnchor === 'view' ? 'z-[70]' : 'z-40'
+                              }`
+                            : `h-[min(34rem,calc(100dvh-7rem))] w-[min(20rem,calc(100vw-2rem))] p-5 ${panelPlace}`
                     }`}
                 >
-                    {/* Fixed height, so the back button on a page and the
-                        plain title on home line everything up identically. */}
-                    <div className="flex h-7 shrink-0 items-center justify-between gap-2">
-                        {current ? (
-                            <button
-                                ref={backRef}
-                                type="button"
-                                onClick={goBack}
-                                // The chevron hangs in the panel's padding (its
-                                // 14px plus the 4px gap), so the page title
-                                // starts exactly where "Settings" does.
-                                className="-ml-[1.125rem] flex items-center gap-1 text-ink-muted transition-colors hover:text-ink"
-                            >
-                                <ChevronLeft width={14} height={14} />
-                                <span className="eyebrow !text-inherit">
-                                    {current.label}
-                                </span>
-                                <span className="sr-only">
-                                    , back to all settings
-                                </span>
-                            </button>
-                        ) : (
-                            <p className="eyebrow !text-ink-muted">Settings</p>
-                        )}
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            aria-label="Close settings"
-                            className="-mr-1 p-1 text-ink-muted transition-colors hover:text-ink"
+                    {sheet && (
+                        // The drawer's handle: drag it up or down, or tap it.
+                        <div
+                            ref={grabRef}
+                            onPointerDown={onGrabDown}
+                            onPointerMove={onGrabMove}
+                            onPointerUp={onGrabUp}
+                            onPointerCancel={onGrabUp}
+                            aria-hidden="true"
+                            className="-mx-4 flex h-6 shrink-0 cursor-grab touch-none items-center justify-center active:cursor-grabbing"
                         >
-                            <Close width={15} height={15} />
-                        </button>
-                    </div>
-
-                    <div className="-mr-2 mt-4 min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain pr-2">
-                        <AnimatePresence mode="wait" initial={false}>
-                            <motion.div
-                                key={section ?? 'home'}
-                                // Pages slide in from the side they sit on:
-                                // deeper to the right, home to the left.
-                                // Home fills the panel with its tiles.
-                                className={current ? undefined : 'h-full'}
-                                initial={{ opacity: 0, x: section ? 12 : -12 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: section ? -12 : 12 }}
-                                transition={{ duration: 0.14, ease: 'easeOut' }}
+                            <span className="h-1 w-12 rounded-full bg-ink-faint" />
+                        </div>
+                    )}
+                    <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+                        {/* Fixed height, so the back button on a page and the
+                        plain title on home line everything up identically. */}
+                        <div className="flex h-7 shrink-0 items-center justify-between gap-2">
+                            {current ? (
+                                <button
+                                    ref={backRef}
+                                    type="button"
+                                    onClick={goBack}
+                                    // The chevron hangs in the panel's padding (its
+                                    // 14px plus the 4px gap), so the page title
+                                    // starts exactly where "Settings" does.
+                                    className="-ml-[1.125rem] flex items-center gap-1 text-ink-muted transition-colors hover:text-ink"
+                                >
+                                    <ChevronLeft width={14} height={14} />
+                                    <span className="eyebrow !text-inherit">
+                                        {current.label}
+                                    </span>
+                                    <span className="sr-only">
+                                        , back to all settings
+                                    </span>
+                                </button>
+                            ) : (
+                                <p className="eyebrow !text-ink-muted">
+                                    Settings
+                                </p>
+                            )}
+                            <button
+                                type="button"
+                                onClick={onClose}
+                                aria-label="Close settings"
+                                className="-mr-1 p-1 text-ink-muted transition-colors hover:text-ink"
                             >
-                                {!current && (
-                                    <div className="grid h-full grid-cols-2 grid-rows-3 gap-1.5">
-                                        {sections.map((item) => (
-                                            <button
-                                                key={item.id}
-                                                ref={(el) => {
-                                                    if (
-                                                        el &&
-                                                        returnTo.current ===
-                                                            item.id
-                                                    ) {
-                                                        returnTo.current = null;
-                                                        el.focus();
-                                                    }
-                                                }}
-                                                type="button"
-                                                onClick={() =>
-                                                    setSection(item.id)
-                                                }
-                                                className={`group flex min-h-[6rem] flex-col gap-2 rounded-md border border-line-strong p-3 text-left transition-colors hover:border-ink ${
-                                                    item.id === 'cube'
-                                                        ? 'col-span-2'
-                                                        : ''
-                                                }`}
-                                            >
-                                                <span className="flex items-center justify-between gap-2 text-small font-medium text-ink">
-                                                    {item.label}
-                                                    <ChevronRight
-                                                        width={13}
-                                                        height={13}
-                                                        className="text-ink-faint transition-transform group-hover:translate-x-0.5 group-hover:text-ink"
-                                                    />
-                                                </span>
-                                                <span className="block text-micro leading-snug text-ink-faint">
-                                                    {item.hint}
-                                                </span>
-                                                <span className="mt-auto block truncate font-mono text-micro text-ink-muted">
-                                                    {summary[item.id]}
-                                                </span>
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
+                                <Close width={15} height={15} />
+                            </button>
+                        </div>
 
-                                {current && (
-                                    <p className="mb-5 text-small leading-snug text-ink-muted">
-                                        {current.description}
-                                    </p>
-                                )}
-
-                                {section === 'presets' && (
-                                    <div className="grid grid-cols-2 gap-1.5 pb-1">
-                                        {presets.map((item) => (
-                                            <button
-                                                key={item.name}
-                                                type="button"
-                                                onClick={() =>
-                                                    applyPreset(item)
-                                                }
-                                                aria-pressed={
-                                                    preset === item.name
-                                                }
-                                                className={`group rounded-md border p-1 text-left font-mono text-micro transition-colors ${
-                                                    preset === item.name
-                                                        ? 'border-ink bg-ink text-paper'
-                                                        : 'border-line-strong text-ink hover:border-ink'
-                                                }`}
-                                            >
-                                                <PresetPreview preset={item} />
-                                                <span className="flex items-center justify-between gap-2 px-1 pb-0.5 pt-1.5">
-                                                    {item.name}
-                                                    {item.effect === 'grid' ? (
-                                                        <Grid
-                                                            width={11}
-                                                            height={11}
-                                                            aria-label="Grid"
-                                                        />
-                                                    ) : (
-                                                        <LensIcon
-                                                            width={11}
-                                                            height={11}
-                                                            aria-label="Lens"
-                                                        />
-                                                    )}
-                                                </span>
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
-
-                                {section === 'colour' && (
-                                    <>
-                                        <p className="eyebrow !text-ink-muted mb-2">
-                                            Palette
-                                        </p>
-                                        <div className="grid grid-cols-3 gap-1.5">
-                                            {gradientNames.map((name) => (
+                        <div
+                            ref={scrollRef}
+                            className="-mr-2 mt-4 min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain pr-2"
+                        >
+                            <AnimatePresence mode="wait" initial={false}>
+                                <motion.div
+                                    key={section ?? 'home'}
+                                    // Pages slide in from the side they sit on:
+                                    // deeper to the right, home to the left.
+                                    // Home fills the panel with its tiles.
+                                    className={current ? undefined : 'h-full'}
+                                    initial={{
+                                        opacity: 0,
+                                        x: section ? 12 : -12,
+                                    }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: section ? -12 : 12 }}
+                                    transition={{
+                                        duration: 0.14,
+                                        ease: 'easeOut',
+                                    }}
+                                >
+                                    {!current && (
+                                        <div className="grid min-h-full grid-cols-2 grid-rows-[repeat(3,minmax(min-content,1fr))] gap-1.5">
+                                            {sections.map((item) => (
                                                 <button
-                                                    key={name}
+                                                    key={item.id}
+                                                    ref={(el) => {
+                                                        if (
+                                                            el &&
+                                                            returnTo.current ===
+                                                                item.id
+                                                        ) {
+                                                            returnTo.current =
+                                                                null;
+                                                            el.focus();
+                                                        }
+                                                    }}
                                                     type="button"
                                                     onClick={() =>
-                                                        setGradient(name)
+                                                        setSection(item.id)
                                                     }
-                                                    title={name}
-                                                    aria-pressed={
-                                                        gradient === name
-                                                    }
-                                                    className={`h-7 overflow-hidden rounded-md border transition-all ${
-                                                        gradient === name
-                                                            ? 'border-ink ring-1 ring-ink'
-                                                            : 'border-line hover:border-line-strong'
+                                                    className={`group flex flex-col rounded-md border border-line-strong text-left transition-colors hover:border-ink ${
+                                                        sheet
+                                                            ? 'min-h-[4.5rem] gap-1 p-2.5'
+                                                            : 'min-h-[6rem] gap-2 p-3'
+                                                    } ${
+                                                        item.id === 'cube'
+                                                            ? 'col-span-2'
+                                                            : ''
                                                     }`}
                                                 >
-                                                    <Swatches
-                                                        colors={gradients[name]}
-                                                    />
-                                                    <span className="sr-only">
-                                                        {name}
+                                                    <span className="flex items-center justify-between gap-2 text-small font-medium text-ink">
+                                                        {item.label}
+                                                        <ChevronRight
+                                                            width={13}
+                                                            height={13}
+                                                            className="text-ink-faint transition-transform group-hover:translate-x-0.5 group-hover:text-ink"
+                                                        />
+                                                    </span>
+                                                    <span className="block text-micro leading-snug text-ink-faint">
+                                                        {item.hint}
+                                                    </span>
+                                                    <span className="mt-auto block truncate font-mono text-micro text-ink-muted">
+                                                        {summary[item.id]}
                                                     </span>
                                                 </button>
                                             ))}
                                         </div>
+                                    )}
 
-                                        <p className="eyebrow !text-ink-muted mb-1 mt-5">
-                                            Your own
+                                    {current && (
+                                        <p className="mb-5 text-small leading-snug text-ink-muted">
+                                            {current.description}
                                         </p>
-                                        <p className="mb-2 text-micro leading-snug text-ink-faint">
-                                            Pick two colours and the palette is
-                                            mixed between them.
-                                        </p>
-                                        <div
-                                            className={`flex items-center gap-2 rounded-md border p-1.5 transition-colors ${
-                                                gradient === 'custom'
-                                                    ? 'border-ink ring-1 ring-ink'
-                                                    : 'border-line'
-                                            }`}
-                                        >
-                                            {/* The mixed palette itself, as the preview. */}
-                                            <span className="flex h-7 flex-1 overflow-hidden rounded-[0.3rem]">
-                                                <Swatches colors={mixed} />
-                                            </span>
-                                            {customColours.map(
-                                                (color, index) => (
-                                                    <label
-                                                        key={index}
-                                                        title={`Custom colour ${index + 1}`}
-                                                        className="relative block h-7 w-7 shrink-0 cursor-pointer overflow-hidden rounded-full border border-line-strong"
-                                                        style={{
-                                                            backgroundColor:
-                                                                color,
-                                                        }}
-                                                    >
-                                                        <input
-                                                            type="color"
-                                                            value={color}
-                                                            onChange={(
-                                                                event,
-                                                            ) => {
-                                                                const next: [
-                                                                    string,
-                                                                    string,
-                                                                ] = [
-                                                                    ...customColours,
-                                                                ];
-                                                                next[index] =
-                                                                    event.target.value;
-                                                                setCustomColours(
-                                                                    next,
-                                                                );
-                                                            }}
-                                                            className="absolute inset-0 cursor-pointer opacity-0"
-                                                            aria-label={`Custom colour ${index + 1}`}
-                                                        />
-                                                    </label>
-                                                ),
-                                            )}
+                                    )}
+
+                                    {section === 'presets' && (
+                                        <div className="grid grid-cols-2 gap-1.5 pb-1">
+                                            {presets.map((item) => (
+                                                <button
+                                                    key={item.name}
+                                                    type="button"
+                                                    onClick={() =>
+                                                        applyPreset(item)
+                                                    }
+                                                    aria-pressed={
+                                                        preset === item.name
+                                                    }
+                                                    className={`group rounded-md border p-1 text-left font-mono text-micro transition-colors ${
+                                                        preset === item.name
+                                                            ? 'border-ink bg-ink text-paper'
+                                                            : 'border-line-strong text-ink hover:border-ink'
+                                                    }`}
+                                                >
+                                                    <PresetPreview
+                                                        preset={item}
+                                                    />
+                                                    <span className="flex items-center justify-between gap-2 px-1 pb-0.5 pt-1.5">
+                                                        {item.name}
+                                                        {item.effect ===
+                                                        'grid' ? (
+                                                            <Grid
+                                                                width={11}
+                                                                height={11}
+                                                                aria-label="Grid"
+                                                            />
+                                                        ) : (
+                                                            <LensIcon
+                                                                width={11}
+                                                                height={11}
+                                                                aria-label="Lens"
+                                                            />
+                                                        )}
+                                                    </span>
+                                                </button>
+                                            ))}
                                         </div>
+                                    )}
 
-                                        <div className="mt-6 pb-1">
-                                            {sliders(colourKeys)}
-                                        </div>
-                                    </>
-                                )}
-
-                                {section === 'pattern' && (
-                                    <div className="pb-1">
-                                        {sliders(patternKeys)}
-                                    </div>
-                                )}
-
-                                {section === 'cursor' && (
-                                    <>
-                                        <div
-                                            role="radiogroup"
-                                            aria-label="Cursor effect"
-                                            className="grid grid-cols-2 gap-1.5"
-                                        >
-                                            {effects.map(
-                                                ({ id, label, Icon }) => (
+                                    {section === 'colour' && (
+                                        <>
+                                            <p className="eyebrow !text-ink-muted mb-2">
+                                                Palette
+                                            </p>
+                                            <div className="grid grid-cols-3 gap-1.5">
+                                                {gradientNames.map((name) => (
                                                     <button
-                                                        key={id}
+                                                        key={name}
                                                         type="button"
-                                                        role="radio"
-                                                        aria-checked={
-                                                            effect === id
-                                                        }
                                                         onClick={() =>
-                                                            setEffect(id)
+                                                            setGradient(name)
                                                         }
-                                                        className={`flex items-center justify-center gap-2 rounded-md border px-2 py-2 font-mono text-micro transition-colors ${
-                                                            effect === id
-                                                                ? 'border-ink bg-ink text-paper'
-                                                                : 'border-line-strong text-ink hover:border-ink'
+                                                        title={name}
+                                                        aria-pressed={
+                                                            gradient === name
+                                                        }
+                                                        className={`h-7 overflow-hidden rounded-md border transition-all ${
+                                                            gradient === name
+                                                                ? 'border-ink ring-1 ring-ink'
+                                                                : 'border-line hover:border-line-strong'
                                                         }`}
                                                     >
-                                                        <Icon
-                                                            width={14}
-                                                            height={14}
+                                                        <Swatches
+                                                            colors={
+                                                                gradients[name]
+                                                            }
                                                         />
-                                                        {label}
+                                                        <span className="sr-only">
+                                                            {name}
+                                                        </span>
                                                     </button>
-                                                ),
-                                            )}
-                                        </div>
-                                        <p className="mb-5 mt-2 text-micro leading-snug text-ink-faint">
-                                            {effect === 'lens'
-                                                ? 'Magnifies the tiles like a glass bead rolled over them.'
-                                                : 'Draws the grid between the tiles, fading out from the centre.'}
-                                        </p>
-                                        <div className="pb-1">
-                                            {sliders(effectKeys[effect])}
-                                        </div>
-                                    </>
-                                )}
-                                {section === 'cube' && (
-                                    <div className="space-y-5 pb-1">
-                                        <RangeSlider
-                                            label="Relief"
-                                            description="How far the wave lifts the blocks off the cube. All the way up, they fly apart."
-                                            min={0}
-                                            max={RELIEF_MAX}
-                                            step={0.05}
-                                            value={cube.relief}
-                                            onChange={(relief) =>
-                                                setCube({ ...cube, relief })
-                                            }
-                                        />
-                                        <RangeSlider
-                                            label="Block width"
-                                            description="Each block's footprint, as a share of its tile. Smaller leaves gaps between them."
-                                            min={0.2}
-                                            max={1}
-                                            step={0.01}
-                                            value={cube.blockWidth}
-                                            onChange={(blockWidth) =>
-                                                setCube({ ...cube, blockWidth })
-                                            }
-                                        />
-                                        <RangeSlider
-                                            label="Block height"
-                                            description="How thick each block is: thin tiles at the bottom, tall columns at the top."
-                                            min={0.1}
-                                            max={1}
-                                            step={0.01}
-                                            value={cube.blockHeight}
-                                            onChange={(blockHeight) =>
-                                                setCube({
-                                                    ...cube,
-                                                    blockHeight,
-                                                })
-                                            }
-                                        />
+                                                ))}
+                                            </div>
 
-                                        <div className="border-t border-line pt-5">
-                                            <p className="eyebrow !text-ink-muted">
-                                                Core
+                                            <p className="eyebrow !text-ink-muted mb-1 mt-5">
+                                                Your own
                                             </p>
-                                            <p className="mt-1 text-micro leading-snug text-ink-faint">
-                                                What sits inside the blocks, if
-                                                anything. None leaves the cube
-                                                hollow.
+                                            <p className="mb-2 text-micro leading-snug text-ink-faint">
+                                                Pick two colours and the palette
+                                                is mixed between them.
                                             </p>
                                             <div
-                                                role="radiogroup"
-                                                aria-label="Core shape"
-                                                className="mt-2 grid grid-cols-4 gap-1.5"
+                                                className={`flex items-center gap-2 rounded-md border p-1.5 transition-colors ${
+                                                    gradient === 'custom'
+                                                        ? 'border-ink ring-1 ring-ink'
+                                                        : 'border-line'
+                                                }`}
                                             >
-                                                {coreShapes.map(
-                                                    ({ id, label }) => (
+                                                {/* The mixed palette itself, as the preview. */}
+                                                <span className="flex h-7 flex-1 overflow-hidden rounded-[0.3rem]">
+                                                    <Swatches colors={mixed} />
+                                                </span>
+                                                {customColours.map(
+                                                    (color, index) => (
+                                                        <label
+                                                            key={index}
+                                                            title={`Custom colour ${index + 1}`}
+                                                            className="relative block h-7 w-7 shrink-0 cursor-pointer overflow-hidden rounded-full border border-line-strong"
+                                                            style={{
+                                                                backgroundColor:
+                                                                    color,
+                                                            }}
+                                                        >
+                                                            <input
+                                                                type="color"
+                                                                value={color}
+                                                                onChange={(
+                                                                    event,
+                                                                ) => {
+                                                                    const next: [
+                                                                        string,
+                                                                        string,
+                                                                    ] = [
+                                                                        ...customColours,
+                                                                    ];
+                                                                    next[
+                                                                        index
+                                                                    ] =
+                                                                        event.target.value;
+                                                                    setCustomColours(
+                                                                        next,
+                                                                    );
+                                                                }}
+                                                                className="absolute inset-0 cursor-pointer opacity-0"
+                                                                aria-label={`Custom colour ${index + 1}`}
+                                                            />
+                                                        </label>
+                                                    ),
+                                                )}
+                                            </div>
+
+                                            <div className="mt-6 pb-1">
+                                                {sliders(colourKeys)}
+                                            </div>
+                                        </>
+                                    )}
+
+                                    {section === 'pattern' && (
+                                        <div className="pb-1">
+                                            {sliders(patternKeys)}
+                                        </div>
+                                    )}
+
+                                    {section === 'cursor' && (
+                                        <>
+                                            <div
+                                                role="radiogroup"
+                                                aria-label="Cursor effect"
+                                                className="grid grid-cols-2 gap-1.5"
+                                            >
+                                                {effects.map(
+                                                    ({ id, label, Icon }) => (
                                                         <button
                                                             key={id}
                                                             type="button"
                                                             role="radio"
                                                             aria-checked={
-                                                                cube.core === id
+                                                                effect === id
                                                             }
                                                             onClick={() =>
-                                                                setCube({
-                                                                    ...cube,
-                                                                    core: id,
-                                                                })
+                                                                setEffect(id)
                                                             }
-                                                            className={`rounded-md border px-1 py-2 font-mono text-micro transition-colors ${
-                                                                cube.core === id
+                                                            className={`flex items-center justify-center gap-2 rounded-md border px-2 py-2 font-mono text-micro transition-colors ${
+                                                                effect === id
                                                                     ? 'border-ink bg-ink text-paper'
                                                                     : 'border-line-strong text-ink hover:border-ink'
                                                             }`}
                                                         >
+                                                            <Icon
+                                                                width={14}
+                                                                height={14}
+                                                            />
                                                             {label}
                                                         </button>
                                                     ),
                                                 )}
                                             </div>
-                                        </div>
+                                            <p className="mb-5 mt-2 text-micro leading-snug text-ink-faint">
+                                                {effect === 'lens'
+                                                    ? 'Magnifies the tiles like a glass bead rolled over them.'
+                                                    : 'Draws the grid between the tiles, fading out from the centre.'}
+                                            </p>
+                                            <div className="pb-1">
+                                                {sliders(effectKeys[effect])}
+                                            </div>
+                                        </>
+                                    )}
+                                    {section === 'cube' && (
+                                        <div className="space-y-5 pb-1">
+                                            <RangeSlider
+                                                label="Relief"
+                                                description="How far the wave lifts the blocks off the cube. All the way up, they fly apart."
+                                                min={0}
+                                                max={RELIEF_MAX}
+                                                step={0.05}
+                                                value={cube.relief}
+                                                onChange={(relief) =>
+                                                    setCube({ ...cube, relief })
+                                                }
+                                            />
+                                            <RangeSlider
+                                                label="Block width"
+                                                description="Each block's footprint, as a share of its tile. Smaller leaves gaps between them."
+                                                min={0.2}
+                                                max={1}
+                                                step={0.01}
+                                                value={cube.blockWidth}
+                                                onChange={(blockWidth) =>
+                                                    setCube({
+                                                        ...cube,
+                                                        blockWidth,
+                                                    })
+                                                }
+                                            />
+                                            <RangeSlider
+                                                label="Block height"
+                                                description="How thick each block is: thin tiles at the bottom, tall columns at the top."
+                                                min={0.1}
+                                                max={1}
+                                                step={0.01}
+                                                value={cube.blockHeight}
+                                                onChange={(blockHeight) =>
+                                                    setCube({
+                                                        ...cube,
+                                                        blockHeight,
+                                                    })
+                                                }
+                                            />
 
-                                        {cube.core !== 'none' && (
-                                            <>
-                                                <label className="flex items-center justify-between gap-3">
-                                                    <span>
-                                                        <span className="eyebrow !text-ink-muted">
-                                                            Core colour
+                                            <div className="border-t border-line pt-5">
+                                                <p className="eyebrow !text-ink-muted">
+                                                    Core
+                                                </p>
+                                                <p className="mt-1 text-micro leading-snug text-ink-faint">
+                                                    What sits inside the blocks,
+                                                    if anything. None leaves the
+                                                    cube hollow.
+                                                </p>
+                                                <div
+                                                    role="radiogroup"
+                                                    aria-label="Core shape"
+                                                    className="mt-2 grid grid-cols-4 gap-1.5"
+                                                >
+                                                    {coreShapes.map(
+                                                        ({ id, label }) => (
+                                                            <button
+                                                                key={id}
+                                                                type="button"
+                                                                role="radio"
+                                                                aria-checked={
+                                                                    cube.core ===
+                                                                    id
+                                                                }
+                                                                onClick={() =>
+                                                                    setCube({
+                                                                        ...cube,
+                                                                        core: id,
+                                                                    })
+                                                                }
+                                                                className={`rounded-md border px-1 py-2 font-mono text-micro transition-colors ${
+                                                                    cube.core ===
+                                                                    id
+                                                                        ? 'border-ink bg-ink text-paper'
+                                                                        : 'border-line-strong text-ink hover:border-ink'
+                                                                }`}
+                                                            >
+                                                                {label}
+                                                            </button>
+                                                        ),
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            {cube.core !== 'none' && (
+                                                <>
+                                                    <label className="flex items-center justify-between gap-3">
+                                                        <span>
+                                                            <span className="eyebrow !text-ink-muted">
+                                                                Core colour
+                                                            </span>
+                                                            <span className="mt-1 block text-micro leading-snug text-ink-faint">
+                                                                Lit by the same
+                                                                palette light as
+                                                                the blocks.
+                                                            </span>
                                                         </span>
-                                                        <span className="mt-1 block text-micro leading-snug text-ink-faint">
-                                                            Lit by the same
-                                                            palette light as the
-                                                            blocks.
+                                                        <span
+                                                            className="relative block h-7 w-7 shrink-0 cursor-pointer overflow-hidden rounded-full border border-line-strong"
+                                                            style={{
+                                                                backgroundColor:
+                                                                    cube.coreColor,
+                                                            }}
+                                                        >
+                                                            <input
+                                                                type="color"
+                                                                value={
+                                                                    cube.coreColor
+                                                                }
+                                                                onChange={(
+                                                                    event,
+                                                                ) =>
+                                                                    setCube({
+                                                                        ...cube,
+                                                                        coreColor:
+                                                                            event
+                                                                                .target
+                                                                                .value,
+                                                                    })
+                                                                }
+                                                                aria-label="Core colour"
+                                                                className="absolute inset-0 cursor-pointer opacity-0"
+                                                            />
                                                         </span>
-                                                    </span>
-                                                    <span
-                                                        className="relative block h-7 w-7 shrink-0 cursor-pointer overflow-hidden rounded-full border border-line-strong"
-                                                        style={{
-                                                            backgroundColor:
-                                                                cube.coreColor,
-                                                        }}
-                                                    >
-                                                        <input
-                                                            type="color"
-                                                            value={
-                                                                cube.coreColor
-                                                            }
-                                                            onChange={(event) =>
-                                                                setCube({
-                                                                    ...cube,
-                                                                    coreColor:
-                                                                        event
-                                                                            .target
-                                                                            .value,
-                                                                })
-                                                            }
-                                                            aria-label="Core colour"
-                                                            className="absolute inset-0 cursor-pointer opacity-0"
-                                                        />
-                                                    </span>
-                                                </label>
-                                                <RangeSlider
-                                                    label="Core size"
-                                                    description="How much of the space inside the blocks it fills."
-                                                    min={0.1}
-                                                    max={1}
-                                                    step={0.01}
-                                                    value={cube.coreSize}
-                                                    onChange={(coreSize) =>
-                                                        setCube({
-                                                            ...cube,
-                                                            coreSize,
-                                                        })
-                                                    }
-                                                />
-                                            </>
-                                        )}
-                                    </div>
-                                )}
-                            </motion.div>
-                        </AnimatePresence>
+                                                    </label>
+                                                    <RangeSlider
+                                                        label="Core size"
+                                                        description="How much of the space inside the blocks it fills."
+                                                        min={0.1}
+                                                        max={1}
+                                                        step={0.01}
+                                                        value={cube.coreSize}
+                                                        onChange={(coreSize) =>
+                                                            setCube({
+                                                                ...cube,
+                                                                coreSize,
+                                                            })
+                                                        }
+                                                    />
+                                                </>
+                                            )}
+                                        </div>
+                                    )}
+                                </motion.div>
+                            </AnimatePresence>
+                        </div>
                     </div>
 
-                    <div className="mt-4 flex shrink-0 gap-2 border-t border-line pt-4">
+                    <div
+                        ref={footerRef}
+                        className={
+                            sheet
+                                ? 'mt-2 flex shrink-0 gap-2'
+                                : 'mt-4 flex shrink-0 gap-2 border-t border-line pt-4'
+                        }
+                    >
                         <button
                             type="button"
                             onClick={randomise}
