@@ -26,6 +26,8 @@ import {
 
 const FOV = 30;
 
+const Y_UP = new THREE.Vector3(0, 1, 0);
+
 /** Where it starts: a three-quarter view, two sides and the top. */
 const BASE_POSE = new THREE.Quaternion().setFromEuler(
     new THREE.Euler(0.5, -0.66, 0),
@@ -651,28 +653,39 @@ export const mountCubeToy = (options: CubeToyOptions) => {
 
     /* ---------- Motion ---------- */
 
-    // Free: a throw spins on its own momentum and slows by friction alone.
+    /*
+     * A slingshot. Grabbing it holds it where it is (the anchor); dragging
+     * pulls it round against a band that stiffens the further it goes
+     * (PULL_MAX). Let go and the band snaps it back towards the anchor,
+     * harder the further it was pulled (SLING), and it shoots on through
+     * with that speed: from there it flies free, slowing like a flywheel
+     * (SPIN_DOWN) until it springs upright into its idle turn. It never
+     * spins faster than MAX_SPIN.
+     */
     const orientation = BASE_POSE.clone();
     const omega = new THREE.Vector3(); // angular velocity, world, rad/s
+    let mode: 'free' | 'held' | 'launch' = 'free';
+    const anchor = new THREE.Quaternion();
+    // How far the finger has pulled, as a rotation vector (world, radians),
+    // before the band's give.
+    const pulled = new THREE.Vector3();
+    const stretch = new THREE.Vector3();
+    const back = new THREE.Quaternion();
+    const toAnchor = new THREE.Vector3();
+    const PULL_MAX = 2.4; // rad: as far as the band lets it go, ~140 degrees
+    const SLING = 45; // how hard the band snaps back
+    const SPIN_DOWN = 1.4; // s: how long a hard launch coasts
+    const FRICTION = 4; // rad/s², what stops a gentle one
+    const MAX_SPIN = 16; // rad/s, about 2.5 turns a second
     let scale = 0;
     let zoom = 1;
     let zoomAim = 1;
 
     const K = 0.011; // radians per pixel of drag
-    const X = new THREE.Vector3(1, 0, 0);
-    const Y = new THREE.Vector3(0, 1, 0);
-    const turnBy = (dx: number, dy: number) => {
-        orientation.premultiply(
-            new THREE.Quaternion()
-                .setFromAxisAngle(Y, dx * K)
-                .multiply(new THREE.Quaternion().setFromAxisAngle(X, dy * K)),
-        );
-    };
 
     /* ---------- Input ---------- */
 
     const pointers = new Map<number, { x: number; y: number }>();
-    let lastMove = 0;
     let moved = 0;
     let pinchFrom = 0;
     let zoomAtPinch = 1;
@@ -695,9 +708,14 @@ export const mountCubeToy = (options: CubeToyOptions) => {
         if (event.button !== 0 && event.pointerType === 'mouse') return;
         hit.setPointerCapture(event.pointerId);
         pointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
-        if (pointers.size === 1) moved = 0;
-        omega.set(0, 0, 0);
-        lastMove = performance.now();
+        if (pointers.size === 1) {
+            moved = 0;
+            // Caught: held still where it is, the anchor of the pull.
+            mode = 'held';
+            omega.set(0, 0, 0);
+            anchor.copy(orientation);
+            pulled.set(0, 0, 0);
+        }
         if (pointers.size === 2) {
             const [a, b] = [...pointers.values()];
             pinchFrom = Math.hypot(a.x - b.x, a.y - b.y);
@@ -709,9 +727,6 @@ export const mountCubeToy = (options: CubeToyOptions) => {
     const onPointerMove = (event: PointerEvent) => {
         const previous = pointers.get(event.pointerId);
         if (!previous) return;
-        const now = performance.now();
-        const dt = Math.max(0.001, (now - lastMove) / 1000);
-        lastMove = now;
         const dx = event.clientX - previous.x;
         const dy = event.clientY - previous.y;
         previous.x = event.clientX;
@@ -725,23 +740,22 @@ export const mountCubeToy = (options: CubeToyOptions) => {
                 zoomAim = clampZoom((zoomAtPinch * span) / pinchFrom);
             return;
         }
-        turnBy(dx, dy);
-        // Measured spin, smoothed, for the throw on release.
-        omega.lerp(new THREE.Vector3(dy * K, dx * K, 0).divideScalar(dt), 0.5);
+        pulled.x += dy * K;
+        pulled.y += dx * K;
     };
 
     const onPointerUp = (event: PointerEvent) => {
         pointers.delete(event.pointerId);
         if (pointers.size < 2) pinchFrom = 0;
         if (pointers.size > 0) return;
-        const now = performance.now();
-        // Let go after holding still: no throw.
-        if (now - lastMove > 80) omega.set(0, 0, 0);
         // Barely moved: that was a click, on the cube or beside it.
         if (event.type === 'pointerup' && moved < 6) {
-            omega.set(0, 0, 0);
+            mode = 'free';
             options.onTap?.(onCube(event.clientX, event.clientY));
+            return;
         }
+        // Pulled: let fly (under reduced motion, it just stays put).
+        mode = reduced || moved === Infinity ? 'free' : 'launch';
     };
 
     // On a scrolling page only ctrl+scroll (or a trackpad pinch, which arrives
@@ -782,6 +796,21 @@ export const mountCubeToy = (options: CubeToyOptions) => {
 
     // Floating: a slow turn, and a rise and fall above the floor.
     const IDLE_SPIN = 0.3; // rad/s, about the upright
+    const idle = new THREE.Vector3();
+    const axis = new THREE.Vector3();
+    const spin = new THREE.Quaternion();
+    /*
+     * Its upright: the axis of the cube that points straight up in its
+     * resting pose. Once a throw has slowed, a spring swings that axis back
+     * up (overshooting a little, as a weighted thing would) while it keeps
+     * turning freely about it.
+     */
+    const UPRIGHT = Y_UP.clone().applyQuaternion(BASE_POSE.clone().invert());
+    const SPRING = 7; // how hard it rights itself
+    const SPRING_DAMP = 0.45; // s: how quickly the wobble dies away
+    const upNow = new THREE.Vector3();
+    const toUp = new THREE.Vector3();
+    const tilt = new THREE.Vector3();
     const BOB = 0.06; // of the edge, either way
     const TILT = THREE.MathUtils.degToRad(12); // looking down on the floor
     const reflect = new THREE.Matrix4();
@@ -861,22 +890,78 @@ export const mountCubeToy = (options: CubeToyOptions) => {
         const w = shownWave;
         const c = shownCube;
 
-        if (pointers.size === 0) {
-            if (float && !reduced) {
-                orientation.premultiply(
-                    new THREE.Quaternion().setFromAxisAngle(Y, IDLE_SPIN * dt),
-                );
+        if (mode === 'held') {
+            // Turned as far as the finger has pulled, less the band's give:
+            // near the anchor it follows the finger, far out it barely moves.
+            const reach = pulled.length();
+            const give = PULL_MAX * (1 - Math.exp(-reach / PULL_MAX));
+            if (reach > 1e-6) {
+                orientation
+                    .setFromAxisAngle(
+                        stretch.copy(pulled).divideScalar(reach),
+                        give,
+                    )
+                    .multiply(anchor);
             }
-            omega.multiplyScalar(reduced ? 0 : Math.exp(-1.1 * dt));
-            const speed = omega.length();
-            if (speed > 1e-5) {
-                orientation.premultiply(
-                    new THREE.Quaternion().setFromAxisAngle(
-                        omega.clone().divideScalar(speed),
-                        speed * dt,
-                    ),
-                );
+        } else if (mode === 'launch') {
+            // The band pulls it back towards the anchor, harder the further
+            // off it is; once it is through (moving away again), it flies.
+            back.copy(anchor).multiply(spin.copy(orientation).invert());
+            if (back.w < 0) back.set(-back.x, -back.y, -back.z, -back.w);
+            const angle = 2 * Math.acos(Math.min(1, back.w));
+            const sine = Math.sqrt(Math.max(0, 1 - back.w * back.w));
+            if (sine > 1e-6) {
+                toAnchor.set(back.x, back.y, back.z).divideScalar(sine);
+                omega.addScaledVector(toAnchor, SLING * angle * dt);
             }
+            if (angle < 0.02 || (sine > 1e-6 && omega.dot(toAnchor) < 0)) {
+                mode = 'free';
+            }
+        } else {
+            // Free (or pinching): winding down to its idle turn (or to rest).
+            const rest = float && !reduced ? IDLE_SPIN : 0;
+            if (reduced) omega.set(0, 0, 0);
+            else {
+                // Two kinds of drag, as on anything real: a steady friction,
+                // which stops a gentle launch within a fraction of a turn,
+                // and air, which lets a hard one coast a while longer.
+                idle.set(0, rest, 0);
+                const extra = toAnchor.copy(omega).sub(idle);
+                const over = extra.length();
+                if (over > 1e-6) {
+                    const next =
+                        Math.max(0, over - FRICTION * dt) *
+                        Math.exp(-dt / SPIN_DOWN);
+                    omega.copy(idle).addScaledVector(extra, next / over);
+                }
+            }
+            // Slowed enough (under ~3 rad/s, fully under 1): spring upright.
+            const settled =
+                1 - THREE.MathUtils.smoothstep(omega.length(), 1, 3);
+            if (float && !reduced && settled > 0) {
+                upNow.copy(UPRIGHT).applyQuaternion(orientation);
+                toUp.crossVectors(upNow, Y_UP);
+                const off = Math.atan2(toUp.length(), upNow.dot(Y_UP));
+                if (toUp.lengthSq() > 1e-10) {
+                    omega.addScaledVector(
+                        toUp.normalize(),
+                        SPRING * off * settled * dt,
+                    );
+                }
+                // Damp only the tipping, never the turn about the upright.
+                tilt.set(omega.x, 0, omega.z);
+                omega.addScaledVector(tilt, -ease(dt, SPRING_DAMP) * settled);
+            }
+        }
+        if (omega.length() > MAX_SPIN) omega.setLength(MAX_SPIN);
+        const speed = omega.length();
+        if (mode !== 'held' && speed > 1e-5) {
+            orientation.premultiply(
+                spin.setFromAxisAngle(
+                    axis.copy(omega).divideScalar(speed),
+                    speed * dt,
+                ),
+            );
         }
         scale += (1 - scale) * ease(dt, 0.25);
         zoom += (zoomAim - zoom) * ease(dt, 0.15);
