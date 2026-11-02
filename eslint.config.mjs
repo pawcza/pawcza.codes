@@ -3,9 +3,6 @@ import tseslint from 'typescript-eslint';
 import reactHooks from 'eslint-plugin-react-hooks';
 
 const config = [
-    {
-        ignores: ['src/types/component-types-sb.d.ts'],
-    },
     ...nextConfig,
     {
         plugins: {

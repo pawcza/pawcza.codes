@@ -5,9 +5,8 @@ node_modules
 .env
 .env.*
 README.md
-DEPLOYMENT.md
-deploy.sh
-webhook
+LICENSE
+docs
 certificates
 *.log
 .vscode

@@ -33,12 +33,6 @@ export const Mail = (props: IconProps) => (
     </svg>
 );
 
-export const Phone = (props: IconProps) => (
-    <svg {...base} {...props}>
-        <path d="M6.5 3h3l1.5 4.5-2 1.5a12 12 0 0 0 6 6l1.5-2L21 14.5v3a2 2 0 0 1-2.2 2A17 17 0 0 1 4 5.2 2 2 0 0 1 6 3Z" />
-    </svg>
-);
-
 export const Shuffle = (props: IconProps) => (
     <svg {...base} {...props}>
         <path d="M3 7h3.5a4 4 0 0 1 3.3 1.8l4.4 6.4A4 4 0 0 0 17.5 17H21M3 17h3.5a4 4 0 0 0 3.3-1.8l.7-1M14 9l.9-1.2A4 4 0 0 1 18.2 6H21" />

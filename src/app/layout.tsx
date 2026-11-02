@@ -99,6 +99,14 @@ export default function RootLayout({
         >
             <head>
                 <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+                {/* Umami, proxied first-party under /stats by NPM. */}
+                {process.env.NODE_ENV === 'production' && (
+                    <script
+                        defer
+                        src="/stats/script.js"
+                        data-website-id="fab089be-a7e8-482c-9fae-04a5eca89fe7"
+                    />
+                )}
             </head>
             <body className="font-sans">
                 {/* The loader is dismissed by JS, so it must never appear without it. */}

@@ -153,7 +153,7 @@
         0 1px 2px rgba(22, 22, 26, 0.05),
         0 18px 40px -18px rgba(22, 22, 26, 0.22);
 
-    /* Edge glow: the border lights up where the cursor is (from wszystko.app).
+    /* Edge glow: the border lights up where the cursor is.
      * White under `difference` blending: it inverts whatever it sits on, so
      * it reads dark on paper and light on ink, hover-inverted buttons too. */
     --glow-color: #fff;
@@ -337,7 +337,7 @@ body {
 }
 
 /*
- * Edge glow, ported from wszystko.app. EdgeGlow (a single pointer listener)
+ * Edge glow. GlassPointer (a single pointer listener)
  * writes the cursor position in each nearby element's own coordinates, plus a
  * strength that falls off over the first 100px outside it. A masked ring then
  * paints a radial highlight at that spot, so borders light up as the cursor
@@ -368,7 +368,7 @@ body {
 }
 
 /* Declared on the elements, not :root: the var()s inside must resolve where
- * EdgeGlow writes --glow-x/y, and the ::before rings inherit the result. */
+ * GlassPointer writes --glow-x/y, and the ::before rings inherit the result. */
 :root {
     /* Whole pixels only: a 1.5px ring offset by -1px landed on half pixels,
      * which browsers round differently top and bottom (thick top, thin
