@@ -3,8 +3,12 @@
 import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
 
+import { prefersReducedMotion } from '@/components/common/motion';
 import TileReveal from '@/components/work/TileReveal';
 import { Project } from '@/content/projects';
+
+/** How far a cover leans towards the cursor, in degrees. */
+const MAX_TILT = 5;
 
 /**
  * The project's logo on its brand background, framed.
@@ -25,9 +29,56 @@ const ProjectCover = ({
     priority?: boolean;
 }) => {
     const frameRef = useRef<HTMLDivElement>(null);
+    const tiltRef = useRef<HTMLDivElement>(null);
+    const imageRef = useRef<HTMLImageElement>(null);
     const videoRef = useRef<HTMLVideoElement>(null);
     const progressRef = useRef<HTMLDivElement>(null);
     const [playing, setPlaying] = useState(false);
+
+    // Leans towards the cursor. Only ever set while hovering, so nine covers
+    // are not nine layers for the whole visit.
+    useEffect(() => {
+        const tilt = tiltRef.current;
+        const card = tilt?.closest('article');
+        if (
+            !tilt ||
+            !card ||
+            prefersReducedMotion() ||
+            !window.matchMedia('(hover: hover) and (pointer: fine)').matches
+        ) {
+            return;
+        }
+        let frame = 0;
+        let x = 0;
+        let y = 0;
+        const apply = () => {
+            frame = 0;
+            const box = tilt.getBoundingClientRect();
+            const rx = ((y - box.top) / box.height - 0.5) * -2;
+            const ry = ((x - box.left) / box.width - 0.5) * 2;
+            const clamp = (v: number) =>
+                Math.max(-1, Math.min(1, v)) * MAX_TILT;
+            tilt.style.transform = `perspective(70rem) rotateX(${clamp(rx).toFixed(2)}deg) rotateY(${clamp(ry).toFixed(2)}deg)`;
+        };
+        const onMove = (event: Event) => {
+            const { clientX, clientY } = event as PointerEvent;
+            x = clientX;
+            y = clientY;
+            frame ||= requestAnimationFrame(apply);
+        };
+        const onLeave = () => {
+            cancelAnimationFrame(frame);
+            frame = 0;
+            tilt.style.transform = '';
+        };
+        card.addEventListener('pointermove', onMove);
+        card.addEventListener('pointerleave', onLeave);
+        return () => {
+            cancelAnimationFrame(frame);
+            card.removeEventListener('pointermove', onMove);
+            card.removeEventListener('pointerleave', onLeave);
+        };
+    }, []);
 
     // Progress bar: driven by rAF while playing and written straight to the
     // DOM, so it moves smoothly without re-rendering the card every frame.
@@ -50,7 +101,7 @@ const ProjectCover = ({
     // Scroll reveal: the first time the cover is a third on screen it builds
     // itself from squares (TileReveal), then the real image takes over and
     // the squares are dropped. Skipped, straight to the image, for reduced
-    // motion and when the page is rendering without a GPU.
+    // motion.
     const [reveal, setReveal] = useState<'waiting' | 'building' | 'done'>(
         'waiting',
     );
@@ -58,10 +109,7 @@ const ProjectCover = ({
     useEffect(() => {
         const frame = frameRef.current;
         if (!frame) return;
-        if (
-            window.matchMedia('(prefers-reduced-motion: reduce)').matches ||
-            document.documentElement.dataset.render === 'software'
-        ) {
+        if (prefersReducedMotion()) {
             setReveal('done');
             return;
         }
@@ -82,9 +130,7 @@ const ProjectCover = ({
         const card = frameRef.current?.closest('article');
         if (!video || !card) return;
 
-        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-            return;
-        }
+        if (prefersReducedMotion()) return;
         const hover = window.matchMedia(
             '(hover: hover) and (pointer: fine)',
         ).matches;
@@ -138,17 +184,22 @@ const ProjectCover = ({
         // The only surface a project gets: glass sitting right on the image
         // edge (rim and edge glow from .glass), with a gloss laid over the top
         // of the screenshot. The entry around it stays open.
-        <div className="glass rounded-[var(--radius)]">
+        // No blur: the opaque image fills it, so there is nothing to see through.
+        <div
+            ref={tiltRef}
+            className="cover-tilt glass glass-frame rounded-[var(--radius)]"
+        >
             <div
                 ref={frameRef}
                 className="relative aspect-[16/10] overflow-hidden rounded-[var(--radius)] bg-paper"
             >
                 <div
                     className={`absolute inset-0 ${
-                        reveal === 'done' ? '' : 'opacity-0'
+                        reveal === 'done' ? '' : 'cover-wait'
                     }`}
                 >
                     <Image
+                        ref={imageRef}
                         src={project.logo}
                         alt=""
                         fill
@@ -159,7 +210,7 @@ const ProjectCover = ({
                 </div>
                 {reveal !== 'done' && (
                     <TileReveal
-                        src={project.logo}
+                        image={imageRef}
                         seed={project.slug}
                         playing={reveal === 'building'}
                         onDone={() => setReveal('done')}

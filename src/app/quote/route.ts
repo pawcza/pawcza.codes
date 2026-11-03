@@ -20,6 +20,9 @@ const authors = [
     'confucius',
 ];
 
+/** The page has a fallback quote, so a slow API is not worth waiting for. */
+const TIMEOUT_MS = 3000;
+
 export async function GET() {
     try {
         const index = Math.floor(Math.random() * authors.length);
@@ -30,16 +33,24 @@ export async function GET() {
                 headers: {
                     Accept: 'application/json',
                 },
+                signal: AbortSignal.timeout(TIMEOUT_MS),
             },
         );
+        if (!res.ok) throw new Error(`upstream ${res.status}`);
 
         const { quote } = await res.json();
 
-        return new Response(JSON.stringify({ quote }));
+        // Someone else's data ends up in an href on the page.
+        if (!quote?.content || !quote.author?.link?.startsWith('https://')) {
+            throw new Error('unusable quote');
+        }
+
+        return Response.json({ quote });
     } catch (error) {
         console.error('Error fetching quote:', error);
-        return new Response(
-            JSON.stringify({ error: 'Failed to fetch quote', status: 500 }),
+        return Response.json(
+            { error: 'Failed to fetch quote' },
+            { status: 502 },
         );
     }
 }

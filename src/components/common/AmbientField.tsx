@@ -2,10 +2,11 @@
 
 import { useEffect, useRef } from 'react';
 
-import { useIntroDone } from '@/components/common/intro';
 
 /** One ambient square per this many CSS pixels, roughly the hero's tiles. */
 const CELL = 48;
+/** The glows barely move, so a tenth of a second between frames never shows. */
+const DRIFT_MS = 100;
 /** How long a palette change takes to fade through the glow. */
 const PALETTE_FADE_MS = 1200;
 
@@ -27,18 +28,13 @@ const FADE_MS = 520;
  * :root, and transitioning them restyled every element on the page each
  * frame for as long as the fade ran.
  *
- * A few hundred pixels redrawn about 20 times a second is next to free. With
- * reduced motion or no GPU the drift stops, but the colours still follow
- * palette and theme changes.
+ * The pixels are next to free, but every new frame makes each glass surface
+ * above it blur again, so the drift is slow, and sleeps entirely under the
+ * hero. With reduced motion it stops, and this draws
+ * only when something changes: a palette, the theme, the window.
  */
 const AmbientField = () => {
     const ref = useRef<HTMLCanvasElement>(null);
-    const introDone = useIntroDone();
-    const introRef = useRef(false);
-    useEffect(() => {
-        introRef.current = introDone;
-    }, [introDone]);
-
     useEffect(() => {
         const canvas = ref.current;
         const context = canvas?.getContext('2d');
@@ -52,9 +48,7 @@ const AmbientField = () => {
         // frame forced a layout each time.
         let viewportHeight = window.innerHeight;
         let pastHero = false;
-        const onScroll = () => {
-            pastHero = window.scrollY >= viewportHeight * 0.5;
-        };
+        let underHero = true;
         let image: ImageData;
         // Per-cell reveal delay; revealAt is when the sweep began (0 = not yet).
         let delays = new Float32Array(0);
@@ -63,8 +57,12 @@ const AmbientField = () => {
 
         const resize = () => {
             viewportHeight = window.innerHeight;
-            cols = Math.ceil(window.innerWidth / CELL) + 1;
-            rows = Math.ceil(window.innerHeight / CELL) + 1;
+            const nextCols = Math.ceil(window.innerWidth / CELL) + 1;
+            const nextRows = Math.ceil(window.innerHeight / CELL) + 1;
+            // A phone's address bar moving rarely changes the grid.
+            if (nextCols === cols && nextRows === rows) return;
+            cols = nextCols;
+            rows = nextRows;
             canvas.width = cols;
             canvas.height = rows;
             image = context.createImageData(cols, rows);
@@ -102,22 +100,6 @@ const AmbientField = () => {
         let fadeFrom = fadeTo;
         let fadeStart = -Infinity;
         const colours = fadeTo.map((colour) => [...colour]);
-
-        const palette = new MutationObserver(() => {
-            const next = readPalette();
-            if (
-                next.every((colour, i) =>
-                    colour.every((c, j) => c === fadeTo[i][j]),
-                )
-            ) {
-                return;
-            }
-            // From whatever is showing, which may be half way through a fade.
-            fadeFrom = colours.map((colour) => [...colour]);
-            fadeTo = next;
-            fadeStart = performance.now();
-        });
-        palette.observe(root, { attributes: true, attributeFilter: ['style'] });
 
         const blendPalette = (now: number) => {
             const t = Math.min(1, (now - fadeStart) / PALETTE_FADE_MS);
@@ -188,43 +170,98 @@ const AmbientField = () => {
             context.putImageData(image, 0, 0);
         };
 
-        resize();
         let frame = 0;
         let last = 0;
+        let dirty = true;
         const start = performance.now();
-        const loop = (now: number) => {
-            frame = requestAnimationFrame(loop);
-            const still = reduced.matches || root.dataset.render === 'software';
+
+        const stillNow = () => reduced.matches;
+
+        const tick = (now: number) => {
+            frame = 0;
             if (!revealed) {
                 // Held back until the visitor scrolls the hero half away, so
                 // the build plays where it is seen rather than behind the
                 // hero on load. Still modes skip the sweep and appear at once.
-                if (!introRef.current) return;
+                // Scrolling or a change wakes this again.
                 if (!pastHero) return;
-                if (still) revealed = true;
+                if (stillNow()) revealed = true;
                 else if (!revealAt) revealAt = now;
                 else if (
                     now - revealAt >
                     (cols + rows) * STEP_MS + JITTER_MS + FADE_MS
-                )
+                ) {
                     revealed = true;
+                }
             }
-            // ~20fps drifting, full rate while the squares come in, 4fps when
-            // still (only to pick up colour fades).
-            if (revealed && now - last < (still ? 250 : 50)) return;
-            last = now;
-            draw(still ? 0 : (now - start) / 1000, now);
-        };
-        frame = requestAnimationFrame(loop);
 
+            const still = stillNow();
+            const fading = now - fadeStart < PALETTE_FADE_MS;
+            // Under the hero nothing shows, so the drift sleeps there too.
+            const drifting = !still && !underHero;
+
+            // The build-in too: it paints under every glass surface on screen,
+            // and at full rate it stalled the scroll it plays during.
+            if (
+                dirty ||
+                fading ||
+                ((drifting || !revealed) && now - last >= DRIFT_MS)
+            ) {
+                dirty = false;
+                last = now;
+                draw(still ? 0 : (now - start) / 1000, now);
+            }
+            if (!revealed || fading || drifting) {
+                frame = requestAnimationFrame(tick);
+            }
+        };
+
+        const wake = () => {
+            dirty = true;
+            if (!frame) frame = requestAnimationFrame(tick);
+        };
+
+        const palette = new MutationObserver(() => {
+            const next = readPalette();
+            if (
+                !next.every((colour, i) =>
+                    colour.every((c, j) => c === fadeTo[i][j]),
+                )
+            ) {
+                // From whatever is showing, which may be half way through a fade.
+                fadeFrom = colours.map((colour) => [...colour]);
+                fadeTo = next;
+                fadeStart = performance.now();
+            }
+            wake();
+        });
+        palette.observe(root, {
+            attributes: true,
+            attributeFilter: ['style', 'data-theme'],
+        });
+
+        const onScroll = () => {
+            const wasPast = pastHero;
+            const wasUnder = underHero;
+            pastHero = window.scrollY >= viewportHeight * 0.5;
+            underHero = window.scrollY < viewportHeight * 0.25;
+            if (pastHero !== wasPast || underHero !== wasUnder) wake();
+        };
+
+        const onResize = () => {
+            resize();
+            wake();
+        };
+
+        resize();
         onScroll();
         window.addEventListener('scroll', onScroll, { passive: true });
-        window.addEventListener('resize', resize);
+        window.addEventListener('resize', onResize);
         return () => {
             window.removeEventListener('scroll', onScroll);
             cancelAnimationFrame(frame);
             palette.disconnect();
-            window.removeEventListener('resize', resize);
+            window.removeEventListener('resize', onResize);
         };
     }, []);
 

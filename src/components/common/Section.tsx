@@ -1,6 +1,7 @@
 import React from 'react';
 
 import MatrixText from '@/components/common/MatrixText';
+import Reveal from '@/components/common/Reveal';
 
 /**
  * A section: its editorial index sits directly above the title. Sections
@@ -37,7 +38,8 @@ const Section = ({
                 </MatrixText>
             </h2>
         </div>
-        <div className="hairline edge-line mt-8" />
+        <Reveal className="tile-rule mt-6" aria-hidden />
+        <div className="hairline edge-line" />
         {children}
     </section>
 );

@@ -1,43 +1,28 @@
 'use client';
 
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { memo, useEffect, useMemo, useRef, useState } from 'react';
 
-const createSeedFromString = (value: string) => {
-    let hash = 1779033703 ^ value.length;
-    for (let i = 0; i < value.length; i++) {
-        hash = Math.imul(hash ^ value.charCodeAt(i), 3432918353);
-        hash = (hash << 13) | (hash >>> 19);
-    }
-    return hash >>> 0;
-};
-
-const mulberry32 = (seed: number) => {
-    let t = seed || 1;
-    return () => {
-        t += 0x6d2b79f5;
-        let r = Math.imul(t ^ (t >>> 15), 1 | t);
-        r ^= r + Math.imul(r ^ (r >>> 7), 61 | r);
-        return ((r ^ (r >>> 14)) >>> 0) / 4294967296;
-    };
-};
+import { afterFieldBuilt } from '@/components/common/introSequence';
+import { prefersReducedMotion } from '@/components/common/motion';
 
 /** How close, in px, the cursor must come to a letter to scramble it. */
 const HOVER_TOLERANCE = 10;
+/** Letters are expanded this far ahead of the viewport, so none flashes plain. */
+const AHEAD = '64px';
+/** The letters' fade to their final look, before they are folded back up. */
+const SETTLE_MS = 220;
 
 /** Spaces and newlines are never scrambled. */
 const isWhitespace = (char: string) => /\s/.test(char);
 
-const getRandomChar = (
-    exclude: string,
-    randomFn: () => number = Math.random,
-): string => {
-    const chars =
-        '0123456789#ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
-    let newChar = exclude;
-    while (newChar === exclude) {
-        newChar = chars.charAt(Math.floor(randomFn() * chars.length));
+const CHARS = '0123456789#ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+
+const randomChar = (exclude: string) => {
+    let next = exclude;
+    while (next === exclude) {
+        next = CHARS.charAt(Math.floor(Math.random() * CHARS.length));
     }
-    return newChar;
+    return next;
 };
 
 interface MatrixTextProps {
@@ -45,46 +30,108 @@ interface MatrixTextProps {
     flickerInterval?: number;
     children: string;
     classNames?: string;
-    hasStarted?: boolean;
+    /**
+     * For the title, on screen as the page loads: hidden until it can scramble
+     * in, which CSS gives up on after a moment. A slow machine gets the plain
+     * text then, rather than a scramble starting seconds late.
+     */
+    intro?: boolean;
     /** Hold the scramble until the text is scrolled into view, then resolve. */
     startOnView?: boolean;
     /** Monospace keeps glyph widths even while scrambling. */
     mono?: boolean;
 }
 
+/**
+ * Text that resolves out of random characters. The markup is the plain text:
+ * that is what the server sends, what readers and crawlers get, and what stays
+ * once it has resolved. One span per letter exists only while letters are
+ * actually moving (hundreds of them, each layered, stayed on the page before).
+ * Kerning is off throughout, as letters in separate spans cannot kern, so
+ * folding them back up never shifts the text.
+ */
 const MatrixText = ({
     children,
     classNames,
     duration,
     flickerInterval = 25,
-    hasStarted = true,
+    intro = false,
     startOnView = false,
     mono = true,
 }: MatrixTextProps) => {
-    const headline = children.split('');
+    const headline = useMemo(() => children.split(''), [children]);
     const length = headline.length;
 
     const containerRef = useRef<HTMLDivElement>(null);
+    // Null while the text is plain; the characters showing while it is not.
+    const [letters, setLetters] = useState<string[] | null>(null);
+    const [waiting, setWaiting] = useState(intro);
+    const [onScreen, setOnScreen] = useState(false);
     const [inView, setInView] = useState(false);
-    const [reduceMotion, setReduceMotion] = useState(false);
+    // Null until checked after mount: the server cannot know.
+    const [animated, setAnimated] = useState<boolean | null>(null);
+    const [reduced, setReduced] = useState<boolean | null>(null);
 
-    // A character-by-character scramble is precisely what motion sensitivity
-    // struggles with, so resolve straight to the final text instead.
+    const lettersRef = useRef<string[] | null>(null);
+    const statusRef = useRef<boolean[]>(headline.map(isWhitespace));
+    const opacities = useRef(headline.map(() => Math.random()));
+    const lastFlicker = useRef<number[]>(Array(length).fill(0));
+    const hoverUntil = useRef<number[]>(Array(length).fill(0));
+    const charRefs = useRef<(HTMLSpanElement | null)[]>([]);
+    const frame = useRef<number | undefined>(undefined);
+    const foldTimer = useRef(0);
+    const startTime = useRef(0);
+    // True once the first reveal has played, or been skipped.
+    const finished = useRef(false);
+    const onScreenRef = useRef(false);
+
+    const started = startOnView ? inView : !waiting;
+    const startedRef = useRef(started);
+    startedRef.current = started;
+
+    const effectiveDuration = duration ?? 500 + length * 20;
+    const revealAt = useRef(
+        headline.map((_, i) => (effectiveDuration / length) * i),
+    );
+
     useEffect(() => {
         const query = window.matchMedia('(prefers-reduced-motion: reduce)');
-        const sync = () => setReduceMotion(query.matches);
-
+        const sync = () => {
+            setReduced(query.matches);
+            setAnimated(!query.matches);
+        };
         sync();
         query.addEventListener('change', sync);
         return () => query.removeEventListener('change', sync);
     }, []);
 
-    // When driven by scroll position, the caller's `hasStarted` still gates it.
-    const started = startOnView ? inView && hasStarted : hasStarted;
+    // The title waits for the field to build in, and for its real font:
+    // swapping fonts in front of the visitor moves it. Then, whichever way it
+    // goes, it stops being hidden.
+    useEffect(() => {
+        if (!intro) return;
+        let gone = false;
+        let cancel = () => {};
+        document.fonts.ready.then(() => {
+            if (gone) return;
+            cancel = afterFieldBuilt(() => {
+                const node = containerRef.current;
+                const plain =
+                    !node ||
+                    prefersReducedMotion() ||
+                    getComputedStyle(node).opacity !== '0';
+                if (plain) finished.current = true;
+                setWaiting(false);
+            });
+        });
+        return () => {
+            gone = true;
+            cancel();
+        };
+    }, [intro]);
 
     useEffect(() => {
         if (!startOnView) return;
-
         const node = containerRef.current;
         if (!node) return;
 
@@ -102,142 +149,139 @@ const MatrixText = ({
         return () => observer.disconnect();
     }, [startOnView]);
 
-    // Scrambling text nobody can see is pure cost: a page of headings each
-    // re-rendering every frame kept the main thread busy while idle. The loop
-    // only runs while the text is on screen, and picks up where it left off.
-    const [onScreen, setOnScreen] = useState(false);
-    const onScreenRef = useRef(false);
-
+    // Scrambling text nobody can see is pure cost, so everything below only
+    // runs while the text is on (or about to come on) screen.
     useEffect(() => {
         const node = containerRef.current;
         if (!node) return;
 
-        const observer = new IntersectionObserver(([entry]) => {
-            onScreenRef.current = entry.isIntersecting;
-            setOnScreen(entry.isIntersecting);
-        });
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                onScreenRef.current = entry.isIntersecting;
+                setOnScreen(entry.isIntersecting);
+            },
+            { rootMargin: AHEAD },
+        );
 
         observer.observe(node);
         return () => observer.disconnect();
     }, []);
 
-    const effectiveDuration = duration ?? 500 + length * 20;
+    const showLetters = (next: string[] | null) => {
+        lettersRef.current = next;
+        setLetters(next);
+    };
 
-    const seed = useMemo(() => createSeedFromString(children), [children]);
-    const seededDisplayRandom = useMemo(() => mulberry32(seed || 1), [seed]);
-    const seededOpacityRandom = useMemo(
-        () => mulberry32((seed || 1) ^ 0x9e3779b9),
-        [seed],
-    );
-
-    const [displayText, setDisplayText] = useState<string[]>(() =>
-        headline.map((ch) =>
-            isWhitespace(ch) ? ch : getRandomChar(' ', seededDisplayRandom),
-        ),
-    );
-
-    const displayRef = useRef(displayText);
-    const statusRef = useRef<boolean[]>(headline.map(isWhitespace));
-    const randomOpacities = useRef(headline.map(() => seededOpacityRandom()));
-    const lastFlickerTime = useRef<number[]>(Array(length).fill(0));
-    const animationFrame = useRef<number>();
-    const startTime = useRef<number>(performance.now());
-
-    const timeToReveal = useRef<number[]>(
-        headline.map((_, i) => (effectiveDuration / length) * i),
-    );
-
-    /*
-     * Hover scramble. A letter under the cursor (within HOVER_TOLERANCE px)
-     * holds until Infinity and keeps flickering; once the cursor moves off it
-     * gets a short random delay, then resolves again like the first reveal.
-     */
-    const charRefs = useRef<(HTMLSpanElement | null)[]>([]);
-    const hoverUntil = useRef<number[]>(Array(length).fill(0));
-    const startedRef = useRef(started);
-    startedRef.current = started;
+    const scheduleFold = () => {
+        window.clearTimeout(foldTimer.current);
+        foldTimer.current = window.setTimeout(
+            () => showLetters(null),
+            SETTLE_MS,
+        );
+    };
 
     const animate = (time: number) => {
+        const shown = lettersRef.current;
+        if (!shown) {
+            frame.current = undefined;
+            return;
+        }
         const elapsed = time - startTime.current;
-        const currentDisplay = [...displayRef.current];
-        const currentStatus = [...statusRef.current];
-        let hasChanged = false;
+        const current = [...shown];
+        const status = [...statusRef.current];
+        let changed = false;
 
         for (let i = 0; i < length; i++) {
             if (isWhitespace(headline[i])) {
-                // Spaces and line breaks pass through untouched, so multi-line
-                // text keeps its shape while the rest scrambles.
-                currentDisplay[i] = headline[i];
-                currentStatus[i] = true;
+                current[i] = headline[i];
+                status[i] = true;
                 continue;
             }
 
-            const timeSinceLastFlicker = time - lastFlickerTime.current[i];
-            const hoverScramble = time < hoverUntil.current[i];
+            const flicker = time - lastFlicker.current[i] > flickerInterval;
+            const hovered = time < hoverUntil.current[i];
 
-            if (hoverScramble) {
-                if (timeSinceLastFlicker > flickerInterval) {
-                    currentDisplay[i] = getRandomChar(currentDisplay[i] || ' ');
-                    lastFlickerTime.current[i] = time;
-                    hasChanged = true;
-                }
-                if (currentStatus[i]) hasChanged = true;
-                currentStatus[i] = false;
-            } else if (started) {
-                const shouldReveal = elapsed >= timeToReveal.current[i];
-                if (shouldReveal) {
-                    currentDisplay[i] = headline[i];
-                    currentStatus[i] = true;
-                    hasChanged = true;
-                } else if (timeSinceLastFlicker > flickerInterval) {
-                    currentDisplay[i] = getRandomChar(currentDisplay[i] || ' ');
-                    lastFlickerTime.current[i] = time;
-                    hasChanged = true;
-                }
-            } else {
-                if (timeSinceLastFlicker > flickerInterval) {
-                    currentDisplay[i] = getRandomChar(currentDisplay[i] || ' ');
-                    lastFlickerTime.current[i] = time;
-                    hasChanged = true;
-                }
-                currentStatus[i] = false; // Reset status when not started
+            if (
+                !hovered &&
+                (finished.current ||
+                    (started && elapsed >= revealAt.current[i]))
+            ) {
+                if (current[i] !== headline[i] || !status[i]) changed = true;
+                current[i] = headline[i];
+                status[i] = true;
+                continue;
+            }
+            if (status[i]) changed = true;
+            status[i] = false;
+            if (flicker) {
+                current[i] = randomChar(current[i] || ' ');
+                lastFlicker.current[i] = time;
+                changed = true;
             }
         }
 
-        if (hasChanged) {
-            displayRef.current = currentDisplay;
-            statusRef.current = currentStatus;
-            setDisplayText(currentDisplay);
-        }
+        statusRef.current = status;
+        if (changed) showLetters(current);
 
-        if (
-            onScreenRef.current &&
-            (!currentStatus.every(Boolean) || !started)
-        ) {
-            animationFrame.current = requestAnimationFrame(animate);
-        } else {
-            animationFrame.current = undefined;
+        if (status.every(Boolean) && started) {
+            finished.current = true;
+            frame.current = undefined;
+            scheduleFold();
+            return;
         }
+        frame.current = onScreenRef.current
+            ? requestAnimationFrame((t) => animateRef.current(t))
+            : undefined;
     };
 
     // The loop stops once everything is revealed; hovering restarts it.
     const animateRef = useRef(animate);
     animateRef.current = animate;
 
+    const run = () => {
+        window.clearTimeout(foldTimer.current);
+        frame.current ??= requestAnimationFrame((t) => animateRef.current(t));
+    };
+
+    // Resolve from random characters: on screen, and not yet played.
     useEffect(() => {
-        if (reduceMotion) return;
+        if (!animated || !onScreen || finished.current || waiting) return;
+        if (!lettersRef.current) {
+            showLetters(
+                headline.map((char) =>
+                    isWhitespace(char) ? char : randomChar(' '),
+                ),
+            );
+            statusRef.current = headline.map(isWhitespace);
+        }
+        if (started) startTime.current = performance.now();
+        run();
+        // `headline` only changes with `children`, and Quote remounts for that.
+    }, [animated, onScreen, started, waiting]);
+
+    /*
+     * Hover scramble, always: it costs nothing until someone hovers.
+     * A letter under the cursor (within HOVER_TOLERANCE px)
+     * holds until Infinity and keeps flickering; once the cursor moves off it
+     * gets a short random delay, then resolves again like the first reveal.
+     * Measured once a frame at most, and only while this text is on screen.
+     */
+    useEffect(() => {
+        if (reduced !== false || !onScreen) return;
         if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
             return;
         }
 
         let anyHovered = false;
+        let pending = 0;
+        let x = 0;
+        let y = 0;
 
-        const onMove = (event: PointerEvent) => {
-            if (event.pointerType === 'touch' || !startedRef.current) return;
+        const measure = () => {
+            pending = 0;
             const box = containerRef.current?.getBoundingClientRect();
-            if (!box) return;
+            if (!box || !startedRef.current) return;
 
-            const { clientX: x, clientY: y } = event;
             const inside =
                 x >= box.left - HOVER_TOLERANCE &&
                 x <= box.right + HOVER_TOLERANCE &&
@@ -245,6 +289,14 @@ const MatrixText = ({
                 y <= box.bottom + HOVER_TOLERANCE;
             // Far away with nothing scrambled: skip measuring every letter.
             if (!inside && !anyHovered) return;
+
+            // Letters are only there to measure once they are unfolded, so
+            // this first pass just does that.
+            if (!lettersRef.current) {
+                statusRef.current = headline.map(() => true);
+                showLetters([...headline]);
+                return;
+            }
 
             const now = performance.now();
             const until = hoverUntil.current;
@@ -273,113 +325,119 @@ const MatrixText = ({
                 }
             });
 
-            if (changed && animationFrame.current === undefined) {
-                animationFrame.current = requestAnimationFrame((t) =>
-                    animateRef.current(t),
-                );
-            }
+            if (changed) run();
+            else if (frame.current === undefined) scheduleFold();
+        };
+
+        const onMove = (event: PointerEvent) => {
+            if (event.pointerType === 'touch') return;
+            x = event.clientX;
+            y = event.clientY;
+            pending ||= requestAnimationFrame(measure);
         };
 
         document.addEventListener('pointermove', onMove, { passive: true });
-        return () => document.removeEventListener('pointermove', onMove);
-    }, [reduceMotion]);
-
-    // Back on screen: resume, if anything is still left to resolve.
-    useEffect(() => {
-        if (!onScreen || reduceMotion) return;
-        if (animationFrame.current)
-            cancelAnimationFrame(animationFrame.current);
-        animationFrame.current = requestAnimationFrame((t) =>
-            animateRef.current(t),
-        );
-    }, [onScreen, reduceMotion]);
-
-    useEffect(() => {
-        if (reduceMotion) {
-            displayRef.current = headline;
-            statusRef.current = headline.map(() => true);
-            setDisplayText(headline);
-            return;
-        }
-
-        if (started) {
-            startTime.current = performance.now();
-        }
-        animationFrame.current = requestAnimationFrame(animate);
-
         return () => {
-            if (animationFrame.current) {
-                cancelAnimationFrame(animationFrame.current);
-            }
+            document.removeEventListener('pointermove', onMove);
+            cancelAnimationFrame(pending);
         };
-    }, [started, reduceMotion]);
+    }, [reduced, onScreen, headline]);
+
+    // Stepped down mid-scramble: plain text at once.
+    useEffect(() => {
+        if (animated !== false) return;
+        finished.current = true;
+        showLetters(null);
+    }, [animated]);
+
+    useEffect(
+        () => () => {
+            window.clearTimeout(foldTimer.current);
+            if (frame.current !== undefined) {
+                cancelAnimationFrame(frame.current);
+            }
+        },
+        [],
+    );
 
     return (
         <div
             ref={containerRef}
+            data-intro={waiting ? '' : undefined}
             className={classNames}
             style={{
                 display: 'grid',
                 fontFamily: mono
                     ? 'var(--font-mono), ui-monospace, monospace'
                     : undefined,
-                transition: 'opacity 0.2s ease-in-out',
                 whiteSpace: 'pre-wrap', // Preserve spaces and line breaks
+                fontKerning: 'none',
+                fontVariantLigatures: 'none',
             }}
         >
             {/*
-             * The real text, laid out but invisible. It reserves the final box
-             * so scrambling never shifts the page, and it is what screen
-             * readers and crawlers get. The animated copy on top is decorative.
+             * The real text. It reserves the final box, so scrambling never
+             * shifts the page, and it is what screen readers get throughout.
              */}
-            <span style={{ gridArea: '1 / 1', opacity: 0 }}>{children}</span>
             <span
-                aria-hidden="true"
-                style={{ gridArea: '1 / 1', userSelect: 'none' }}
+                style={{ gridArea: '1 / 1', opacity: letters ? 0 : undefined }}
             >
-                {displayText.map((char, index) =>
-                    isWhitespace(headline[index]) ? (
-                        headline[index]
-                    ) : (
-                        /*
-                         * Each letter gets a slot exactly as wide as its final
-                         * glyph (the hidden copy), and the scrambled character
-                         * is centred over it. Proportional glyphs no longer
-                         * push their neighbours around while they flicker.
-                         */
-                        <span
-                            key={index}
-                            ref={(el) => {
-                                charRefs.current[index] = el;
-                            }}
-                            style={{ position: 'relative' }}
-                        >
-                            <span style={{ visibility: 'hidden' }}>
-                                {headline[index]}
-                            </span>
-                            <span
-                                style={{
-                                    position: 'absolute',
-                                    inset: 0,
-                                    textAlign: 'center',
-                                    whiteSpace: 'nowrap',
-                                    opacity: statusRef.current[index]
-                                        ? 1
-                                        : randomOpacities.current[index],
-                                    willChange: 'opacity',
-                                    transition: statusRef.current[index]
-                                        ? 'opacity 0.2s ease-in-out'
-                                        : 'none',
-                                }}
-                            >
-                                {char}
-                            </span>
-                        </span>
-                    ),
-                )}
+                {children}
             </span>
+            {letters && (
+                <span
+                    aria-hidden="true"
+                    style={{ gridArea: '1 / 1', userSelect: 'none' }}
+                >
+                    {letters.map((char, index) =>
+                        isWhitespace(headline[index]) ? (
+                            headline[index]
+                        ) : (
+                            /*
+                             * Each letter gets a slot exactly as wide as its
+                             * final glyph, and the scrambled character is
+                             * centred over it, so proportional glyphs do not
+                             * push their neighbours around as they flicker.
+                             */
+                            <span
+                                key={index}
+                                ref={(el) => {
+                                    charRefs.current[index] = el;
+                                }}
+                                style={{ position: 'relative' }}
+                            >
+                                <span style={{ visibility: 'hidden' }}>
+                                    {headline[index]}
+                                </span>
+                                <span
+                                    // Centred as a flex item, as the slot is
+                                    // only the font's height: on a tight line
+                                    // a plain block sat 17px above the real
+                                    // text on the title.
+                                    style={{
+                                        position: 'absolute',
+                                        inset: 0,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        whiteSpace: 'nowrap',
+                                        opacity: statusRef.current[index]
+                                            ? 1
+                                            : opacities.current[index],
+                                        transition: statusRef.current[index]
+                                            ? 'opacity 0.2s ease-in-out'
+                                            : 'none',
+                                    }}
+                                >
+                                    {char}
+                                </span>
+                            </span>
+                        ),
+                    )}
+                </span>
+            )}
         </div>
     );
 };
 
-export default MatrixText;
+export default memo(MatrixText);

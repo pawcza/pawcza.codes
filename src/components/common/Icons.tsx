@@ -162,6 +162,14 @@ export const User = (props: IconProps) => (
     </svg>
 );
 
+export const Rise = (props: IconProps) => (
+    <svg {...base} {...props}>
+        <rect x="3.5" y="13" width="5" height="7" rx="1" />
+        <rect x="9.5" y="5" width="5" height="15" rx="1" />
+        <rect x="15.5" y="11" width="5" height="9" rx="1" />
+    </svg>
+);
+
 export const Lens = (props: IconProps) => (
     <svg {...base} {...props}>
         <circle cx="12" cy="12" r="8" />

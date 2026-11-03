@@ -5,7 +5,6 @@ import { Inter, JetBrains_Mono } from 'next/font/google';
 
 import Nav from '@/components/layout/Nav';
 import { TileSettingsProvider } from '@/components/hero/TileSettings';
-import Loader from '@/components/common/Loader';
 import GlassPointer from '@/components/common/GlassPointer';
 import SquareText from '@/components/common/SquareText';
 import AmbientField from '@/components/common/AmbientField';
@@ -16,8 +15,10 @@ import { themeInitScript } from '@/components/common/theme';
 
 import './globals.css';
 
+// `subsets` is only what gets preloaded. The rest stay available through
+// unicode-range, so the odd "ł" still fetches latin-ext when it shows.
 const sans = Inter({
-    subsets: ['latin', 'latin-ext'],
+    subsets: ['latin'],
     variable: '--font-sans',
     display: 'swap',
 });
@@ -94,7 +95,8 @@ export default function RootLayout({
         <html
             lang="en"
             className={`${sans.variable} ${mono.variable}`}
-            // data-theme is written by the inline script before hydration.
+            // data-theme is written by the inline script
+            // before hydration.
             suppressHydrationWarning
         >
             <head>
@@ -109,15 +111,10 @@ export default function RootLayout({
                 )}
             </head>
             <body className="font-sans">
-                {/* The loader is dismissed by JS, so it must never appear without it. */}
-                <noscript>
-                    <style>{`.site-loader { display: none !important; } [data-squares] { opacity: 1 !important; }`}</style>
-                </noscript>
                 <AmbientField />
                 <GlassPointer />
                 <SquareText />
                 <RenderMode />
-                <Loader />
                 <a
                     href="#work"
                     className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-full focus:bg-ink focus:px-4 focus:py-2 focus:text-small focus:text-paper"

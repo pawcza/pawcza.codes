@@ -4,46 +4,54 @@ import MatrixText from '@/components/common/MatrixText';
 import TileCanvas from '@/components/hero/TileCanvas';
 import { useTileSettings } from '@/components/hero/TileSettings';
 import { Shuffle, Sliders } from '@/components/common/Icons';
-import { useIntroDone } from '@/components/common/intro';
 import { profile } from '@/content/profile';
 import ThemeToggle from '@/components/common/ThemeToggle';
 import ToyCube from '@/components/cube/ToyCube';
 
 const Hero = () => {
-    const { gradient, wave, effect, randomise, controlsOpen, setControlsOpen, played } =
+    const { randomise, controlsOpen, setControlsOpen, played } =
         useTileSettings();
-    // Hold every load-time reveal until the loader has cleared the screen.
-    const introDone = useIntroDone();
 
     return (
         <header
             id="top"
             className="relative isolate flex min-h-[92svh] flex-col justify-end overflow-hidden"
         >
-            <TileCanvas gradient={gradient} wave={wave} effect={effect} />
+            <TileCanvas scrim="hero" />
             <div className="hero-scrim" aria-hidden="true" />
             <div className="hero-fade" aria-hidden="true" />
 
             <div className="relative mx-auto flex w-full max-w-content flex-col-reverse gap-6 px-6 pb-20 pt-32 sm:flex-row sm:items-end sm:justify-between md:pb-28">
                 {/* The title and its line; on phones the cube sits above them. */}
                 <div className="min-w-0">
-                    <h1>
+                    {/* Everything in the hero builds in square by square,
+                        once the field has. */}
+                    <h1 data-squares="" data-squares-after="field">
+                        {/* Long enough to still be resolving as its big
+                            squares land. */}
                         <MatrixText
-                            hasStarted={introDone}
+                            intro
                             mono={false}
+                            duration={1600}
                             classNames="display text-display"
                         >
                             pawcza.codes
                         </MatrixText>
                     </h1>
 
-                    <div className="mt-5 flex items-center gap-3">
+                    {/* Dash and all, just after the title. */}
+                    <div
+                        data-squares=""
+                        data-squares-after="field"
+                        data-squares-delay="0.3"
+                        className="mt-5 flex items-center gap-3"
+                    >
                         <span
                             className="h-px w-8 bg-line-strong shrink-0"
                             aria-hidden="true"
                         />
                         <MatrixText
-                            hasStarted={introDone}
+                            intro
                             classNames="text-small font-medium tracking-tight text-ink"
                         >
                             {profile.tagline}
@@ -51,7 +59,10 @@ const Hero = () => {
                     </div>
                 </div>
 
-                <ToyCube className="w-32 self-end sm:mb-2 sm:w-44 md:w-56" />
+                <ToyCube
+                    place="hero"
+                    className="w-32 self-end sm:mb-2 sm:w-44 md:w-56"
+                />
             </div>
 
             {/* On phones the nav carries the toggle but only appears once the
@@ -68,7 +79,7 @@ const Hero = () => {
                 {/* Quiet nudge, and only until the visitor takes it. */}
                 <span
                     className={`hidden font-mono text-micro tracking-tight text-ink-faint transition-opacity duration-500 sm:inline ${
-                        introDone && !played ? 'opacity-100' : 'opacity-0'
+                        played ? 'opacity-0' : 'opacity-100'
                     }`}
                     aria-hidden={played}
                 >
@@ -90,7 +101,9 @@ const Hero = () => {
                     aria-expanded={controlsOpen}
                     // Open reads as pressed: same button, ink icon and a ring.
                     className={`glass-pill btn-icon ${
-                        controlsOpen ? '!text-ink ring-1 ring-inset ring-ink/30' : ''
+                        controlsOpen
+                            ? '!text-ink ring-1 ring-inset ring-ink/30'
+                            : ''
                     }`}
                 >
                     <Sliders width={15} height={15} />

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { RefObject, useEffect, useRef } from 'react';
 
 /** Squares across and down: 16 × 10 keeps them square on a 16:10 cover. */
 const COLS = 16;
@@ -36,12 +36,13 @@ export const seeded = (seed: string) => {
  * sweep with jitter, seeded per project so each cover builds its own way.
  */
 const TileReveal = ({
-    src,
+    image: imageRef,
     seed,
     playing,
     onDone,
 }: {
-    src: string;
+    /** The cover's own image, so the file is not fetched a second time. */
+    image: RefObject<HTMLImageElement | null>;
     seed: string;
     playing: boolean;
     /** Fired when the last square has landed. */
@@ -56,7 +57,8 @@ const TileReveal = ({
     useEffect(() => {
         const canvas = ref.current;
         const context = canvas?.getContext('2d');
-        if (!playing || !canvas || !context) return;
+        const image = imageRef.current;
+        if (!playing || !canvas || !context || !image) return;
 
         const random = seeded(seed);
         const fromRight = random() < 0.5;
@@ -71,10 +73,14 @@ const TileReveal = ({
 
         let frame = 0;
         let cancelled = false;
-        const image = new Image();
-        image.src = src;
 
-        image.decode().then(() => {
+        // Not the page's <img> itself: its reported size comes from `sizes`,
+        // while drawImage cuts from the pixels of whichever srcset file loaded,
+        // so slices came out of the wrong part of the picture. A plain Image of
+        // that same URL reports real pixels, and comes from the cache.
+        const pixels = new Image();
+
+        const build = () => {
             if (cancelled) return;
             const dpr = Math.min(window.devicePixelRatio || 1, 2);
             const { width, height } = canvas.getBoundingClientRect();
@@ -83,8 +89,18 @@ const TileReveal = ({
 
             const cw = canvas.width / COLS;
             const ch = canvas.height / ROWS;
-            const sw = image.naturalWidth / COLS;
-            const sh = image.naturalHeight / ROWS;
+            // Cropped as the image underneath is (object-cover), or the cover
+            // snaps to a different framing when it takes over.
+            const fit = Math.max(
+                canvas.width / pixels.naturalWidth,
+                canvas.height / pixels.naturalHeight,
+            );
+            const cropW = canvas.width / fit;
+            const cropH = canvas.height / fit;
+            const cropX = (pixels.naturalWidth - cropW) / 2;
+            const cropY = (pixels.naturalHeight - cropH) / 2;
+            const sw = cropW / COLS;
+            const sh = cropH / ROWS;
             const start = performance.now();
 
             const draw = (now: number) => {
@@ -100,16 +116,23 @@ const TileReveal = ({
                     const row = (i - col) / COLS;
                     const w = cw * scale;
                     const h = ch * scale;
+                    // Landed tiles sit on whole pixels, or the seams between
+                    // them show as a faint grid until the image takes over.
+                    const x = col * cw + (cw - w) / 2;
+                    const y = row * ch + (ch - h) / 2;
+                    const landed = t >= 1;
+                    const left = landed ? Math.round(x) : x;
+                    const top = landed ? Math.round(y) : y;
                     context.drawImage(
-                        image,
-                        col * sw,
-                        row * sh,
+                        pixels,
+                        cropX + col * sw,
+                        cropY + row * sh,
                         sw,
                         sh,
-                        col * cw + (cw - w) / 2,
-                        row * ch + (ch - h) / 2,
-                        w,
-                        h,
+                        left,
+                        top,
+                        landed ? Math.round(x + w) - left : w,
+                        landed ? Math.round(y + h) - top : h,
                     );
                 }
                 if (elapsed < total) {
@@ -119,13 +142,20 @@ const TileReveal = ({
                 }
             };
             frame = requestAnimationFrame(draw);
-        });
+        };
+        image
+            .decode()
+            .then(() => {
+                pixels.src = image.currentSrc || image.src;
+                return pixels.decode();
+            })
+            .then(build, () => doneRef.current());
 
         return () => {
             cancelled = true;
             cancelAnimationFrame(frame);
         };
-    }, [playing, seed, src]);
+    }, [playing, seed, imageRef]);
 
     return (
         <canvas

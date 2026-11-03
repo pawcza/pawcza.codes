@@ -2,11 +2,17 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import dynamic from 'next/dynamic';
+
 import Reveal from '@/components/common/Reveal';
 import MatrixText from '@/components/common/MatrixText';
 import ProjectCover from '@/components/work/ProjectCover';
-import ProjectDialog from '@/components/work/ProjectDialog';
 import { Project, featuredProjects, moreProjects } from '@/content/projects';
+
+// Arrives with the first project opened, along with its screenshots.
+const ProjectDialog = dynamic(() => import('@/components/work/ProjectDialog'), {
+    ssr: false,
+});
 
 /** `#work/<slug>` deep-links straight into a project. */
 const HASH_PREFIX = '#work/';
@@ -193,6 +199,10 @@ const WorkList = () => {
     const project = index >= 0 ? ordered[index] : null;
     const next = index >= 0 ? ordered[(index + 1) % ordered.length] : null;
 
+    // Once opened it stays mounted, so it can animate out.
+    const [opened, setOpened] = useState(false);
+    if (project && !opened) setOpened(true);
+
     return (
         <>
             <div className="mt-4">
@@ -218,12 +228,14 @@ const WorkList = () => {
                 ))}
             </div>
 
-            <ProjectDialog
-                project={project}
-                next={next}
-                onClose={close}
-                onNavigate={navigate}
-            />
+            {opened && (
+                <ProjectDialog
+                    project={project}
+                    next={next}
+                    onClose={close}
+                    onNavigate={navigate}
+                />
+            )}
         </>
     );
 };

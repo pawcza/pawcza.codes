@@ -6,7 +6,7 @@ A single page with a living background: a field of tiles driven by a wave, bent 
 
 ![The hero in dark mode: a field of purple tiles with a floating cube beside the title](docs/hero-dark.jpg)
 
-Built with Next.js, React, TypeScript, Tailwind CSS, three.js and hand-written GLSL. It adapts to slower machines by itself, and all the content is typed data in [`src/content/`](src/content).
+Built with Next.js, React, TypeScript, Tailwind CSS and hand-written WebGL2: no 3D library. It adapts to slower machines by itself, and all the content is typed data in [`src/content/`](src/content).
 
 ## Run it
 

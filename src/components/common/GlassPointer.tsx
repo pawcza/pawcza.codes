@@ -13,11 +13,13 @@ const FADE_DISTANCE = 100;
  * One pointer listener for the whole page. For every bordered element near the
  * cursor it writes the cursor position in that element's own coordinates
  * (`--glow-x`, `--glow-y`) and a strength (`--glow-o`) that falls off with
- * distance, which the edge rings in globals.css paint from.
+ * distance, which the edge rings in globals.css paint from. A lit element
+ * carries `data-lit`, and only then does it draw a ring at all: they are blended
+ * layers, so a page of them idling at zero strength was not free.
  * Scrolling re-runs it too, since the page moves under a still cursor.
  *
- * Mouse and pen only: on touch there is no cursor to follow, so the listener
- * is never attached and the borders stay plain.
+ * Mouse and pen only: on touch there is no cursor to follow,
+ * so the listener is never attached and the borders stay plain.
  */
 const GlassPointer = () => {
     useEffect(() => {
@@ -28,6 +30,11 @@ const GlassPointer = () => {
         // Only elements on or near the screen are measured each frame.
         const visible = new Set<HTMLElement>();
         const lit = new Set<HTMLElement>();
+        const putOut = (el: HTMLElement) => {
+            el.style.setProperty('--glow-o', '0');
+            delete el.dataset.lit;
+            lit.delete(el);
+        };
         const observer = new IntersectionObserver(
             (entries) => {
                 for (const entry of entries) {
@@ -72,24 +79,22 @@ const GlassPointer = () => {
                 );
 
                 if (strength === 0) {
-                    if (lit.has(el)) {
-                        el.style.setProperty('--glow-o', '0');
-                        lit.delete(el);
-                    }
+                    if (lit.has(el)) putOut(el);
                     continue;
                 }
 
                 el.style.setProperty('--glow-x', `${localX}px`);
                 el.style.setProperty('--glow-y', `${localY}px`);
                 el.style.setProperty('--glow-o', strength.toFixed(3));
-                lit.add(el);
+                if (!lit.has(el)) {
+                    el.dataset.lit = '';
+                    lit.add(el);
+                }
             }
 
             // Anything that scrolled out of range while lit goes dark.
             for (const el of lit) {
-                if (visible.has(el)) continue;
-                el.style.setProperty('--glow-o', '0');
-                lit.delete(el);
+                if (!visible.has(el)) putOut(el);
             }
         };
 
@@ -125,6 +130,7 @@ const GlassPointer = () => {
             observer.disconnect();
             mutations.disconnect();
             if (frame) cancelAnimationFrame(frame);
+            lit.forEach(putOut);
         };
     }, []);
 

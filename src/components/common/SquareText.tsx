@@ -2,8 +2,8 @@
 
 import { useEffect } from 'react';
 
-import { isSoftwareRendered } from '@/components/common/gpu';
-import { useIntroDone } from '@/components/common/intro';
+import { afterFieldBuilt } from '@/components/common/introSequence';
+import { prefersReducedMotion } from '@/components/common/motion';
 import { backOut, seeded } from '@/components/work/TileReveal';
 
 /** Matches the project covers' build: the same pop, a similar sweep. */
@@ -22,7 +22,8 @@ const MIN_FRAME_MS = 15;
 /**
  * Text that builds itself in square by square as it scrolls into view, like
  * the project covers. Anything marked `data-squares` qualifies (optionally
- * with `data-squares-delay`, in seconds), so server components opt in with an
+ * with `data-squares-delay`, in seconds, and `data-squares-after="field"` to
+ * wait for the hero's field to build in), so server components opt in with an
  * attribute rather than a client wrapper.
  *
  * The squares are a CSS mask on the text itself, one gradient layer per
@@ -30,17 +31,13 @@ const MIN_FRAME_MS = 15;
  * Landed squares merge into runs and whole rows, so the mask gets simpler as
  * the build goes rather than heavier.
  * Until then the text is at opacity 0, never visibility: hidden, so screen
- * readers still read it. Reduced motion and software rendering show it at
+ * readers still read it. Reduced motion shows it at
  * once. Matrix headings keep their own scramble; the covers their own build.
  */
 const SquareText = () => {
-    // Whatever is on screen at load waits for the loader, as every reveal does.
-    const introDone = useIntroDone();
-
     useEffect(() => {
-        if (!introDone) return;
-
         const frames = new Set<number>();
+        const cancels = new Set<() => void>();
 
         const setMask = (
             el: HTMLElement,
@@ -64,12 +61,7 @@ const SquareText = () => {
 
         const build = (el: HTMLElement) => {
             const { width, height } = el.getBoundingClientRect();
-            if (
-                width === 0 ||
-                height === 0 ||
-                isSoftwareRendered() ||
-                window.matchMedia('(prefers-reduced-motion: reduce)').matches
-            ) {
+            if (width === 0 || height === 0 || prefersReducedMotion()) {
                 finish(el);
                 return;
             }
@@ -230,7 +222,10 @@ const SquareText = () => {
                 for (const entry of entries) {
                     if (!entry.isIntersecting) continue;
                     observer.unobserve(entry.target);
-                    build(entry.target as HTMLElement);
+                    const el = entry.target as HTMLElement;
+                    if (el.dataset.squaresAfter === 'field') {
+                        cancels.add(afterFieldBuilt(() => build(el)));
+                    } else build(el);
                 }
             },
             // A little way in, so the build plays where it is seen.
@@ -244,8 +239,9 @@ const SquareText = () => {
         return () => {
             observer.disconnect();
             frames.forEach((id) => cancelAnimationFrame(id));
+            cancels.forEach((cancel) => cancel());
         };
-    }, [introDone]);
+    }, []);
 
     return null;
 };

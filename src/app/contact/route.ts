@@ -14,6 +14,8 @@ const TOPIC = process.env.CONTACT_NTFY_TOPIC;
 const MIN_FILL_MS = 3000;
 const WINDOW_MS = 60 * 60 * 1000;
 const PER_WINDOW = 5;
+/** More addresses than this and the old ones are swept out. */
+const MAX_TRACKED = 1000;
 const recent = new Map<string, number[]>();
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -23,6 +25,11 @@ const limited = (ip: string) => {
     const hits = (recent.get(ip) ?? []).filter((t) => now - t < WINDOW_MS);
     hits.push(now);
     recent.set(ip, hits);
+    if (recent.size > MAX_TRACKED) {
+        for (const [key, times] of recent) {
+            if (times.every((t) => now - t >= WINDOW_MS)) recent.delete(key);
+        }
+    }
     return hits.length > PER_WINDOW;
 };
 
@@ -51,8 +58,10 @@ export async function POST(request: Request) {
         body.elapsed < MIN_FILL_MS;
     if (trap) return Response.json({ ok: true });
 
+    // Set by Cloudflare. x-forwarded-for starts with whatever the client sent,
+    // so limiting on that is limiting nobody.
     const ip =
-        request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ??
+        request.headers.get('cf-connecting-ip') ??
         request.headers.get('x-real-ip') ??
         'unknown';
     if (limited(ip)) {

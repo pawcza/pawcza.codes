@@ -22,14 +22,14 @@ const links = [
 ];
 
 const Contact = () => {
-    const { gradient, wave, effect, randomise, setControlsOpen } = useTileSettings();
+    const { randomise, setControlsOpen } = useTileSettings();
 
     return (
         <footer
             id="contact"
             className="relative isolate mt-8 overflow-hidden"
         >
-            <TileCanvas gradient={gradient} wave={wave} effect={effect} />
+            <TileCanvas scrim="footer" />
             <div className="footer-scrim" aria-hidden="true" />
             <div className="footer-fade" aria-hidden="true" />
 
@@ -135,7 +135,7 @@ const Contact = () => {
                                 </div>
                             </div>
 
-                            <ToyCube className="w-36 self-end sm:self-auto md:w-48" />
+                            <ToyCube place="footer" className="w-36 self-end sm:self-auto md:w-48" />
                         </div>
                     </Reveal>
                 </div>

@@ -6,8 +6,29 @@ import { AnimatePresence, motion } from 'motion/react';
 
 import { Close, Sliders } from '@/components/common/Icons';
 import { useScrollLock } from '@/components/common/scrollLock';
+import { prefersReducedMotion } from '@/components/common/motion';
+import { attachCubeInput } from '@/components/cube/cubeInput';
+import {
+    createCubeRig,
+    createPaletteFade,
+    hexToUnit,
+} from '@/components/cube/cubeRig';
+import {
+    Mat4,
+    multiply,
+    perspective,
+    project,
+    rotationX,
+    translation,
+} from '@/components/field/math';
+import { createRenderer } from '@/components/field/renderer';
 import { useTileSettings } from '@/components/hero/TileSettings';
-import { mountCubeToy } from '@/components/cube/cubeToy';
+
+const FOV = (30 * Math.PI) / 180;
+/** Looking down on the floor. */
+const TILT = (12 * Math.PI) / 180;
+const BOB = 0.06;
+const ZOOM_MAX = 1.8;
 
 /**
  * The cube, full-screen: opened by clicking either toy cube, over a dimmed
@@ -49,7 +70,7 @@ const CubeView = () => {
                     role="dialog"
                     aria-modal="true"
                     aria-label="The cube, full-screen"
-                    className="fixed inset-0 z-[60] bg-black/70 backdrop-blur-md"
+                    className="cube-backdrop fixed inset-0 z-[60] bg-black/70 backdrop-blur-md"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
@@ -121,34 +142,168 @@ const Stage = ({
     useEffect(() => {
         const host = hostRef.current;
         if (!host) return;
-        return mountCubeToy({
-            host,
-            hit: host,
-            // Big, but leaving room around it to spin, grow and zoom, and
-            // below it for its floor.
-            edge: () => Math.min(host.clientWidth, host.clientHeight) * 0.22,
-            zoomMax: 1.8,
-            ctrlToZoom: false,
-            scaleHit: false,
-            // Floating over its floor, like the small ones.
-            float: true,
-            stage: true,
-            // A click beside the cube, on the backdrop, closes the view.
-            onTap: (onCube) => {
-                if (!onCube) live.current.onClose();
+        const canvas = document.createElement('canvas');
+        canvas.className = 'block h-full w-full';
+        host.append(canvas);
+        const renderer = createRenderer(canvas, {
+            alpha: true,
+            onRestored: () => {},
+        });
+        if (!renderer) return;
+
+        const reduced = prefersReducedMotion();
+        const palette = createPaletteFade(reduced);
+        const rig = createCubeRig(true, reduced);
+        let width = 1;
+        let height = 1;
+        let zoom = 1;
+        let zoomAim = 1;
+        let pinchFrom = 0;
+        let zoomAtPinch = 1;
+        let viewProjection = new Float32Array(16) as Mat4;
+
+        const layout = () => {
+            width = Math.max(1, host.clientWidth);
+            height = Math.max(1, host.clientHeight);
+            renderer.resize(
+                width,
+                height,
+                Math.min(window.devicePixelRatio || 1, 2),
+            );
+        };
+        layout();
+        const resizer = new ResizeObserver(layout);
+        resizer.observe(host);
+
+        const clampZoom = (z: number) => Math.min(ZOOM_MAX, Math.max(1, z));
+
+        const detach = attachCubeInput(host, rig.spin, {
+            reduced,
+            onTap: (x, y) => {
+                const box = host.getBoundingClientRect();
+                const [cx, cy] = project(viewProjection, 0, 0, 0);
+                const off = Math.hypot(
+                    x - box.left - ((cx + 1) / 2) * width,
+                    y - box.top - ((1 - cy) / 2) * height,
+                );
+                // A click beside the cube, on the backdrop, closes the view.
+                if (off > Math.min(width, height) * 0.24 * zoom) {
+                    live.current.onClose();
+                }
             },
-            read: () => {
-                const s = live.current.settings;
-                return {
-                    gradient: s.gradient,
-                    wave: s.wave,
-                    effect: s.effect,
-                    cube: s.cube,
-                    shown: true,
-                    active: true,
-                };
+            onPinch: (span) => {
+                if (!span) {
+                    pinchFrom = 0;
+                    return;
+                }
+                if (!pinchFrom) {
+                    pinchFrom = span;
+                    zoomAtPinch = zoomAim;
+                }
+                zoomAim = clampZoom((zoomAtPinch * span) / pinchFrom);
             },
         });
+        const onWheel = (event: WheelEvent) => {
+            event.preventDefault();
+            zoomAim = clampZoom(zoomAim * Math.exp(-event.deltaY * 0.004));
+        };
+        host.addEventListener('wheel', onWheel, { passive: false });
+
+        let frame = 0;
+        let last = performance.now();
+        let drift = 0;
+        let floor = -1;
+
+        const tick = (now: number) => {
+            frame = requestAnimationFrame(tick);
+            const dt = Math.min(0.05, (now - last) / 1000);
+            last = now;
+            drift += dt;
+            const s = live.current.settings;
+            const ramp = palette.update(s.gradient, dt);
+            if (ramp) renderer.setRamp(ramp);
+            const body = rig.step(dt, s.wave, s.cube);
+            zoom += (zoomAim - zoom) * (reduced ? 1 : 1 - Math.exp(-dt / 0.15));
+
+            // Zoom 1 fills the stage: the cube, its floor and reflection all
+            // on screen whichever way it turns.
+            const lift = rig.lift();
+            const r = (Math.sqrt(3) / 2) * (1 + 2 * lift);
+            const top = r + BOB;
+            const bottom = -(r + BOB + 0.14) - 0.8;
+            const aim = (top + bottom) / 2;
+            const tanV = Math.tan(FOV / 2);
+            const tanH = tanV * (width / height);
+            const fit =
+                Math.max((top - bottom) / 2 / tanV, r / tanH) * 1.06 + r * 0.5;
+            const distance = fit / zoom;
+            viewProjection = multiply(
+                perspective(
+                    FOV,
+                    width / height,
+                    Math.max(0.1, distance - 4),
+                    distance + 6,
+                ),
+                multiply(
+                    translation(0, -aim, -distance),
+                    rotationX(Math.PI / 2 - TILT),
+                ),
+            );
+
+            const rise = reduced ? 0 : Math.sin(drift * 0.9) * BOB;
+            const low = -r * body.scale - BOB - 0.14;
+            floor =
+                low < floor
+                    ? low
+                    : floor + (low - floor) * (1 - Math.exp(-dt / 1.2));
+            const model = rig.matrix(Math.max(0.001, body.scale), 0, 0, rise);
+            const reflect = Float32Array.of(
+                1,
+                0,
+                0,
+                0,
+                0,
+                1,
+                0,
+                0,
+                0,
+                0,
+                -1,
+                0,
+                0,
+                0,
+                2 * floor,
+                1,
+            );
+
+            renderer.draw({
+                viewProjection,
+                paper: [0, 0, 0],
+                ink: [1, 1, 1],
+                field: null,
+                cube: {
+                    model,
+                    columns: body.columns,
+                    wave: body.wave,
+                    phase: body.phase,
+                    cube: body.cube,
+                    coreColor: hexToUnit(body.cube.coreColor),
+                    gain: palette.gain(),
+                    tints: palette.tints(),
+                    floor: { z: floor, model: multiply(reflect, model) },
+                },
+            });
+        };
+        frame = requestAnimationFrame(tick);
+
+        return () => {
+            cancelAnimationFrame(frame);
+            resizer.disconnect();
+            detach();
+            host.removeEventListener('wheel', onWheel);
+            renderer.dispose();
+            canvas.remove();
+        };
     }, []);
 
     return (

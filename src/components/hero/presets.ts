@@ -3,15 +3,17 @@ import {
     GradientName,
     GridKey,
     HoverEffect,
+    RiseKey,
     WaveSettings,
     defaultGrid,
+    defaultRise,
 } from '@/components/hero/tiles';
 
 export interface Preset {
     name: string;
     gradient: GradientName;
     wave: WaveSettings;
-    /** Defaults to the lens. */
+    /** Defaults to the rise. */
     effect?: HoverEffect;
     /** The cube's build; its core is left as the visitor set it. */
     cube: CubeShape;
@@ -35,7 +37,8 @@ export type CubeShape = Pick<
 >;
 
 type RawPreset = Omit<Preset, 'wave'> & {
-    wave: Omit<WaveSettings, GridKey> & Partial<Pick<WaveSettings, GridKey>>;
+    wave: Omit<WaveSettings, GridKey | RiseKey> &
+        Partial<Pick<WaveSettings, GridKey | RiseKey>>;
 };
 
 const rawPresets: RawPreset[] = [
@@ -188,7 +191,6 @@ const rawPresets: RawPreset[] = [
             reachY: 1,
             relief: 3,
             gridReach: 700,
-            gridLine: 3,
             gridOpacity: 1,
         },
         effect: 'grid',
@@ -211,7 +213,6 @@ const rawPresets: RawPreset[] = [
             reachY: 1,
             relief: 2.5,
             gridReach: 450,
-            gridLine: 2,
             gridOpacity: 0.8,
         },
         effect: 'grid',
@@ -272,7 +273,6 @@ const rawPresets: RawPreset[] = [
             reachY: 1,
             relief: 2.4,
             gridReach: 620,
-            gridLine: 1.5,
             gridOpacity: 0.9,
         },
         effect: 'grid',
@@ -281,10 +281,10 @@ const rawPresets: RawPreset[] = [
     },
 ];
 
-/** The presets were tuned for the lens; the grid settings default. */
+/** The presets were tuned for the lens; the grid and rise settings default. */
 export const presets: Preset[] = rawPresets.map((preset) => ({
     ...preset,
-    wave: { ...defaultGrid, ...preset.wave },
+    wave: { ...defaultGrid, ...defaultRise, ...preset.wave },
 }));
 
 /** Only ever draws from the calm set. */

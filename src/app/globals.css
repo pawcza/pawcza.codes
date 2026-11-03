@@ -157,13 +157,6 @@
      * White under `difference` blending: it inverts whatever it sits on, so
      * it reads dark on paper and light on ink, hover-inverted buttons too. */
     --glow-color: #fff;
-
-    /* Ambient field behind the page, the thing the glass refracts. */
-    /* Tinted from the hero's current tile palette (TileSettings writes
-     * --palette-a/b/c); the fallbacks are the original gold, blue and pink. */
-    --ambient-a: color-mix(in srgb, var(--palette-a) 42%, transparent);
-    --ambient-b: color-mix(in srgb, var(--palette-b) 36%, transparent);
-    --ambient-c: color-mix(in srgb, var(--palette-c) 30%, transparent);
 }
 
 /*
@@ -196,10 +189,6 @@
     --glass-edge: rgba(255, 255, 255, 0.08);
     --glass-shadow:
         0 1px 2px rgba(0, 0, 0, 0.5), 0 24px 48px -20px rgba(0, 0, 0, 0.8);
-
-    --ambient-a: color-mix(in srgb, var(--palette-a) 26%, transparent);
-    --ambient-b: color-mix(in srgb, var(--palette-b) 28%, transparent);
-    --ambient-c: color-mix(in srgb, var(--palette-c) 22%, transparent);
 }
 
 * {
@@ -210,8 +199,8 @@ html {
     scroll-behavior: smooth;
     /* Nav is fixed, so keep anchored sections clear of it. */
     scroll-padding-top: 6rem;
-    /* Reserve the scrollbar gutter permanently, so locking the body while the
-     * loader is up cannot shift the layout. */
+    /* Reserve the scrollbar gutter permanently, so locking scroll under a
+     * modal cannot shift the layout. */
     scrollbar-gutter: stable;
 }
 
@@ -421,6 +410,19 @@ body {
     pointer-events: none;
 }
 
+/* Only a lit element draws its ring: GlassPointer sets data-lit. Each one is a
+ * blended layer, and a page of them at zero strength still costs compositing. */
+.chip:not([data-lit])::before,
+.glass-pill:not([data-lit])::before,
+.edge:not([data-lit])::before,
+.project-dialog:not([data-lit])::before,
+.glass:not([data-lit])::after,
+.card:not([data-lit])::after,
+.edge-line:not([data-lit])::before,
+.edge-line-v:not([data-lit])::before {
+    display: none;
+}
+
 /* No border of their own (a field wrapper; the dialog, which also clips),
  * so the ring sits flush inside. */
 .edge::before,
@@ -532,6 +534,50 @@ body {
         inset 0 0 0 1px rgba(255, 255, 255, 0.06);
 }
 
+/* A project cover leaning towards the cursor (ProjectCover sets the angle). */
+.cover-tilt {
+    transition: transform 0.25s ease-out;
+}
+
+/*
+ * The row of tiles standing on a section's rule: the hero's field, in
+ * miniature. One element and a repeating gradient, in the page's palette,
+ * tipped up off the line as it scrolls in, so all of it is a single transform
+ * on the compositor. Fades out along the rule, as the rule does.
+ */
+.tile-rule {
+    height: 0.625rem;
+    margin-bottom: 0.0625rem;
+    background: repeating-linear-gradient(
+            90deg,
+            transparent 0,
+            transparent 0.75rem,
+            var(--paper) 0.75rem,
+            var(--paper) 0.875rem
+        ),
+        linear-gradient(
+            90deg,
+            var(--palette-a, var(--line-strong)),
+            var(--palette-b, var(--line-strong)) 22%,
+            var(--palette-c, var(--line-strong)) 42%
+        );
+    -webkit-mask-image: linear-gradient(90deg, #000 20%, transparent 62%);
+    mask-image: linear-gradient(90deg, #000 20%, transparent 62%);
+    transform-origin: 50% 100%;
+    transform: perspective(24rem) rotateX(82deg);
+    transition: transform 0.9s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.4s ease-out;
+}
+
+.tile-rule[data-shown] {
+    transform: perspective(24rem) rotateX(0deg);
+}
+
+/* Glass around something opaque: same rim, nothing behind it to blur. */
+.glass-frame {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+}
+
 /* Glass that floats over busy colour (the settings panel sits on the hero
  * tiles): same material, a much denser fill so its controls stay legible. */
 .glass-solid {
@@ -618,12 +664,21 @@ body {
 
 /* ---------- Hero ---------- */
 
+/* With WebGL the field paints its own washes (scrim.ts); these are for the
+ * moment before that, and for Canvas2D. */
+[data-field] > :is(.hero-scrim, .hero-fade, .footer-scrim, .footer-fade) {
+    display: none;
+}
+
 .hero-canvas {
     position: absolute;
     inset: 0;
+}
+
+.hero-canvas canvas {
+    display: block;
     width: 100%;
     height: 100%;
-    display: block;
 }
 
 /*
@@ -631,7 +686,8 @@ body {
  * the open space to the right, so the hero keeps its colour instead of
  * turning into grey wallpaper.
  */
-.hero-scrim {
+.hero-scrim,
+.footer-scrim {
     position: absolute;
     inset: 0;
     pointer-events: none;
@@ -666,25 +722,11 @@ body {
 }
 
 /*
- * The footer's own wash. On desktop it leans like the hero's, but on small
- * screens the layouts are opposites: the hero is empty up top with copy at the
- * bottom, the footer is the reverse. So this clears at both edges and mutes
- * only the middle band the contact details actually occupy.
+ * The footer's own wash on small screens. There the layouts are opposites: the
+ * hero is empty up top with copy at the bottom, the footer is the reverse. So
+ * this clears at both edges and mutes only the middle band the contact details
+ * actually occupy.
  */
-.footer-scrim {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    background: linear-gradient(
-        100deg,
-        color-mix(in srgb, var(--paper) 93%, transparent) 0%,
-        color-mix(in srgb, var(--paper) 89%, transparent) 40%,
-        color-mix(in srgb, var(--paper) 58%, transparent) 62%,
-        color-mix(in srgb, var(--paper) 18%, transparent) 84%,
-        transparent 100%
-    );
-}
-
 @media (max-width: 767px) {
     .footer-scrim {
         background: linear-gradient(
@@ -737,13 +779,56 @@ body {
     }
 }
 
+/* The travelling highlight in the nav. */
+.nav-pill {
+    transition:
+        transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+        width 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+        opacity 0.2s ease;
+}
+
 /*
- * Text that builds in square by square once it scrolls into view (see
- * SquareText). Opacity rather than visibility, so screen readers still reach
- * it; the layout's <noscript> shows it when there is no JS to play the build.
+ * Everything that waits to be revealed. Opacity rather than visibility, so
+ * screen readers still reach it. Only ever hidden by CSS the page can recover
+ * from: reduced motion skips these outright, and if the JS is slow, broken or
+ * absent (no data-hydrated yet) they come in by themselves.
  */
-[data-squares=''] {
+[data-squares=''],
+[data-intro],
+.cover-wait,
+.reveal {
     opacity: 0;
+}
+
+.reveal {
+    transition: opacity 0.55s ease-out;
+}
+
+.reveal[data-shown] {
+    opacity: 1;
+}
+
+html:not([data-hydrated]) :is([data-squares=''], .cover-wait, .reveal) {
+    animation: come-in 0.3s 2.5s forwards;
+}
+
+/* The title is on screen at load, so without JS it waits far less. With JS,
+ * it waits for the field to build in (introSequence.ts). */
+html:not([data-hydrated]) [data-intro] {
+    animation: come-in 0.2s 0.9s forwards;
+}
+
+@keyframes come-in {
+    to {
+        opacity: 1;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    :is([data-intro], [data-squares=''], .cover-wait, .reveal) {
+        opacity: 1;
+        animation: none;
+    }
 }
 
 /* ---------- Range sliders (background settings) ---------- */
@@ -885,34 +970,4 @@ html:has(.project-dialog[open]) {
 .hairline.edge-line::before,
 .h-px.edge-line::before {
     inset: 0 0 auto;
-}
-
-/*
- * No GPU (see RenderMode): everything that is only cheap on the GPU goes.
- * The ambient field stops drifting and glass loses its backdrop blur, so the
- * fill is made denser to keep text on it legible.
- */
-[data-render='software'] :is(
-        .glass,
-        .card,
-        .glass-pill,
-        .glass-solid,
-        .project-dialog,
-        .project-dialog::backdrop,
-        .no-scrollbar
-    ) {
-    -webkit-backdrop-filter: none !important;
-    backdrop-filter: none !important;
-}
-
-[data-render='software'] :is(.glass, .card, .glass-pill):not(.btn-primary) {
-    background-color: var(--glass-fill-strong);
-}
-
-/* A panel full of controls cannot let a quarter of the page behind through
- * unblurred: over the hero heading it read as text layered on text. */
-[data-render='software'] .glass-solid:not(.btn-primary) {
-    /* :not() only to match the specificity of the rule above, which the
-     * panel also falls under as a .card; being later, this one wins. */
-    background-color: var(--paper-raised);
 }

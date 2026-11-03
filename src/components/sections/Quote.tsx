@@ -30,7 +30,7 @@ const fallback: Quote = {
 const QuoteSection = () => {
     const [quote, setQuote] = useState<Quote>(fallback);
     const [loading, setLoading] = useState(false);
-    const hasFetched = useRef(false);
+    const sectionRef = useRef<HTMLElement>(null);
 
     const getQuote = useCallback(async () => {
         setLoading(true);
@@ -46,15 +46,25 @@ const QuoteSection = () => {
         }
     }, []);
 
+    // Fetched on the way to it: a visitor who never gets here costs nothing.
     useEffect(() => {
-        // React 18 StrictMode double-invokes effects in dev; only fetch once.
-        if (hasFetched.current) return;
-        hasFetched.current = true;
-        getQuote();
+        const section = sectionRef.current;
+        if (!section) return;
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (!entry.isIntersecting) return;
+                observer.disconnect();
+                getQuote();
+            },
+            { rootMargin: '600px' },
+        );
+        observer.observe(section);
+        return () => observer.disconnect();
     }, [getQuote]);
 
     return (
         <section
+            ref={sectionRef}
             id="quote"
             className="mx-auto w-full max-w-content px-6 py-16 md:py-20"
         >

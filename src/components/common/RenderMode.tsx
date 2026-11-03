@@ -2,19 +2,13 @@
 
 import { useEffect } from 'react';
 
-import { isSoftwareRendered } from '@/components/common/gpu';
-
 /**
- * Marks the page when the browser has no GPU to draw with, so CSS can drop
- * what only a GPU makes cheap: the drifting ambient field, and the backdrop
- * blur on every glass surface, which would otherwise be recomputed on the CPU
- * each frame the colours behind it move or the page scrolls.
+ * Says the page is live: until `data-hydrated` appears, CSS brings hidden
+ * content in by itself, so a page whose JS is slow or broken never sits blank.
  */
 const RenderMode = () => {
     useEffect(() => {
-        if (isSoftwareRendered()) {
-            document.documentElement.dataset.render = 'software';
-        }
+        document.documentElement.dataset.hydrated = '';
     }, []);
 
     return null;

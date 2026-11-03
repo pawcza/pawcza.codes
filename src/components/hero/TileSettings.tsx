@@ -1,13 +1,16 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import React, {
     createContext,
     useCallback,
     useContext,
     useEffect,
+    useMemo,
     useState,
 } from 'react';
 
+import { setFieldSettings } from '@/components/field/pageField';
 import {
     GradientName,
     HoverEffect,
@@ -24,8 +27,14 @@ import {
     presets,
     randomPreset,
 } from '@/components/hero/presets';
-import Controls from '@/components/hero/Controls';
-import CubeView from '@/components/cube/CubeView';
+
+// Nobody needs these to read the page: they arrive with the first click.
+const Controls = dynamic(() => import('@/components/hero/Controls'), {
+    ssr: false,
+});
+const CubeView = dynamic(() => import('@/components/cube/CubeView'), {
+    ssr: false,
+});
 
 interface TileSettings {
     gradient: GradientName;
@@ -102,6 +111,12 @@ const randomCubeShape = (): CubeShape => {
 
 const TileSettingsContext = createContext<TileSettings | null>(null);
 
+/*
+ * Random on every load. Nothing the server renders depends on it (only the
+ * canvases read it), so server and browser can disagree without a mismatch.
+ */
+const firstPreset = typeof window === 'undefined' ? presets[0] : randomPreset();
+
 /**
  * The hero and the footer each render their own tile field, so the palette and
  * wave live above both. Randomising or dragging a slider moves them together.
@@ -111,19 +126,16 @@ export const TileSettingsProvider = ({
 }: {
     children: React.ReactNode;
 }) => {
-    // The first preset on both server and client, so hydration matches; a
-    // random one is swapped in on mount below, while the loader still covers
-    // the page.
     const [gradient, setGradientState] = useState<GradientName>(
-        presets[0].gradient,
+        firstPreset.gradient,
     );
-    const [wave, setWaveState] = useState<WaveSettings>(presets[0].wave);
+    const [wave, setWaveState] = useState<WaveSettings>(firstPreset.wave);
     const [effect, setEffectState] = useState<HoverEffect>(
-        presets[0].effect ?? 'lens',
+        firstPreset.effect ?? 'rise',
     );
     const [customColours, setCustomColoursState] =
         useState<[string, string]>(defaultCustomColours);
-    const [preset, setPreset] = useState<string | null>(presets[0].name);
+    const [preset, setPreset] = useState<string | null>(firstPreset.name);
     const [controlsOpen, setControlsOpenState] = useState(false);
     const [controlsAnchor, setControlsAnchor] =
         useState<ControlsAnchor>('page');
@@ -132,7 +144,7 @@ export const TileSettingsProvider = ({
     // stays as the visitor set it.
     const [cube, setCubeState] = useState<CubeSettings>({
         ...defaultCube,
-        ...presets[0].cube,
+        ...firstPreset.cube,
     });
     const setCube = (next: CubeSettings) => {
         setCubeState(next);
@@ -148,16 +160,12 @@ export const TileSettingsProvider = ({
         setControlsOpenState(open);
     }, []);
 
-    const load = (next: Preset) => {
+    const applyPreset = (next: Preset) => {
         setGradientState(next.gradient);
         setWaveState(next.wave);
-        setEffectState(next.effect ?? 'lens');
+        setEffectState(next.effect ?? 'rise');
         setCubeState((current) => ({ ...current, ...next.cube }));
         setPreset(next.name);
-    };
-
-    const applyPreset = (next: Preset) => {
-        load(next);
         setPlayed(true);
     };
 
@@ -198,23 +206,22 @@ export const TileSettingsProvider = ({
     const randomise = () => {
         setGradientState((current) => randomGradient(current));
         setWaveState(randomWave());
-        setEffectState(Math.random() < 0.5 ? 'lens' : 'grid');
+        setEffectState(
+            (['rise', 'lens', 'grid'] as const)[Math.floor(Math.random() * 3)],
+        );
         setCubeState((current) => ({ ...current, ...randomCubeShape() }));
         setPreset(null);
         setPlayed(true);
     };
 
+    // The live field reads these from its own loop, so a slider never touches
+    // the components around it.
     useEffect(() => {
-        // Swapped in after mount rather than during render: picking randomly
-        // while rendering would give the server and the client different
-        // values. The loader is still covering the page at this point, so the
-        // change is never seen.
-        // `load`, not `applyPreset`: this is not the visitor playing.
-        load(randomPreset());
-    }, []);
+        setFieldSettings({ gradient, wave, effect, cube, cubeOpen: cubeView });
+    }, [gradient, wave, effect, cube, cubeView, customColours]);
 
     // The page's ambient glow takes its colours from the tile palette: the
-    // first, middle and last stops. globals.css fades between them.
+    // first, middle and last stops. AmbientField fades between them.
     useEffect(() => {
         const stops = paletteStops(gradient);
         const root = document.documentElement.style;
@@ -224,34 +231,58 @@ export const TileSettingsProvider = ({
         // customColours: re-mixing the custom palette keeps its name.
     }, [gradient, customColours]);
 
+    // Once opened they stay mounted, so they can animate out.
+    const [opened, setOpened] = useState(false);
+    if ((controlsOpen || cubeView) && !opened) setOpened(true);
+
+    // The functions only close over setters, so the state alone decides when
+    // this changes, and a re-render of the provider reaches no consumer.
+    const value = useMemo(
+        () => ({
+            gradient,
+            setGradient,
+            wave,
+            setWave,
+            effect,
+            setEffect,
+            customColours,
+            setCustomColours,
+            preset,
+            applyPreset,
+            randomise,
+            controlsOpen,
+            setControlsOpen,
+            controlsAnchor,
+            played,
+            cube,
+            setCube,
+            cubeView,
+            setCubeView,
+        }),
+        [
+            gradient,
+            wave,
+            effect,
+            customColours,
+            preset,
+            controlsOpen,
+            controlsAnchor,
+            played,
+            cube,
+            cubeView,
+        ],
+    );
+
     return (
-        <TileSettingsContext.Provider
-            value={{
-                gradient,
-                setGradient,
-                wave,
-                setWave,
-                effect,
-                setEffect,
-                customColours,
-                setCustomColours,
-                preset,
-                applyPreset,
-                randomise,
-                controlsOpen,
-                setControlsOpen,
-                controlsAnchor,
-                played,
-                cube,
-                setCube,
-                cubeView,
-                setCubeView,
-            }}
-        >
+        <TileSettingsContext.Provider value={value}>
             {children}
             {/* Fixed, so one instance serves the hero and the footer alike. */}
-            <Controls />
-            <CubeView />
+            {opened && (
+                <>
+                    <Controls />
+                    <CubeView />
+                </>
+            )}
         </TileSettingsContext.Provider>
     );
 };

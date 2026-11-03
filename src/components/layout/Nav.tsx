@@ -7,8 +7,8 @@ import {
     useRef,
     useState,
 } from 'react';
-import { motion } from 'motion/react';
 
+import MatrixText from '@/components/common/MatrixText';
 import ThemeToggle from '@/components/common/ThemeToggle';
 import {
     Briefcase,
@@ -36,10 +36,13 @@ const items = [
 
 const Nav = () => {
     const { controlsOpen, setControlsOpen } = useTileSettings();
-    const [active, setActive] = useState('work');
+    // The hero, which has no link on wider screens. Anything else here is
+    // server-rendered as active, and with no pill behind it yet its inverted
+    // text shows as a dark word on the dark bar until the page is live.
+    const [active, setActive] = useState('top');
     // The link the pill actually sits on. Differs from `active` only when the
     // active section has no visible link at this breakpoint.
-    const [highlighted, setHighlighted] = useState('work');
+    const [highlighted, setHighlighted] = useState('');
     const [stuck, setStuck] = useState(false);
     // Tucked away while scrolling down, back as soon as the visitor scrolls
     // up: going down it only covers what they are reading.
@@ -47,7 +50,6 @@ const Nav = () => {
     // Rendered position of the travelling highlight, in track coordinates.
     const [pill, setPill] = useState({ left: 0, width: 0, visible: false });
 
-    const trackRef = useRef<HTMLDivElement>(null);
     const linkRefs = useRef<Record<string, HTMLAnchorElement | null>>({});
 
     /** Snap the pill onto whichever link is currently active. */
@@ -83,6 +85,10 @@ const Nav = () => {
     useEffect(() => {
         let frame = 0;
         let lastY = window.scrollY;
+        // Measured on layout changes, not on every scroll frame.
+        let tops: { id: string; top: number }[] = [];
+        let pageHeight = 0;
+        let viewport = 0;
         // Direction is only judged past this many pixels, so a trackpad's
         // wobble or a bounce at the edge does not flicker the nav.
         const DEAD_ZONE = 8;
@@ -97,28 +103,22 @@ const Nav = () => {
             }
 
             // Roughly where the hero leaves the screen.
-            setStuck(window.scrollY > window.innerHeight * 0.78);
+            setStuck(window.scrollY > viewport * 0.78);
 
             // At the very bottom the last section may never cross the probe
             // line, so pin it explicitly.
-            const atBottom =
-                window.innerHeight + window.scrollY >=
-                document.documentElement.scrollHeight - 4;
+            const atBottom = viewport + window.scrollY >= pageHeight - 4;
 
             if (atBottom) {
                 setActive(items[items.length - 1].id);
                 return;
             }
 
-            const probe = window.scrollY + window.innerHeight * 0.35;
+            const probe = window.scrollY + viewport * 0.35;
             let current = items[0].id;
 
-            for (const item of items) {
-                const section = document.getElementById(item.id);
-                if (!section) continue;
-                const top =
-                    section.getBoundingClientRect().top + window.scrollY;
-                if (top <= probe) current = item.id;
+            for (const { id, top } of tops) {
+                if (top <= probe) current = id;
             }
 
             setActive(current);
@@ -128,14 +128,29 @@ const Nav = () => {
             if (!frame) frame = requestAnimationFrame(update);
         };
 
-        update();
+        const measurePage = () => {
+            viewport = window.innerHeight;
+            pageHeight = document.documentElement.scrollHeight;
+            tops = items.flatMap(({ id }) => {
+                const section = document.getElementById(id);
+                if (!section) return [];
+                const { top } = section.getBoundingClientRect();
+                return [{ id, top: top + window.scrollY }];
+            });
+            onScroll();
+        };
+
+        // Fires for a resize, and for the page growing as fonts or quotes land.
+        const layout = new ResizeObserver(measurePage);
+        layout.observe(document.body);
+
+        measurePage();
         window.addEventListener('scroll', onScroll, { passive: true });
-        window.addEventListener('resize', onScroll);
 
         return () => {
             if (frame) cancelAnimationFrame(frame);
+            layout.disconnect();
             window.removeEventListener('scroll', onScroll);
-            window.removeEventListener('resize', onScroll);
         };
     }, []);
 
@@ -157,23 +172,22 @@ const Nav = () => {
                       : 'visible opacity-100'
             } md:visible md:translate-y-0 md:opacity-100`}
         >
-            <div className="no-scrollbar glass-pill flex max-w-full items-center gap-1 overflow-x-auto rounded-full p-1">
-                <div ref={trackRef} className="relative flex items-center">
+            {/* Builds in square by square once the hero's field has. */}
+            <div
+                data-squares=""
+                data-squares-after="field"
+                data-squares-delay="0.1"
+                className="no-scrollbar glass-pill flex max-w-full items-center gap-1 overflow-x-auto rounded-full p-1"
+            >
+                <div className="relative flex items-center">
                     {/* One element that slides and resizes between links. */}
-                    <motion.span
+                    <span
                         aria-hidden="true"
-                        className="absolute inset-y-0 left-0 rounded-full bg-ink"
-                        initial={false}
-                        animate={{
-                            x: pill.left,
+                        className="nav-pill absolute inset-y-0 left-0 rounded-full bg-ink"
+                        style={{
+                            transform: `translateX(${pill.left}px)`,
                             width: pill.width,
                             opacity: pill.visible ? 1 : 0,
-                        }}
-                        transition={{
-                            type: 'spring',
-                            stiffness: 420,
-                            damping: 38,
-                            mass: 0.7,
                         }}
                     />
 
@@ -200,8 +214,10 @@ const Nav = () => {
                                     height={16}
                                     className="block px-px sm:hidden"
                                 />
-                                <span className="hidden sm:inline">
-                                    {item.label}
+                                <span className="hidden sm:inline-block">
+                                    <MatrixText intro mono={false}>
+                                        {item.label}
+                                    </MatrixText>
                                 </span>
                             </a>
                         );

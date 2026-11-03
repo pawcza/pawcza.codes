@@ -52,10 +52,12 @@ export interface WaveSettings {
     reachY: number;
     /** Grid effect: radius of the revealed patch of grid lines, in px. */
     gridReach: number;
-    /** Grid effect: width of the revealed lines, in px. */
-    gridLine: number;
     /** Grid effect: how strongly the lines show at the cursor. */
     gridOpacity: number;
+    /** Rise effect: how high the tiles under the cursor stand up, in tiles. */
+    riseHeight: number;
+    /** Rise effect: how far around the cursor they rise, in px. */
+    riseReach: number;
     /**
      * How deep the wave looks: the field is lit as if its colours were
      * heights, light rolling over the crests and into the troughs. 0 is flat.
@@ -64,19 +66,26 @@ export interface WaveSettings {
 }
 
 /** What the cursor does to the field. */
-export type HoverEffect = 'lens' | 'grid';
+export type HoverEffect = 'rise' | 'lens' | 'grid';
 
 /** The settings each effect owns, so the panel shows only the chosen one's. */
 export const effectKeys: Record<HoverEffect, (keyof WaveSettings)[]> = {
+    rise: ['riseHeight', 'riseReach'],
     lens: ['lens', 'reachX', 'reachY'],
-    grid: ['gridReach', 'gridLine', 'gridOpacity'],
+    grid: ['gridReach', 'gridOpacity'],
 };
 
-export type GridKey = 'gridReach' | 'gridLine' | 'gridOpacity';
+export type RiseKey = 'riseHeight' | 'riseReach';
+
+export const defaultRise: Pick<WaveSettings, RiseKey> = {
+    riseHeight: 2.5,
+    riseReach: 220,
+};
+
+export type GridKey = 'gridReach' | 'gridOpacity';
 
 export const defaultGrid: Pick<WaveSettings, GridKey> = {
     gridReach: 220,
-    gridLine: 1,
     gridOpacity: 0.55,
 };
 
@@ -93,7 +102,15 @@ export const defaultWave: WaveSettings = {
     reachY: 1,
     relief: 2,
     ...defaultGrid,
+    ...defaultRise,
 };
+
+/**
+ * How fast the wave moves per unit of the speed setting. Half the old flat
+ * field's rate: as heights rather than colour bands, the same motion read
+ * twice as fast.
+ */
+export const PHASE_RATE = 30;
 
 /** Neutral point of the bipolar lens slider. */
 export const LENS_NEUTRAL = 50;
@@ -240,15 +257,6 @@ export const waveRanges: Record<
         randomMin: 120,
         randomMax: 520,
     },
-    gridLine: {
-        label: 'Grid line',
-        description: 'How thick the revealed lines are.',
-        min: 0.5,
-        max: 4,
-        step: 0.5,
-        randomMin: 0.5,
-        randomMax: 2.5,
-    },
     relief: {
         label: 'Relief',
         description:
@@ -267,6 +275,24 @@ export const waveRanges: Record<
         step: 0.05,
         randomMin: 0.3,
         randomMax: 0.9,
+    },
+    riseHeight: {
+        label: 'Rise height',
+        description: 'How high the tiles under the cursor stand up.',
+        min: 0.5,
+        max: 6,
+        step: 0.1,
+        randomMin: 1.5,
+        randomMax: 4,
+    },
+    riseReach: {
+        label: 'Rise reach',
+        description: 'How wide the patch of rising tiles is.',
+        min: 80,
+        max: 600,
+        step: 10,
+        randomMin: 150,
+        randomMax: 380,
     },
 };
 
@@ -439,6 +465,9 @@ export const setCustomPalette = (from: string, to: string) => {
 };
 
 export const RAMP_LENGTH = RAMP_STEPS;
+
+/** The most the cube's relief setting runs to. */
+export const RELIEF_MAX = 3;
 
 /**
  * Which colour of the ramp a tile takes, given its grid position and the
