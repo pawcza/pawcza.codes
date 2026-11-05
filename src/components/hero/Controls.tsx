@@ -290,7 +290,7 @@ const Controls = () => {
                     exit={{ opacity: 0, y: sheet ? 24 : 0 }}
                     transition={{ duration: 0.2, ease: 'easeOut' }}
                     style={sheet ? { height: sheetHeight } : undefined}
-                    className={`card glass-solid fixed flex flex-col backdrop-blur-md ${
+                    className={`card fixed flex flex-col ${
                         sheet
                             ? `inset-x-0 bottom-0 overflow-hidden rounded-b-none px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] ${
                                   controlsAnchor === 'view' ? 'z-[70]' : 'z-40'

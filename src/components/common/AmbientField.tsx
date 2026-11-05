@@ -28,9 +28,8 @@ const FADE_MS = 520;
  * :root, and transitioning them restyled every element on the page each
  * frame for as long as the fade ran.
  *
- * The pixels are next to free, but every new frame makes each glass surface
- * above it blur again, so the drift is slow, and sleeps entirely under the
- * hero. With reduced motion it stops, and this draws
+ * The pixels are next to free, but each new frame recomposites everything
+ * above it, so the drift is slow, and sleeps entirely under the hero. With reduced motion it stops, and this draws
  * only when something changes: a palette, the theme, the window.
  */
 const AmbientField = () => {

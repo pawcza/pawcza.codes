@@ -181,13 +181,12 @@ const ProjectCover = ({
     }, []);
 
     return (
-        // The only surface a project gets: glass sitting right on the image
-        // edge (rim and edge glow from .glass), with a gloss laid over the top
-        // of the screenshot. The entry around it stays open.
-        // No blur: the opaque image fills it, so there is nothing to see through.
+        // The only surface a project gets: a hairline frame right on the image
+        // edge, which lights up near the cursor (.glass). The entry around it
+        // stays open.
         <div
             ref={tiltRef}
-            className="cover-tilt glass glass-frame rounded-[var(--radius)]"
+            className="cover-tilt glass rounded-[var(--radius)]"
         >
             <div
                 ref={frameRef}
@@ -234,7 +233,6 @@ const ProjectCover = ({
                         }`}
                     />
                 )}
-                <div aria-hidden className="cover-gloss" />
                 {project.preview && (
                     <div
                         aria-hidden

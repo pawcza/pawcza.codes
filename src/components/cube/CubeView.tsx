@@ -70,7 +70,7 @@ const CubeView = () => {
                     role="dialog"
                     aria-modal="true"
                     aria-label="The cube, full-screen"
-                    className="cube-backdrop fixed inset-0 z-[60] bg-black/70 backdrop-blur-md"
+                    className="cube-backdrop fixed inset-0 z-[60] bg-black/80"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}

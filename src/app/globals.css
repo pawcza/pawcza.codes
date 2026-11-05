@@ -44,36 +44,18 @@
     .btn:hover,
     .btn-icon:hover {
         color: var(--ink);
-        background-color: var(--glass-fill-strong);
+        background-color: color-mix(in srgb, var(--ink) 7%, transparent);
     }
 
-    /*
-     * The primary action: the same glass, tinted with ink, so the two weights
-     * stay distinct without becoming two different materials. Inverts with
-     * the theme like everything else. Two classes of specificity so it wins
-     * over the .glass-pill fill, which sits later in the file.
-     */
-    .btn.btn-primary {
-        color: var(--paper);
-        background:
-            linear-gradient(
-                180deg,
-                color-mix(in srgb, var(--paper) 22%, transparent) 0%,
-                transparent 55%
-            ),
-            color-mix(in srgb, var(--ink) 86%, transparent);
-        /* No border and no rim: on ink both read as extra lines around the
-         * fill, so the edge glow ring alone marks the edge. */
-        border: 0;
-        box-shadow: 0 4px 16px -8px rgba(0, 0, 0, 0.35);
-    }
-
-    /* Light on the ink fill, blended normally and inside the fill (it has
-     * no border to cover): `difference` left a dark fringe outside it. */
+    /* The primary action: solid ink, inverting with the theme. */
     .btn.btn-primary {
         --glow-color: var(--paper);
+        color: var(--paper);
+        background: var(--ink);
+        border: 0;
     }
 
+    /* Light on the ink fill, blended normally and inside it: `difference` left a dark fringe outside it. */
     .btn.btn-primary::before {
         inset: 0;
         mix-blend-mode: normal;
@@ -81,13 +63,7 @@
 
     .btn.btn-primary:hover {
         color: var(--paper);
-        background:
-            linear-gradient(
-                180deg,
-                color-mix(in srgb, var(--paper) 22%, transparent) 0%,
-                transparent 55%
-            ),
-            var(--ink);
+        background: color-mix(in srgb, var(--ink) 86%, var(--paper));
     }
 
     .btn:active,
@@ -142,16 +118,6 @@
 
     --radius: 0.875rem;
 
-    /* Glass. The fill is kept thin so the ambient field shows through; the
-     * top gloss and the bright rim are what make it read as a surface. */
-    --glass-fill: rgba(255, 255, 255, 0.46);
-    --glass-fill-strong: rgba(255, 255, 255, 0.72);
-    --glass-gloss: rgba(255, 255, 255, 0.55);
-    --glass-rim: rgba(255, 255, 255, 0.95);
-    --glass-edge: rgba(22, 22, 26, 0.09);
-    --glass-shadow:
-        0 1px 2px rgba(22, 22, 26, 0.05),
-        0 18px 40px -18px rgba(22, 22, 26, 0.22);
 
     /* Edge glow: the border lights up where the cursor is.
      * White under `difference` blending: it inverts whatever it sits on, so
@@ -182,13 +148,6 @@
     --shadow-card:
         0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px -12px rgba(0, 0, 0, 0.7);
 
-    --glass-fill: rgba(255, 255, 255, 0.055);
-    --glass-fill-strong: rgba(20, 20, 24, 0.72);
-    --glass-gloss: rgba(255, 255, 255, 0.07);
-    --glass-rim: rgba(255, 255, 255, 0.28);
-    --glass-edge: rgba(255, 255, 255, 0.08);
-    --glass-shadow:
-        0 1px 2px rgba(0, 0, 0, 0.5), 0 24px 48px -20px rgba(0, 0, 0, 0.8);
 }
 
 * {
@@ -279,50 +238,20 @@ body {
 /* ---------- Surfaces ---------- */
 
 /*
- * Glass surface. Three layers: a thin frosted fill that blurs and saturates
- * whatever is behind it, a gloss across the top third, and a rim that is
- * bright on the top-left edge and fades round the sides (::before, which also
- * carries the cursor's edge glow).
+ * Surfaces are flat: a solid fill and a hairline. They were glass (a blur, a
+ * gloss, a masked rim and soft shadows), and over a tile field that redraws
+ * every frame that made the page lag on real machines, blur or no blur. The
+ * class names stay; the edge glow still lights the border near the cursor.
  */
 .glass,
 .card {
     isolation: isolate;
-    background:
-        linear-gradient(180deg, var(--glass-gloss) 0%, transparent 38%),
-        var(--glass-fill);
-    -webkit-backdrop-filter: blur(22px) saturate(170%);
-    backdrop-filter: blur(22px) saturate(170%);
-    border: 1px solid var(--glass-edge);
-    box-shadow:
-        inset 0 1px 0 var(--glass-rim),
-        var(--glass-shadow);
+    background: var(--paper-raised);
+    border: 1px solid var(--line);
 }
 
 .card {
     border-radius: var(--radius);
-}
-
-.glass::before,
-.card::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    padding: 1px;
-    border-radius: inherit;
-    background: linear-gradient(
-            135deg,
-            var(--glass-rim) 0%,
-            transparent 30%,
-            transparent 70%,
-            color-mix(in srgb, var(--glass-rim) 50%, transparent) 100%
-        );
-    -webkit-mask:
-        linear-gradient(#000 0 0) content-box,
-        linear-gradient(#000 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    pointer-events: none;
 }
 
 /*
@@ -516,24 +445,6 @@ body {
     display: none;
 }
 
-/* The glossy top of a project thumbnail: a soft sheen and an inner
- * highlight on the upper edge, over the screenshot or its hover clip. */
-.cover-gloss {
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    pointer-events: none;
-    background: linear-gradient(
-        180deg,
-        rgba(255, 255, 255, 0.16) 0%,
-        rgba(255, 255, 255, 0.04) 28%,
-        transparent 45%
-    );
-    box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.35),
-        inset 0 0 0 1px rgba(255, 255, 255, 0.06);
-}
-
 /* A project cover leaning towards the cursor (ProjectCover sets the angle). */
 .cover-tilt {
     transition: transform 0.25s ease-out;
@@ -572,37 +483,10 @@ body {
     transform: perspective(24rem) rotateX(0deg);
 }
 
-/* Glass around something opaque: same rim, nothing behind it to blur. */
-.glass-frame {
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-}
-
-/* Glass that floats over busy colour (the settings panel sits on the hero
- * tiles): same material, a much denser fill so its controls stay legible. */
-.glass-solid {
-    background:
-        linear-gradient(180deg, var(--glass-gloss) 0%, transparent 38%),
-        var(--glass-fill-strong);
-    -webkit-backdrop-filter: blur(32px) saturate(180%);
-    backdrop-filter: blur(32px) saturate(180%);
-}
-
-/*
- * Buttons and small controls. Denser than the panels: they sit over the hero
- * tiles, the footer field and screenshots, and must stay legible on the
- * darkest preset in light theme as well as the lightest in dark.
- */
+/* Buttons and small controls: the same flat make. */
 .glass-pill {
-    background:
-        linear-gradient(180deg, var(--glass-gloss) 0%, transparent 60%),
-        var(--glass-fill-strong);
-    -webkit-backdrop-filter: blur(16px) saturate(170%);
-    backdrop-filter: blur(16px) saturate(170%);
-    border: 1px solid var(--glass-edge);
-    box-shadow:
-        inset 0 1px 0 var(--glass-rim),
-        0 4px 16px -8px rgba(0, 0, 0, 0.25);
+    background: var(--paper-raised);
+    border: 1px solid var(--line);
 }
 
 /*
@@ -620,9 +504,7 @@ body {
 }
 
 .chip {
-    background: color-mix(in srgb, var(--glass-fill) 70%, transparent);
-    box-shadow: inset 0 1px 0
-        color-mix(in srgb, var(--glass-rim) 60%, transparent);
+    background: var(--paper-raised);
     display: inline-flex;
     align-items: center;
     font-family: var(--font-mono), ui-monospace, monospace;
@@ -765,20 +647,6 @@ body {
     );
 }
 
-/*
- * On wide screens everything in the footer sits in the left column, where the
- * wash is ~90% paper: blurring the field through it changed nothing visible
- * (3/255 at most), but the field moves every frame, so every glass surface
- * there was re-blurred every frame. Firefox dropped a quarter of its frames
- * doing it. Phones keep the blur; their wash is thinner and it shows.
- */
-@media (min-width: 768px) {
-    #contact .glass-pill {
-        -webkit-backdrop-filter: none;
-        backdrop-filter: none;
-    }
-}
-
 /* The travelling highlight in the nav. */
 .nav-pill {
     transition:
@@ -902,11 +770,7 @@ input[type='range']:active::-moz-range-thumb {
     max-height: none;
     overflow: hidden;
     color: var(--ink);
-    background:
-        linear-gradient(180deg, var(--glass-gloss) 0%, transparent 30%),
-        var(--glass-fill-strong);
-    -webkit-backdrop-filter: blur(40px) saturate(180%);
-    backdrop-filter: blur(40px) saturate(180%);
+    background: var(--paper-raised);
     border: 0;
     opacity: 0;
     transform: translateY(16px) scale(0.985);
@@ -921,11 +785,8 @@ input[type='range']:active::-moz-range-thumb {
     .project-dialog {
         width: min(100vw - 3rem, 80rem);
         height: min(100dvh - 3rem, 52rem);
-        border: 1px solid var(--glass-edge);
+        border: 1px solid var(--line);
         border-radius: calc(var(--radius) + 0.5rem);
-        box-shadow:
-            inset 0 1px 0 var(--glass-rim),
-            0 40px 100px -30px rgba(0, 0, 0, 0.55);
     }
 }
 
@@ -942,9 +803,7 @@ input[type='range']:active::-moz-range-thumb {
 }
 
 .project-dialog::backdrop {
-    background: rgba(12, 12, 15, 0.38);
-    -webkit-backdrop-filter: blur(4px) saturate(140%);
-    backdrop-filter: blur(4px) saturate(140%);
+    background: rgba(12, 12, 15, 0.5);
     opacity: 0;
     transition:
         opacity 0.3s ease,
